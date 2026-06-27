@@ -1,38 +1,66 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { COUNTRY_LIST, getCountryName } from "@/lib/data/countries";
 import { LIMITS } from "@/lib/constants";
 import { isValidInstagramUrl } from "@/lib/utils/instagram";
+import { useModal } from "@/components/ui/ModalProvider";
 import type { VisitedCity, VisitedCountry } from "@/types/database";
+
+type SearchCity = {
+  id: string;
+  name: string;
+  subtitle: string;
+  latitude: number;
+  longitude: number;
+  country_code: string;
+  country_name: string;
+};
+
+const SEARCH_DEBOUNCE_MS = 400;
+const MIN_QUERY_LENGTH = 2;
+const ALL_COUNTRIES = "ALL";
 
 type CityFormProps = {
   city?: VisitedCity;
   visitedCountries: VisitedCountry[];
-  onBackToList?: () => void;
+  existingCities?: VisitedCity[];
   onSuccess?: () => void;
   onCancel?: () => void;
 };
 
-export function CityForm({ city, visitedCountries, onBackToList, onSuccess, onCancel }: CityFormProps) {
+function encodeCountries(countries: VisitedCountry[]): string {
+  return countries
+    .map((c) => `${c.country_code}|${encodeURIComponent(c.country_name)}`)
+    .join(",");
+}
+
+export function CityForm({
+  city,
+  visitedCountries,
+  existingCities = [],
+  onSuccess,
+  onCancel,
+}: CityFormProps) {
+  const isEdit = Boolean(city);
   const t = useTranslations("city");
   const tCommon = useTranslations("common");
   const router = useRouter();
+  const modal = useModal();
+  const abortRef = useRef<AbortController | null>(null);
 
-  const countryOptions =
-    visitedCountries.length > 0
-      ? visitedCountries.map((c) => ({
-          code: c.country_code,
-          name: c.country_name,
-        }))
-      : COUNTRY_LIST;
-
-  const [cityName, setCityName] = useState(city?.city_name ?? "");
   const [countryCode, setCountryCode] = useState(
-    city?.country_code ?? countryOptions[0]?.code ?? "US"
+    city?.country_code ?? visitedCountries[0]?.country_code ?? ""
   );
+  const [searchCountryFilter, setSearchCountryFilter] = useState(ALL_COUNTRIES);
+  const [cityName, setCityName] = useState(city?.city_name ?? "");
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(
+    city ? { latitude: city.latitude, longitude: city.longitude } : null
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchCity[]>([]);
+  const [loadingSearch, setLoadingSearch] = useState(false);
   const [note, setNote] = useState(city?.note ?? "");
   const [mediaType, setMediaType] = useState<"photo" | "instagram" | "">(
     city?.media_type ?? ""
@@ -41,24 +69,144 @@ export function CityForm({ city, visitedCountries, onBackToList, onSuccess, onCa
     city?.media_type === "instagram" ? (city.media_url ?? "") : ""
   );
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const selectedCountry = visitedCountries.find((c) => c.country_code === countryCode);
+
+  const searchCountries = useMemo(() => {
+    if (searchCountryFilter === ALL_COUNTRIES) {
+      return visitedCountries;
+    }
+    return visitedCountries.filter((c) => c.country_code === searchCountryFilter);
+  }, [searchCountryFilter, visitedCountries]);
+
+  const existingKeys = useMemo(
+    () =>
+      new Set(
+        existingCities.map(
+          (c) => `${c.country_code.toUpperCase()}:${c.city_name.toLowerCase()}`
+        )
+      ),
+    [existingCities]
+  );
+
+  const runSearch = useCallback(
+    async (q: string, countries: VisitedCountry[]) => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      if (q.length < MIN_QUERY_LENGTH || countries.length === 0) {
+        setSearchResults([]);
+        setLoadingSearch(false);
+        return;
+      }
+
+      setLoadingSearch(true);
+
+      try {
+        const params = new URLSearchParams({
+          countries: encodeCountries(countries),
+          q,
+        });
+        const res = await fetch(`/api/cities/search?${params}`, {
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          setSearchResults([]);
+          await modal.alert("Could not search cities. Try again in a moment.", {
+            variant: "error",
+          });
+          return;
+        }
+
+        const data = await res.json();
+        setSearchResults(data.cities ?? []);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setSearchResults([]);
+        await modal.alert("Could not search cities. Try again in a moment.", {
+          variant: "error",
+        });
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingSearch(false);
+        }
+      }
+    },
+    [modal]
+  );
+
+  useEffect(() => {
+    if (isEdit) return;
+
+    const q = searchQuery.trim();
+    if (q.length < MIN_QUERY_LENGTH) {
+      setSearchResults([]);
+      setLoadingSearch(false);
+      return;
+    }
+
+    const countries = searchCountries;
+    setLoadingSearch(true);
+    const timer = window.setTimeout(() => {
+      runSearch(q, countries);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [searchQuery, searchCountries, isEdit, runSearch]);
+
+  function handleSearchCountryFilterChange(value: string) {
+    setSearchCountryFilter(value);
+    setCityName("");
+    setCoords(null);
+    setSearchQuery("");
+    setSearchResults([]);
+  }
+
+  function pickSearchResult(result: SearchCity) {
+    setCityName(result.name);
+    setCountryCode(result.country_code);
+    setCoords({ latitude: result.latitude, longitude: result.longitude });
+    setSearchQuery(result.name);
+    setSearchResults([]);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+
+    if (!cityName.trim()) {
+      await modal.alert(t("pickCityFirst"), { variant: "error" });
+      return;
+    }
+
+    const countryName =
+      selectedCountry?.country_name ??
+      visitedCountries.find((c) => c.country_code === countryCode)?.country_name;
+
+    if (!countryName) {
+      await modal.alert(t("addCountryFirst"), { variant: "error" });
+      return;
+    }
+
+    if (!isEdit) {
+      const key = `${countryCode.toUpperCase()}:${cityName.toLowerCase()}`;
+      if (existingKeys.has(key)) {
+        await modal.alert(t("alreadyOnMap"), { variant: "info" });
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
-      const countryName =
-        countryOptions.find((c) => c.code === countryCode)?.name ??
-        getCountryName(countryCode);
       let mediaUrl: string | null = city?.media_url ?? null;
       let finalMediaType: "photo" | "instagram" | null = null;
 
       if (mediaType === "instagram" && instagramUrl) {
         if (!isValidInstagramUrl(instagramUrl)) {
-          setError("Invalid Instagram post URL");
+          await modal.alert("Invalid Instagram post URL", { variant: "error" });
           return;
         }
         finalMediaType = "instagram";
@@ -72,7 +220,7 @@ export function CityForm({ city, visitedCountries, onBackToList, onSuccess, onCa
         });
         if (!uploadRes.ok) {
           const data = await uploadRes.json();
-          setError(data.error ?? "Upload failed");
+          await modal.alert(data.error ?? "Upload failed", { variant: "error" });
           return;
         }
         const { url } = await uploadRes.json();
@@ -84,9 +232,12 @@ export function CityForm({ city, visitedCountries, onBackToList, onSuccess, onCa
       }
 
       const payload = {
-        city_name: cityName,
+        city_name: cityName.trim(),
         country_code: countryCode,
         country_name: countryName,
+        ...(coords && !isEdit
+          ? { latitude: coords.latitude, longitude: coords.longitude }
+          : {}),
         note: note || null,
         media_type: finalMediaType,
         media_url: mediaUrl,
@@ -103,7 +254,7 @@ export function CityForm({ city, visitedCountries, onBackToList, onSuccess, onCa
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error ?? "Failed to save city");
+        await modal.alert(data.error ?? "Failed to save city", { variant: "error" });
         return;
       }
 
@@ -115,56 +266,132 @@ export function CityForm({ city, visitedCountries, onBackToList, onSuccess, onCa
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-xl border border-slate-700 bg-slate-900 p-5">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-4 rounded-xl border border-slate-700 bg-slate-900 p-5"
+    >
       <h3 className="text-lg font-semibold text-white">
-        {city ? t("edit") : t("addCustomTitle")}
+        {isEdit ? t("edit") : t("add")}
       </h3>
 
-      {!city && (
-        <p className="text-xs text-slate-500">{t("customCityHint")}</p>
+      {!isEdit && (
+        <>
+          <p className="text-xs text-slate-500">{t("searchHint")}</p>
+
+          <div>
+            <label className="mb-2 block text-sm text-slate-400">{t("searchIn")}</label>
+            <select
+              value={searchCountryFilter}
+              onChange={(e) => handleSearchCountryFilterChange(e.target.value)}
+              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
+            >
+              <option value={ALL_COUNTRIES}>{t("allMyCountries")}</option>
+              {visitedCountries.map((c) => (
+                <option key={c.country_code} value={c.country_code}>
+                  {c.country_name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm text-slate-400">
+              {t("searchCities")}
+            </label>
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                if (e.target.value !== cityName) {
+                  setCoords(null);
+                }
+              }}
+              placeholder={t("searchCitiesPlaceholder")}
+              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
+              autoComplete="off"
+              autoFocus
+            />
+          </div>
+
+          {(loadingSearch || searchResults.length > 0) && (
+            <ul className="max-h-48 overflow-y-auto rounded-lg border border-slate-700 bg-slate-950 scrollbar-thin">
+              {loadingSearch ? (
+                <li className="px-3 py-4 text-center text-sm text-slate-500">
+                  {tCommon("loading")}
+                </li>
+              ) : (
+                searchResults.map((result) => {
+                  const alreadyAdded = existingKeys.has(
+                    `${result.country_code.toUpperCase()}:${result.name.toLowerCase()}`
+                  );
+
+                  return (
+                    <li key={result.id}>
+                      <button
+                        type="button"
+                        disabled={alreadyAdded}
+                        onClick={() => pickSearchResult(result)}
+                        className={`flex w-full flex-col px-3 py-2.5 text-left ${
+                          alreadyAdded
+                            ? "cursor-not-allowed opacity-50"
+                            : "hover:bg-slate-800/80"
+                        }`}
+                      >
+                        <span className="text-sm text-slate-200">{result.name}</span>
+                        {result.subtitle && (
+                          <span className="truncate text-xs text-slate-500">
+                            {result.subtitle}
+                          </span>
+                        )}
+                        {alreadyAdded && (
+                          <span className="text-xs text-slate-600">{t("alreadyOnMap")}</span>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })
+              )}
+            </ul>
+          )}
+
+          {cityName && (
+            <p className="text-sm text-blue-400">
+              {t("selectedCity", { city: cityName, country: selectedCountry?.country_name ?? "" })}
+            </p>
+          )}
+        </>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-sm text-slate-400">{t("cityName")}</label>
-          <input
-            value={cityName}
-            onChange={(e) => setCityName(e.target.value)}
-            required
-            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
-          />
+      {isEdit && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm text-slate-400">{t("cityName")}</label>
+            <input
+              value={cityName}
+              onChange={(e) => setCityName(e.target.value)}
+              required
+              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm text-slate-400">{t("country")}</label>
+            <select
+              value={countryCode}
+              onChange={(e) => setCountryCode(e.target.value)}
+              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
+            >
+              {visitedCountries.map((c) => (
+                <option key={c.country_code} value={c.country_code}>
+                  {c.country_name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div>
-          <label className="mb-1 block text-sm text-slate-400">{t("country")}</label>
-          <select
-            value={countryCode}
-            onChange={(e) => setCountryCode(e.target.value)}
-            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
-          >
-            {countryOptions.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      )}
 
-      <p className="text-xs text-slate-500">{t("locationHint")}</p>
-
-      <div>
-        <label className="mb-1 block text-sm text-slate-400">{t("note")}</label>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value.slice(0, LIMITS.noteMaxLength))}
-          rows={4}
-          placeholder={t("notePlaceholder")}
-          className="w-full resize-none rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
-        />
-        <p className="mt-1 text-right text-xs text-slate-500">
-          {t("noteCount", { count: note.length, max: LIMITS.noteMaxLength })}
-        </p>
-      </div>
+      {isEdit && <p className="text-xs text-slate-500">{t("locationHint")}</p>}
 
       <p className="text-xs text-slate-500">{t("mediaHint")}</p>
 
@@ -194,7 +421,7 @@ export function CityForm({ city, visitedCountries, onBackToList, onSuccess, onCa
             checked={mediaType === ""}
             onChange={() => setMediaType("")}
           />
-          None
+          {t("mediaNone")}
         </label>
       </div>
 
@@ -220,27 +447,28 @@ export function CityForm({ city, visitedCountries, onBackToList, onSuccess, onCa
         </div>
       )}
 
-      {error && (
-        <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</p>
-      )}
+      <div>
+        <label className="mb-1 block text-sm text-slate-400">{t("note")}</label>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value.slice(0, LIMITS.noteMaxLength))}
+          rows={4}
+          placeholder={t("notePlaceholder")}
+          className="w-full resize-none rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
+        />
+        <p className="mt-1 text-right text-xs text-slate-500">
+          {t("noteCount", { count: note.length, max: LIMITS.noteMaxLength })}
+        </p>
+      </div>
 
       <div className="flex flex-wrap gap-3">
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || (!isEdit && !cityName.trim())}
           className="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-500 disabled:opacity-50"
         >
           {loading ? tCommon("loading") : tCommon("save")}
         </button>
-        {!city && onBackToList && (
-          <button
-            type="button"
-            onClick={onBackToList}
-            className="rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-300 hover:border-slate-500"
-          >
-            {t("addFromList")}
-          </button>
-        )}
         {onCancel && (
           <button
             type="button"

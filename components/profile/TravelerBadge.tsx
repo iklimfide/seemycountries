@@ -1,0 +1,80 @@
+import { getTranslations } from "next-intl/server";
+import {
+  BADGE_TIER_THEMES,
+  getTravelerBadgeTier,
+  type TravelerBadgeTier,
+} from "@/lib/utils/traveler-badge";
+
+function BadgeIcon({ tier, className }: { tier: TravelerBadgeTier; className: string }) {
+  const props = {
+    className,
+    width: 16,
+    height: 16,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.75,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+
+  switch (tier) {
+    case "explorer":
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+          <path d="m8 8 8 8M16 8l-8 8" opacity={0.5} />
+          <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "globetrotter":
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+        </svg>
+      );
+    case "super_voyager":
+      return (
+        <svg {...props}>
+          <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7-6-4.6h7.6z" />
+        </svg>
+      );
+    case "world_citizen":
+      return (
+        <svg {...props}>
+          <path d="M5 18h14" />
+          <path d="M7 18 8.5 9l3.5 4 3.5-4L18 18" />
+          <path d="M9.5 9 12 5l2.5 4" />
+        </svg>
+      );
+  }
+}
+
+type TravelerBadgeProps = {
+  countryCount: number;
+  className?: string;
+};
+
+export async function TravelerBadge({ countryCount, className = "" }: TravelerBadgeProps) {
+  const tier = getTravelerBadgeTier(countryCount);
+  if (!tier) return null;
+
+  const t = await getTranslations("badge");
+  const theme = BADGE_TIER_THEMES[tier];
+
+  return (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold tracking-wide uppercase backdrop-blur-sm ${theme.shell} ${className}`}
+    >
+      <span
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/20 ${theme.icon}`}
+      >
+        <BadgeIcon tier={tier} className="h-3.5 w-3.5" />
+      </span>
+      {t(tier)}
+    </span>
+  );
+}

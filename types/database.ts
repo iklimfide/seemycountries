@@ -4,10 +4,19 @@ export interface Profile {
   id: string;
   username: string;
   display_name: string | null;
+  wishlist_public: boolean;
   created_at: string;
 }
 
 export interface VisitedCountry {
+  id: string;
+  user_id: string;
+  country_code: string;
+  country_name: string;
+  created_at: string;
+}
+
+export interface WishlistCountry {
   id: string;
   user_id: string;
   country_code: string;

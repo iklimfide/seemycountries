@@ -1,16 +1,25 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
+import { ShareProfile } from "@/components/share/ShareProfile";
 import { TravelStatsBar } from "@/components/stats/TravelStats";
 import { TravelMapView } from "@/components/map/TravelMapView";
 import { CityList } from "@/components/dashboard/CityList";
-import { CountryList } from "@/components/dashboard/CountryList";
+import { CountryManager } from "@/components/dashboard/CountryManager";
+import { WishlistSettings } from "@/components/dashboard/WishlistSettings";
 import { createClient } from "@/lib/supabase/server";
+import { profileUrl } from "@/lib/seo/site";
 import {
   computeTravelStats,
   getVisitedCountryCodes,
+  getWishlistCountryCodes,
 } from "@/lib/utils/stats";
-import type { VisitedCity, VisitedCountry } from "@/types/database";
+import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -28,26 +37,35 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name")
+    .select("username, display_name, wishlist_public")
     .eq("id", user.id)
     .single();
 
-  const { data: countries, error: countriesError } = await supabase
-    .from("visited_countries")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("country_name", { ascending: true });
-
-  const { data: cities } = await supabase
-    .from("visited_cities")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+  const [{ data: countries, error: countriesError }, { data: cities }, { data: wishlist }] =
+    await Promise.all([
+      supabase
+        .from("visited_countries")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("country_name", { ascending: true }),
+      supabase
+        .from("visited_cities")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("wishlist_countries")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("country_name", { ascending: true }),
+    ]);
 
   const visitedCountries = (countriesError ? [] : (countries ?? [])) as VisitedCountry[];
   const visitedCities = (cities ?? []) as VisitedCity[];
+  const wishlistCountries = (wishlist ?? []) as WishlistCountry[];
   const stats = computeTravelStats(visitedCountries, visitedCities);
-  const countryCodes = getVisitedCountryCodes(visitedCountries, visitedCities);
+  const visitedCodes = getVisitedCountryCodes(visitedCountries, visitedCities);
+  const wishlistCodes = getWishlistCountryCodes(wishlistCountries);
 
   return (
     <>
@@ -70,12 +88,32 @@ export default async function DashboardPage() {
           <TravelStatsBar stats={stats} />
         </div>
 
+        {profile?.username && (
+          <div className="mb-8">
+            <ShareProfile
+              username={profile.username}
+              displayName={profile.display_name ?? profile.username}
+              stats={stats}
+              profileUrl={profileUrl(profile.username)}
+            />
+          </div>
+        )}
+
         <div className="mb-8">
-          <TravelMapView cities={visitedCities} visitedCountryCodes={countryCodes} />
+          <TravelMapView
+            cities={visitedCities}
+            visitedCountryCodes={visitedCodes}
+            wishlistCountryCodes={wishlistCodes}
+          />
         </div>
 
         <div className="flex flex-col gap-10">
-          <CountryList countries={visitedCountries} />
+          <WishlistSettings wishlistPublic={profile?.wishlist_public ?? false} />
+          <CountryManager
+            visitedCountries={visitedCountries}
+            wishlistCountries={wishlistCountries}
+            visitedCountryCodes={visitedCodes}
+          />
           <CityList cities={visitedCities} countries={visitedCountries} />
         </div>
       </main>

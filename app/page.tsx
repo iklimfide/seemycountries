@@ -1,15 +1,34 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
 import { TravelStatsBar } from "@/components/stats/TravelStats";
 import { TravelMapView } from "@/components/map/TravelMapView";
 import { createClient } from "@/lib/supabase/server";
+import { BRAND } from "@/lib/constants";
 import { DEMO_CITIES } from "@/lib/data/demo-cities";
+import { getSiteUrl } from "@/lib/seo/site";
 import {
   computeTravelStats,
   getVisitedCountryCodes,
 } from "@/lib/utils/stats";
 import type { VisitedCity, VisitedCountry } from "@/types/database";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("home");
+  const title = `${BRAND.name} — ${t("hero")}`;
+
+  return {
+    title,
+    description: t("subtitle"),
+    alternates: { canonical: "/" },
+    openGraph: {
+      title,
+      description: t("subtitle"),
+      url: getSiteUrl(),
+    },
+  };
+}
 
 export default async function HomePage() {
   const t = await getTranslations("home");

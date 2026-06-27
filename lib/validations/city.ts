@@ -6,6 +6,8 @@ const cityFields = {
   city_name: z.string().min(1, "City name is required").max(100),
   country_code: z.string().length(2, "Invalid country code"),
   country_name: z.string().min(1, "Country name is required"),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
   note: z
     .string()
     .max(LIMITS.noteMaxLength, `Note must be at most ${LIMITS.noteMaxLength} characters`)
@@ -33,14 +35,17 @@ const mediaRefine = {
   message: "Valid media URL required for selected media type",
 } as const;
 
-/** Client payload — coordinates are resolved on the server. */
+/** Client payload — coordinates optional when picked from search. */
 export const cityInputSchema = z
   .object(cityFields)
-  .refine(mediaRefine.check, { message: mediaRefine.message });
-
-export const citySchema = cityInputSchema.extend({
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-});
+  .refine(mediaRefine.check, { message: mediaRefine.message })
+  .refine(
+    (data) => {
+      const hasLat = data.latitude !== undefined;
+      const hasLng = data.longitude !== undefined;
+      return hasLat === hasLng;
+    },
+    { message: "Both latitude and longitude are required when providing coordinates" }
+  );
 
 export type CityInput = z.infer<typeof cityInputSchema>;

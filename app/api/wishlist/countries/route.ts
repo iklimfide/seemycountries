@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { countrySchema } from "@/lib/validations/country";
+import { isCountryVisited } from "@/lib/utils/country-status";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -29,8 +30,15 @@ export async function POST(request: Request) {
   const data = parsed.data;
   const code = data.country_code.toUpperCase();
 
+  if (await isCountryVisited(supabase, user.id, code)) {
+    return NextResponse.json(
+      { error: "This country is already on your visited map" },
+      { status: 409 }
+    );
+  }
+
   const { data: country, error } = await supabase
-    .from("visited_countries")
+    .from("wishlist_countries")
     .insert({
       user_id: user.id,
       country_code: code,
@@ -41,16 +49,10 @@ export async function POST(request: Request) {
 
   if (error) {
     if (error.code === "23505") {
-      return NextResponse.json({ error: "Country already added" }, { status: 409 });
+      return NextResponse.json({ error: "Country already on your wishlist" }, { status: 409 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  await supabase
-    .from("wishlist_countries")
-    .delete()
-    .eq("user_id", user.id)
-    .eq("country_code", code);
 
   return NextResponse.json(country);
 }

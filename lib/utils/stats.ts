@@ -1,4 +1,4 @@
-import type { VisitedCity, VisitedCountry, TravelStats } from "@/types/database";
+import type { VisitedCity, VisitedCountry, TravelStats, WishlistCountry } from "@/types/database";
 
 export function computeTravelStats(
   countries: VisitedCountry[],
@@ -24,4 +24,8 @@ export function getVisitedCountryCodes(
     ...cities.map((c) => c.country_code.toUpperCase()),
   ]);
   return [...codes];
+}
+
+export function getWishlistCountryCodes(wishlist: WishlistCountry[]): string[] {
+  return wishlist.map((c) => c.country_code.toUpperCase());
 }

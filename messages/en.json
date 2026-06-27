@@ -41,10 +41,22 @@
     "noCities": "No cities marked yet",
     "noCountries": "No countries marked yet"
   },
+  "badge": {
+    "explorer": "Explorer",
+    "globetrotter": "Globetrotter",
+    "super_voyager": "Super Voyager",
+    "world_citizen": "World Citizen"
+  },
   "country": {
     "title": "Countries",
     "add": "Add country",
     "name": "Country",
+    "columnVisited": "Visited",
+    "columnWant": "Want",
+    "toggleHint": "Search a country and check Visited or Want to add it to your map.",
+    "searchIdle": "Search for a country, or see your selected countries below when the search is empty.",
+    "lockedViaCities": "Remove cities in this country first",
+    "removeCitiesFirst": "This country is on your map because of cities you've added. Remove those cities first.",
     "empty": "No countries yet. Add the first country you've visited.",
     "allAdded": "Every country is already on your map.",
     "allCountriesHint": "Search any country worldwide.",
@@ -79,14 +91,50 @@
     "searchIdle": "Type a city name to search.",
     "searchMinChars": "Type at least 2 characters.",
     "alreadyOnMap": "Already on your map",
-    "bulkHint": "Select places, then save. Add a photo and note by editing each city later.",
-    "addSelected": "Add {count} cities",
-    "addCustom": "Can't find it? Add by exact name",
-    "addCustomTitle": "Add city by name",
-    "addFromList": "Back to search",
-    "customCityHint": "Type any city name — we'll place the pin automatically."
+    "pickCityFirst": "Search and pick a city from the list.",
+    "selectedCity": "Selected: {city}, {country}",
+    "mediaNone": "None"
   },
   "popup": {
     "close": "Close"
+  },
+  "share": {
+    "hint": "Share your travel map with friends",
+    "native": "Share",
+    "copyLink": "Copy link",
+    "copied": "Link copied to clipboard.",
+    "copyFailed": "Could not copy the link.",
+    "shareTitle": "{name}'s travel map"
+  },
+  "modal": {
+    "ok": "OK",
+    "confirm": "Confirm",
+    "errorTitle": "Something went wrong",
+    "successTitle": "Done",
+    "infoTitle": "Notice",
+    "deleteCityTitle": "Delete city",
+    "deleteCityMessage": "Remove this city from your map?",
+    "deleteCountryTitle": "Remove country",
+    "deleteCountryMessage": "Remove this country from your map?",
+    "deleteWishlistCountryTitle": "Remove from wishlist",
+    "deleteWishlistCountryMessage": "Remove this country from your wishlist?"
+  },
+  "wishlist": {
+    "title": "Want to visit",
+    "add": "Add country",
+    "name": "Country",
+    "empty": "No countries on your wishlist yet.",
+    "allAdded": "Every country is already on your map or wishlist.",
+    "allCountriesHint": "Search any country worldwide.",
+    "searchPlaceholder": "Search countries…",
+    "noResults": "No countries match your search.",
+    "settingsTitle": "Wishlist visibility",
+    "settingsHint": "Control what visitors see on your public profile.",
+    "publicLabel": "Show wishlist on my public profile",
+    "publicHint": "When enabled, visitors see visited and wishlist countries on your map. When off, only countries you've visited are shown.",
+    "publicTitle": "Want to visit",
+    "columnWant": "Want",
+    "legendVisited": "Visited",
+    "legendWishlist": "Want to visit"
   }
 }

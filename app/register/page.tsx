@@ -1,7 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
 import { AuthForm } from "@/components/auth/AuthForm";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function RegisterPage() {
   const t = await getTranslations("auth");

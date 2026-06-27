@@ -3,8 +3,10 @@ import { Geist } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { BRAND } from "@/lib/constants";
+import { DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, getSiteUrl } from "@/lib/seo/site";
 import { defaultLocale, type Locale } from "@/lib/i18n/config";
 import enMessages from "@/messages/en.json";
+import { ModalProvider } from "@/components/ui/ModalProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,14 +14,36 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
   title: {
     default: BRAND.name,
     template: `%s | ${BRAND.name}`,
   },
-  description:
-    "Mark the countries and cities you've visited. One perfect photo and memory per city — built for speed and social sharing.",
-  metadataBase: new URL(`https://${BRAND.domain}`),
+  description: DEFAULT_DESCRIPTION,
+  keywords: DEFAULT_KEYWORDS,
+  metadataBase: new URL(siteUrl),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: BRAND.name,
+    title: BRAND.name,
+    description: DEFAULT_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: BRAND.name,
+    description: DEFAULT_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export const dynamic = "force-dynamic";
@@ -43,7 +67,7 @@ export default async function RootLayout({
     <html lang={locale} className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-100">
         <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
+          <ModalProvider>{children}</ModalProvider>
         </NextIntlClientProvider>
       </body>
     </html>

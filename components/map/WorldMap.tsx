@@ -15,6 +15,7 @@ countriesLib.registerLocale(enLocale);
 type WorldMapProps = {
   cities: VisitedCity[];
   visitedCountryCodes: string[];
+  wishlistCountryCodes?: string[];
   onCityClick?: (city: VisitedCity) => void;
   interactive?: boolean;
 };
@@ -25,6 +26,7 @@ const HEIGHT = 450;
 export function WorldMap({
   cities,
   visitedCountryCodes,
+  wishlistCountryCodes = [],
   onCityClick,
   interactive = true,
 }: WorldMapProps) {
@@ -52,6 +54,15 @@ export function WorldMap({
     );
   }, [visitedCountryCodes]);
 
+  const wishlistNumericIds = useMemo(() => {
+    return new Set(
+      wishlistCountryCodes
+        .map((code) => countriesLib.alpha2ToNumeric(code))
+        .filter(Boolean)
+        .map((n) => String(n).padStart(3, "0"))
+    );
+  }, [wishlistCountryCodes]);
+
   const projectPoint = useCallback(
     (lng: number, lat: number): [number, number] | null => {
       const point = projection([lng, lat]);
@@ -78,6 +89,10 @@ export function WorldMap({
                 : `country-${index}`;
             const isVisited =
               country.id != null && visitedNumericIds.has(String(country.id));
+            const isWishlist =
+              !isVisited &&
+              country.id != null &&
+              wishlistNumericIds.has(String(country.id));
             const d = pathGenerator(country);
             if (!d) return null;
 
@@ -85,9 +100,17 @@ export function WorldMap({
               <path
                 key={id}
                 d={d}
-                fill={isVisited ? BRAND.colors.visited : BRAND.colors.unvisited}
-                stroke={BRAND.colors.background}
-                strokeWidth={0.5}
+                fill={
+                  isVisited
+                    ? BRAND.colors.visited
+                    : isWishlist
+                      ? BRAND.colors.wishlistFill
+                      : BRAND.colors.unvisited
+                }
+                stroke={
+                  isWishlist ? BRAND.colors.wishlist : BRAND.colors.background
+                }
+                strokeWidth={isWishlist ? 1.5 : 0.5}
                 className="transition-colors duration-300"
               />
             );

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CityBulkForm } from "@/components/dashboard/CityBulkForm";
 import { CityForm } from "@/components/dashboard/CityForm";
+import { useModal } from "@/components/ui/ModalProvider";
 import type { VisitedCity, VisitedCountry } from "@/types/database";
 
 type CityListProps = {
@@ -12,42 +12,40 @@ type CityListProps = {
   countries: VisitedCountry[];
 };
 
-type AddMode = false | "bulk" | "custom";
-
 export function CityList({ cities, countries }: CityListProps) {
   const t = useTranslations("city");
+  const tModal = useTranslations("modal");
   const tCommon = useTranslations("common");
   const router = useRouter();
+  const modal = useModal();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [addMode, setAddMode] = useState<AddMode>(false);
+  const [adding, setAdding] = useState(false);
 
   const canAddCity = countries.length > 0;
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this city?")) return;
-    await fetch(`/api/cities/${id}`, { method: "DELETE" });
+    const confirmed = await modal.confirm(tModal("deleteCityMessage"), {
+      title: tModal("deleteCityTitle"),
+      destructive: true,
+    });
+    if (!confirmed) return;
+
+    const res = await fetch(`/api/cities/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json();
+      await modal.alert(data.error ?? "Failed to delete city", { variant: "error" });
+      return;
+    }
     router.refresh();
   }
 
-  if (addMode === "bulk") {
-    return (
-      <CityBulkForm
-        visitedCountries={countries}
-        existingCities={cities}
-        onAddCustom={() => setAddMode("custom")}
-        onSuccess={() => setAddMode(false)}
-        onCancel={() => setAddMode(false)}
-      />
-    );
-  }
-
-  if (addMode === "custom") {
+  if (adding) {
     return (
       <CityForm
         visitedCountries={countries}
-        onBackToList={() => setAddMode("bulk")}
-        onSuccess={() => setAddMode(false)}
-        onCancel={() => setAddMode(false)}
+        existingCities={cities}
+        onSuccess={() => setAdding(false)}
+        onCancel={() => setAdding(false)}
       />
     );
   }
@@ -71,7 +69,7 @@ export function CityList({ cities, countries }: CityListProps) {
         {canAddCity && (
           <button
             type="button"
-            onClick={() => setAddMode("bulk")}
+            onClick={() => setAdding(true)}
             className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:border-slate-500 hover:text-white"
           >
             + {t("add")}

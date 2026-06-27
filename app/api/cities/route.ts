@@ -44,7 +44,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const coords = await geocodeCity(data.city_name, code, data.country_name);
+  const coords =
+    data.latitude !== undefined && data.longitude !== undefined
+      ? { latitude: data.latitude, longitude: data.longitude }
+      : await geocodeCity(data.city_name, code, data.country_name);
+
   if (!coords) {
     return NextResponse.json(
       { error: "Could not find this city on the map. Check the spelling and try again." },

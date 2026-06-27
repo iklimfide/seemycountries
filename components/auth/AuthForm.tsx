@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { useModal } from "@/components/ui/ModalProvider";
 import {
   loginSchema,
   registerSchema,
@@ -20,25 +21,26 @@ export function AuthForm({ mode }: AuthFormProps) {
   const tCommon = useTranslations("common");
   const router = useRouter();
   const supabase = createClient();
+  const modal = useModal();
 
   const [form, setForm] = useState<LoginInput & Partial<RegisterInput>>({
     email: "",
     password: "",
     username: "",
   });
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     setLoading(true);
 
     try {
       if (mode === "register") {
         const parsed = registerSchema.safeParse(form);
         if (!parsed.success) {
-          setError(parsed.error.issues[0]?.message ?? "Invalid input");
+          await modal.alert(parsed.error.issues[0]?.message ?? "Invalid input", {
+            variant: "error",
+          });
           return;
         }
 
@@ -54,7 +56,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         });
 
         if (signUpError) {
-          setError(signUpError.message);
+          await modal.alert(signUpError.message, { variant: "error" });
           return;
         }
 
@@ -63,7 +65,9 @@ export function AuthForm({ mode }: AuthFormProps) {
       } else {
         const parsed = loginSchema.safeParse(form);
         if (!parsed.success) {
-          setError(parsed.error.issues[0]?.message ?? "Invalid input");
+          await modal.alert(parsed.error.issues[0]?.message ?? "Invalid input", {
+            variant: "error",
+          });
           return;
         }
 
@@ -73,7 +77,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         });
 
         if (signInError) {
-          setError(signInError.message);
+          await modal.alert(signInError.message, { variant: "error" });
           return;
         }
 
@@ -139,12 +143,6 @@ export function AuthForm({ mode }: AuthFormProps) {
           minLength={8}
         />
       </div>
-
-      {error && (
-        <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">
-          {error}
-        </p>
-      )}
 
       <button
         type="submit"
