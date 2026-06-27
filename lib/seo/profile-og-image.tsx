@@ -5,11 +5,15 @@ import { OG_IMAGE_SIZE } from "@/lib/seo/og";
 import { ogMapDataUrl } from "@/lib/seo/og-map-svg";
 import { createClient } from "@/lib/supabase/server";
 import {
+  fetchPublicProfile,
+  fetchPublicWishlistCountries,
+} from "@/lib/supabase/public-profile";
+import {
   computeTravelStats,
   getVisitedCountryCodes,
   getWishlistCountryCodes,
 } from "@/lib/utils/stats";
-import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
+import type { VisitedCity, VisitedCountry } from "@/types/database";
 
 export const runtime = "nodejs";
 
@@ -17,25 +21,17 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
   const supabase = await createClient();
   if (!supabase) notFound();
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, username, display_name, wishlist_public")
-    .eq("username", username.toLowerCase())
-    .single();
-
+  const profile = await fetchPublicProfile(supabase, username);
   if (!profile) notFound();
 
-  const [{ data: countries }, { data: cities }, { data: wishlist }] = await Promise.all([
+  const [{ data: countries }, { data: cities }, wishlistCountries] = await Promise.all([
     supabase.from("visited_countries").select("*").eq("user_id", profile.id),
     supabase.from("visited_cities").select("*").eq("user_id", profile.id),
-    profile.wishlist_public
-      ? supabase.from("wishlist_countries").select("*").eq("user_id", profile.id)
-      : Promise.resolve({ data: [] }),
+    fetchPublicWishlistCountries(supabase, profile.id, profile.wishlist_public),
   ]);
 
   const visitedCountries = (countries ?? []) as VisitedCountry[];
   const visitedCities = (cities ?? []) as VisitedCity[];
-  const wishlistCountries = (wishlist ?? []) as WishlistCountry[];
   const stats = computeTravelStats(visitedCountries, visitedCities);
   const visitedCodes = getVisitedCountryCodes(visitedCountries, visitedCities);
   const wishlistCodes = profile.wishlist_public

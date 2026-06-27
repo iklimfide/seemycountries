@@ -20,11 +20,15 @@ import {
 import { profilePath, profileUrl as buildProfileUrl, getSiteUrl } from "@/lib/seo/site";
 import { createClient } from "@/lib/supabase/server";
 import {
+  fetchPublicProfile,
+  fetchPublicWishlistCountries,
+} from "@/lib/supabase/public-profile";
+import {
   computeTravelStats,
   getVisitedCountryCodes,
   getWishlistCountryCodes,
 } from "@/lib/utils/stats";
-import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
+import type { VisitedCity, VisitedCountry } from "@/types/database";
 import { PublicWishlist } from "@/components/profile/PublicWishlist";
 
 type PageProps = {
@@ -107,17 +111,13 @@ export default async function PublicProfilePage({ params }: PageProps) {
     notFound();
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, username, display_name, wishlist_public")
-    .eq("username", username.toLowerCase())
-    .single();
+  const profile = await fetchPublicProfile(supabase, username);
 
   if (!profile) {
     notFound();
   }
 
-  const [{ data: countries }, { data: cities }, { data: wishlist }] = await Promise.all([
+  const [{ data: countries }, { data: cities }, wishlistCountries] = await Promise.all([
     supabase
       .from("visited_countries")
       .select("*")
@@ -128,19 +128,14 @@ export default async function PublicProfilePage({ params }: PageProps) {
       .select("*")
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false }),
-    supabase
-      .from("wishlist_countries")
-      .select("*")
-      .eq("user_id", profile.id)
-      .order("country_name", { ascending: true }),
+    fetchPublicWishlistCountries(supabase, profile.id, profile.wishlist_public),
   ]);
 
   const visitedCountries = (countries ?? []) as VisitedCountry[];
   const visitedCities = (cities ?? []) as VisitedCity[];
-  const wishlistCountries = (wishlist ?? []) as WishlistCountry[];
   const stats = computeTravelStats(visitedCountries, visitedCities);
   const visitedCodes = getVisitedCountryCodes(visitedCountries, visitedCities);
-  const wishlistPublic = profile.wishlist_public ?? false;
+  const wishlistPublic = profile.wishlist_public;
   const wishlistCodes = wishlistPublic
     ? getWishlistCountryCodes(wishlistCountries)
     : [];
