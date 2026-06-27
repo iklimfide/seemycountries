@@ -1,0 +1,5 @@
+# Regenerate city catalog (100K+ population) from GeoNames via all-the-cities
+
+npm install all-the-cities
+npx tsx scripts/generate-major-cities.ts
+npm uninstall all-the-cities

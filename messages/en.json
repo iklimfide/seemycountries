@@ -1,0 +1,92 @@
+{
+  "common": {
+    "appName": "SeeMyCountries",
+    "tagline": "Your travel story, one pin at a time",
+    "countries": "Countries",
+    "cities": "Cities",
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out",
+    "dashboard": "My map",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading..."
+  },
+  "home": {
+    "hero": "Mark the world. Share your journey.",
+    "subtitle": "Tap any pin to explore a sample travel memory. Sign up when you're ready to build and share your own map.",
+    "demoLabel": "Sample journey",
+    "yourMap": "Your travel map — tap a pin to view your memories.",
+    "ctaTitle": "Want your own map?",
+    "ctaHint": "Free account · One photo or Instagram post per city · Share with one link",
+    "cta": "Create your map",
+    "editMap": "Edit your map",
+    "login": "Log in"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "username": "Username",
+    "usernameHint": "Your public link: seemycountries.com/u/{username}",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "registerTitle": "Create your traveler profile",
+    "loginTitle": "Welcome back, traveler"
+  },
+  "profile": {
+    "stats": "{countries} Countries | {cities} Cities",
+    "notFound": "Traveler not found",
+    "noCities": "No cities marked yet",
+    "noCountries": "No countries marked yet"
+  },
+  "country": {
+    "title": "Countries",
+    "add": "Add country",
+    "name": "Country",
+    "empty": "No countries yet. Add the first country you've visited.",
+    "allAdded": "Every country is already on your map.",
+    "allCountriesHint": "Search any country worldwide.",
+    "searchPlaceholder": "Search countries…",
+    "noResults": "No countries match your search."
+  },
+  "city": {
+    "title": "Cities",
+    "add": "Add city",
+    "addCountryFirst": "Add a country first, then pin your cities on the map.",
+    "empty": "No cities yet. Add a pin to share a memory.",
+    "edit": "Edit city",
+    "cityName": "City",
+    "country": "Country",
+    "note": "Traveler note",
+    "notePlaceholder": "Your impressions, memories, or tips (max 1000 characters)",
+    "noteCount": "{count} / {max}",
+    "photo": "Upload photo",
+    "instagram": "Instagram post link",
+    "instagramHint": "Paste a standard Instagram post URL — we'll embed it when visitors open this pin",
+    "mediaHint": "One photo OR one Instagram link per city — not both",
+    "locationHint": "We place the pin automatically from the city and country you enter.",
+    "searchCities": "Search cities",
+    "searchCitiesPlaceholder": "e.g. Phuket, Pattaya, Istanbul…",
+    "cityCount": "{count} results · {selected} selected",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "noCityResults": "No places found. Try a different spelling or add the city by name.",
+    "searchHint": "Search cities in the countries on your map.",
+    "searchIn": "Search in",
+    "allMyCountries": "All my countries",
+    "searchIdle": "Type a city name to search.",
+    "searchMinChars": "Type at least 2 characters.",
+    "alreadyOnMap": "Already on your map",
+    "bulkHint": "Select places, then save. Add a photo and note by editing each city later.",
+    "addSelected": "Add {count} cities",
+    "addCustom": "Can't find it? Add by exact name",
+    "addCustomTitle": "Add city by name",
+    "addFromList": "Back to search",
+    "customCityHint": "Type any city name — we'll place the pin automatically."
+  },
+  "popup": {
+    "close": "Close"
+  }
+}
