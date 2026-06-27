@@ -65,7 +65,12 @@ export function CityList({ cities, countries }: CityListProps) {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">{t("title")}</h2>
+        <h2 className="text-lg font-semibold text-white">
+          {t("title")}
+          <span className="ml-2 text-sm font-normal text-slate-500">
+            · {t("visitedOnly")}
+          </span>
+        </h2>
         {canAddCity && (
           <button
             type="button"

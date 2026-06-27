@@ -1,13 +1,18 @@
 import { BRAND } from "@/lib/constants";
 
 export function getSiteUrl(): string {
+  let url: string;
   if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+    url = process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  } else if (process.env.VERCEL_URL) {
+    url = `https://${process.env.VERCEL_URL}`;
+  } else {
+    url = `https://${BRAND.domain}`;
   }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
   }
-  return `https://${BRAND.domain}`;
+  return url;
 }
 
 export function profilePath(username: string): string {

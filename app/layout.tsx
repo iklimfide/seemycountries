@@ -34,11 +34,21 @@ export const metadata: Metadata = {
     siteName: BRAND.name,
     title: BRAND.name,
     description: DEFAULT_DESCRIPTION,
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: BRAND.name,
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: BRAND.name,
     description: DEFAULT_DESCRIPTION,
+    images: [`${siteUrl}/opengraph-image`],
   },
   robots: {
     index: true,

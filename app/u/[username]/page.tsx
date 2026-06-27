@@ -11,7 +11,13 @@ import {
   buildProfileDescription,
   buildProfileTitle,
 } from "@/lib/seo/profile";
-import { profilePath, profileUrl as buildProfileUrl } from "@/lib/seo/site";
+import {
+  OG_IMAGE_SIZE,
+  profileOgImageAlt,
+  profileOgImagePath,
+  profileOgImageUrl,
+} from "@/lib/seo/og";
+import { profilePath, profileUrl as buildProfileUrl, getSiteUrl } from "@/lib/seo/site";
 import { createClient } from "@/lib/supabase/server";
 import {
   computeTravelStats,
@@ -57,25 +63,38 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = buildProfileTitle(displayName, profile.username);
   const description = buildProfileDescription(displayName, stats);
   const url = buildProfileUrl(profile.username);
+  const ogImagePath = profileOgImagePath(profile.username);
+  const ogImageUrl = profileOgImageUrl(profile.username);
 
   return {
+    metadataBase: new URL(getSiteUrl()),
     title,
     description,
     alternates: {
       canonical: profilePath(profile.username),
     },
     openGraph: {
-      type: "profile",
+      type: "website",
       title,
       description,
       url,
       siteName: BRAND.name,
-      username: profile.username,
+      images: [
+        {
+          url: ogImagePath,
+          secureUrl: ogImageUrl,
+          width: OG_IMAGE_SIZE.width,
+          height: OG_IMAGE_SIZE.height,
+          alt: profileOgImageAlt(displayName),
+          type: "image/png",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [ogImageUrl],
     },
   };
 }

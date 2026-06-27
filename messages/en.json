@@ -65,6 +65,7 @@
   },
   "city": {
     "title": "Cities",
+    "visitedOnly": "Visited only",
     "add": "Add city",
     "addCountryFirst": "Add a country first, then pin your cities on the map.",
     "empty": "No cities yet. Add a pin to share a memory.",
