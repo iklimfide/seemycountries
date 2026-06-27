@@ -1,6 +1,6 @@
 import { buildProfileOgImage } from "@/lib/seo/profile-og-image";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 export const alt = "Travel map on SeeMyCountries";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

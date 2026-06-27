@@ -1,6 +1,6 @@
 import { buildProfileOgImage } from "@/lib/seo/profile-og-image";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 type RouteContext = { params: Promise<{ username: string }> };
 
