@@ -6,5 +6,10 @@ type RouteContext = { params: Promise<{ username: string }> };
 
 export async function GET(_request: Request, context: RouteContext) {
   const { username } = await context.params;
-  return buildProfileOgImage(username);
+  const response = await buildProfileOgImage(username);
+  response.headers.set(
+    "Cache-Control",
+    "public, max-age=3600, stale-while-revalidate=86400"
+  );
+  return response;
 }

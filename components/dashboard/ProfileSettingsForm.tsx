@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ProfileAvatarUpload } from "@/components/profile/ProfileAvatar";
-import { ProfilePublicLink } from "@/components/profile/ProfilePublicLink";
+import { ShareProfile } from "@/components/share/ShareProfile";
 import { useModal } from "@/components/ui/ModalProvider";
 import { LIMITS } from "@/lib/constants";
 import {
@@ -115,11 +115,12 @@ export function ProfileSettingsForm({ profile, stats }: ProfileSettingsFormProps
             <p className="mb-1.5 text-sm text-slate-500">{t("username")}</p>
             <p className="select-none text-sm text-slate-500">@{username}</p>
             <div className="mt-3">
-              <ProfilePublicLink
+              <ShareProfile
                 username={username}
                 displayName={previewName}
                 profileUrl={publicLink}
                 stats={stats}
+                isOwnProfile
               />
             </div>
           </div>

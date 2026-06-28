@@ -144,12 +144,19 @@
     "close": "Close"
   },
   "share": {
-    "hint": "Share your travel map with friends",
+    "hint": "Share the link — WhatsApp, Telegram, and social apps will show a preview card with the travel map.",
+    "ownTitle": "Share your travel map",
+    "guestTitle": "Share this travel map",
     "native": "Share",
     "copyLink": "Copy link",
     "copied": "Link copied to clipboard.",
     "copyFailed": "Could not copy the link.",
-    "shareTitle": "{name}'s travel map"
+    "shareTitle": "{name}'s travel map",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "x": "X",
+    "facebook": "Facebook",
+    "linkedin": "LinkedIn"
   },
   "modal": {
     "ok": "OK",

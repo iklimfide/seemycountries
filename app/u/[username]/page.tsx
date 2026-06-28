@@ -6,10 +6,13 @@ import { Header } from "@/components/layout/Header";
 import { TravelMapFocusShell } from "@/components/map/TravelMapFocusShell";
 import { TravelMapView } from "@/components/map/TravelMapView";
 import { TravelStatsInteractive } from "@/components/stats/TravelStatsInteractive";
+import { ShareProfile } from "@/components/share/ShareProfile";
 import { BRAND } from "@/lib/constants";
 import { formatMessage, homeMessages } from "@/lib/i18n/client-messages";
 import {
   buildProfileDescription,
+  buildProfileOgDescription,
+  buildProfileOgTitle,
   buildProfileTitle,
 } from "@/lib/seo/profile";
 import {
@@ -17,6 +20,7 @@ import {
   profileOgImageAlt,
   profileOgImagePath,
   profileOgImageUrl,
+  profileOgImageVersion,
 } from "@/lib/seo/og";
 import { profilePath, profileUrl as buildProfileUrl, getSiteUrl } from "@/lib/seo/site";
 import { createClient } from "@/lib/supabase/server";
@@ -45,7 +49,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, display_name")
+    .select("id, username, display_name, wishlist_public")
     .eq("username", normalized)
     .single();
 
@@ -53,22 +57,33 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: "Traveler not found" };
   }
 
-  const [{ data: countries }, { data: cities }] = await Promise.all([
+  const [{ data: countries }, { data: cities }, { data: wishlist }] = await Promise.all([
     supabase.from("visited_countries").select("*").eq("user_id", profile.id),
     supabase.from("visited_cities").select("*").eq("user_id", profile.id),
+    profile.wishlist_public
+      ? supabase.from("wishlist_countries").select("country_code").eq("user_id", profile.id)
+      : Promise.resolve({ data: [] as { country_code: string }[] }),
   ]);
 
   const stats = computeTravelStats(
     (countries ?? []) as VisitedCountry[],
     (cities ?? []) as VisitedCity[]
   );
+  const visitedCount = getVisitedCountryCodes(
+    (countries ?? []) as VisitedCountry[],
+    (cities ?? []) as VisitedCity[]
+  ).length;
+  const wishlistCount = profile.wishlist_public ? (wishlist ?? []).length : 0;
 
   const displayName = profile.display_name ?? profile.username;
   const title = buildProfileTitle(displayName, profile.username);
   const description = buildProfileDescription(displayName, stats);
+  const ogTitle = buildProfileOgTitle(displayName);
+  const ogDescription = buildProfileOgDescription(visitedCount);
   const url = buildProfileUrl(profile.username);
-  const ogImagePath = profileOgImagePath(profile.username);
-  const ogImageUrl = profileOgImageUrl(profile.username);
+  const ogVersion = profileOgImageVersion(stats, visitedCount, wishlistCount);
+  const ogImagePath = profileOgImagePath(profile.username, ogVersion);
+  const ogImageUrl = profileOgImageUrl(profile.username, ogVersion);
 
   return {
     metadataBase: new URL(getSiteUrl()),
@@ -79,8 +94,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     openGraph: {
       type: "website",
-      title,
-      description,
+      title: ogTitle,
+      description: ogDescription,
       url,
       siteName: BRAND.name,
       images: [
@@ -96,8 +111,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      title: ogTitle,
+      description: ogDescription,
       images: [ogImageUrl],
     },
   };
@@ -239,7 +254,19 @@ export default async function PublicProfilePage({ params }: PageProps) {
               )}
             </div>
 
-            <div className="order-3 mt-2 flex flex-col items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/50 px-6 py-5 text-center sm:mt-8 sm:flex-row sm:justify-between sm:text-left">
+            {hasMapContent && (
+              <div className="order-3">
+                <ShareProfile
+                  username={profile.username}
+                  displayName={displayName}
+                  stats={stats}
+                  profileUrl={publicUrl}
+                  isOwnProfile={isOwnProfile}
+                />
+              </div>
+            )}
+
+            <div className="order-4 mt-2 flex flex-col items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/50 px-6 py-5 text-center sm:mt-8 sm:flex-row sm:justify-between sm:text-left">
               <div>
                 <p className="font-medium text-white">{tHome("ctaTitle")}</p>
                 <p className="mt-1 text-sm text-slate-500">{tHome("ctaHint")}</p>

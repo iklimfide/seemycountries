@@ -1,5 +1,26 @@
 import type { TravelStats } from "@/types/database";
 import { profileUrl } from "@/lib/seo/site";
+import { getTravelerBadgeTier, type TravelerBadgeTier } from "@/lib/utils/traveler-badge";
+
+const BADGE_OG_LABELS: Record<TravelerBadgeTier, string> = {
+  explorer: "Explorer",
+  globetrotter: "Globetrotter",
+  super_voyager: "Super Voyager",
+  world_citizen: "World Citizen",
+};
+
+/** Open Graph / Twitter card title for public profile links. */
+export function buildProfileOgTitle(displayName: string): string {
+  return `${displayName} is dominating the world map! 🌍`;
+}
+
+/** Open Graph / Twitter card description for public profile links. */
+export function buildProfileOgDescription(countryCount: number): string {
+  const tier = getTravelerBadgeTier(countryCount);
+  const title = tier ? BADGE_OG_LABELS[tier] : "Rising Traveler";
+
+  return `Officially achieved ${title} status with ${countryCount} ${countryCount === 1 ? "country" : "countries"} visited. Tap to explore their travel secrets, photos, and next wishlist destinations!`;
+}
 
 export function buildProfileTitle(
   displayName: string,

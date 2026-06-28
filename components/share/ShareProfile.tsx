@@ -11,17 +11,31 @@ type ShareProfileProps = {
   displayName: string;
   stats: TravelStats;
   profileUrl: string;
+  isOwnProfile?: boolean;
 };
 
 function encode(text: string): string {
   return encodeURIComponent(text);
 }
 
+const PLATFORM_STYLES: Record<string, string> = {
+  whatsapp:
+    "border-emerald-700/50 text-emerald-800 hover:border-emerald-500 hover:bg-emerald-500/10 dark:text-emerald-200",
+  telegram:
+    "border-sky-700/50 text-sky-800 hover:border-sky-500 hover:bg-sky-500/10 dark:text-sky-200",
+  x: "border-slate-600 text-slate-700 hover:border-slate-400 hover:bg-slate-500/10 dark:text-slate-200",
+  facebook:
+    "border-blue-800/50 text-blue-800 hover:border-blue-500 hover:bg-blue-500/10 dark:text-blue-200",
+  linkedin:
+    "border-sky-800/50 text-sky-900 hover:border-sky-500 hover:bg-sky-500/10 dark:text-sky-200",
+};
+
 export function ShareProfile({
   username,
   displayName,
   stats,
   profileUrl,
+  isOwnProfile = false,
 }: ShareProfileProps) {
   const modal = useModal();
   const [canNativeShare, setCanNativeShare] = useState(false);
@@ -32,26 +46,32 @@ export function ShareProfile({
 
   const shareText = buildShareText(displayName, stats, username);
   const tweetText = shareText.replace(profileUrl, "").trim();
+  const shareTitle = formatMessage(shareMessages.shareTitle, { name: displayName });
 
   const shareLinks = [
     {
+      id: "whatsapp",
+      label: shareMessages.whatsapp,
+      href: `https://wa.me/?text=${encode(shareText)}`,
+    },
+    {
+      id: "telegram",
+      label: shareMessages.telegram,
+      href: `https://t.me/share/url?url=${encode(profileUrl)}&text=${encode(tweetText)}`,
+    },
+    {
       id: "x",
-      label: "X",
+      label: shareMessages.x,
       href: `https://twitter.com/intent/tweet?text=${encode(tweetText)}&url=${encode(profileUrl)}`,
     },
     {
       id: "facebook",
-      label: "Facebook",
+      label: shareMessages.facebook,
       href: `https://www.facebook.com/sharer/sharer.php?u=${encode(profileUrl)}`,
     },
     {
-      id: "whatsapp",
-      label: "WhatsApp",
-      href: `https://wa.me/?text=${encode(shareText)}`,
-    },
-    {
       id: "linkedin",
-      label: "LinkedIn",
+      label: shareMessages.linkedin,
       href: `https://www.linkedin.com/sharing/share-offsite/?url=${encode(profileUrl)}`,
     },
   ];
@@ -69,7 +89,7 @@ export function ShareProfile({
     if (!navigator.share) return;
     try {
       await navigator.share({
-        title: formatMessage(shareMessages.shareTitle, { name: displayName }),
+        title: shareTitle,
         text: tweetText,
         url: profileUrl,
       });
@@ -79,14 +99,20 @@ export function ShareProfile({
   }
 
   return (
-    <section className="flex flex-col items-center gap-3">
-      <p className="text-sm text-slate-500">{shareMessages.hint}</p>
-      <div className="flex flex-wrap items-center justify-center gap-2">
+    <section className="flex w-full flex-col items-center gap-4 rounded-xl border border-slate-800 bg-slate-900/50 px-5 py-5 text-center sm:px-6 sm:py-6">
+      <div>
+        <p className="font-medium text-foreground">
+          {isOwnProfile ? shareMessages.ownTitle : shareMessages.guestTitle}
+        </p>
+        <p className="mt-1 text-sm text-slate-500">{shareMessages.hint}</p>
+      </div>
+
+      <div className="flex w-full flex-wrap items-center justify-center gap-2">
         {canNativeShare && (
           <button
             type="button"
             onClick={handleNativeShare}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+            className="rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-500"
           >
             {shareMessages.native}
           </button>
@@ -94,17 +120,20 @@ export function ShareProfile({
         <button
           type="button"
           onClick={handleCopy}
-          className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-500 hover:text-white"
+          className="rounded-full border border-slate-700 px-5 py-2 text-sm font-medium text-slate-300 hover:border-slate-500 hover:text-white"
         >
           {shareMessages.copyLink}
         </button>
+      </div>
+
+      <div className="flex w-full flex-wrap items-center justify-center gap-2">
         {shareLinks.map((link) => (
           <a
             key={link.id}
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-500 hover:text-white"
+            className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${PLATFORM_STYLES[link.id] ?? ""}`}
           >
             {link.label}
           </a>

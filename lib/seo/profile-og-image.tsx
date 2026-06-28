@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
 import { BRAND } from "@/lib/constants";
 import { OG_IMAGE_SIZE } from "@/lib/seo/og";
+import { ogMapDataUrl } from "@/lib/seo/og-map-svg";
 import { createClient } from "@/lib/supabase/server";
 import {
   fetchPublicProfile,
@@ -15,6 +16,11 @@ import {
 import type { VisitedCity, VisitedCountry } from "@/types/database";
 
 export const runtime = "edge";
+
+function profileInitial(name: string): string {
+  const trimmed = name.trim();
+  return trimmed ? trimmed.charAt(0).toUpperCase() : "?";
+}
 
 export async function buildProfileOgImage(username: string): Promise<ImageResponse> {
   const supabase = await createClient();
@@ -32,10 +38,10 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
   const visitedCountries = (countries ?? []) as VisitedCountry[];
   const visitedCities = (cities ?? []) as VisitedCity[];
   const stats = computeTravelStats(visitedCountries, visitedCities);
-  const visitedCount = getVisitedCountryCodes(visitedCountries, visitedCities).length;
-  const wishlistCount = profile.wishlist_public
-    ? getWishlistCountryCodes(wishlistCountries).length
-    : 0;
+  const visitedCodes = getVisitedCountryCodes(visitedCountries, visitedCities);
+  const wishlistCodes = profile.wishlist_public
+    ? getWishlistCountryCodes(wishlistCountries)
+    : [];
 
   const name = profile.display_name ?? profile.username;
   const statsLine =
@@ -43,7 +49,7 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
       ? `${stats.countries} Countries · ${stats.cities} Cities`
       : "Start your travel map";
 
-  const showCounts = visitedCount > 0 || wishlistCount > 0;
+  const mapSrc = ogMapDataUrl(visitedCodes, visitedCities, wishlistCodes);
 
   return new ImageResponse(
     (
@@ -59,34 +65,64 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
       >
         <div
           style={{
-            height: "280px",
+            position: "relative",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: `linear-gradient(160deg, ${BRAND.colors.surface} 0%, ${BRAND.colors.background} 100%)`,
-            borderBottom: `1px solid ${BRAND.colors.unvisited}`,
+            height: "360px",
+            width: "100%",
+            overflow: "hidden",
+            borderBottom: `2px solid ${BRAND.colors.unvisited}`,
           }}
         >
+          <img
+            src={mapSrc}
+            alt=""
+            width={1200}
+            height={360}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center",
+            }}
+          />
           <div
             style={{
+              position: "absolute",
+              bottom: "16px",
+              left: "24px",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "180px",
-              height: "180px",
-              borderRadius: "50%",
-              background: BRAND.colors.unvisited,
-              border: `3px solid ${BRAND.colors.visited}`,
+              gap: "20px",
+              padding: "8px 14px",
+              borderRadius: "999px",
+              background: "rgba(15, 23, 42, 0.82)",
+              border: `1px solid ${BRAND.colors.unvisited}`,
             }}
           >
-            <div
-              style={{
-                width: "14px",
-                height: "14px",
-                borderRadius: "50%",
-                background: BRAND.colors.pin,
-              }}
-            />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div
+                style={{
+                  width: "14px",
+                  height: "14px",
+                  borderRadius: "3px",
+                  background: BRAND.colors.visited,
+                }}
+              />
+              <span style={{ fontSize: "16px", color: "#e2e8f0" }}>Visited</span>
+            </div>
+            {wishlistCodes.length > 0 ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div
+                  style={{
+                    width: "14px",
+                    height: "14px",
+                    borderRadius: "3px",
+                    background: BRAND.colors.wishlistFill,
+                    border: `2px solid ${BRAND.colors.wishlist}`,
+                  }}
+                />
+                <span style={{ fontSize: "16px", color: "#e2e8f0" }}>Want to visit</span>
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -96,65 +132,64 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "36px 48px",
+            padding: "28px 40px 32px",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                fontSize: "46px",
-                fontWeight: 700,
-                color: "#f8fafc",
-                lineHeight: 1.1,
-              }}
-            >
-              {name}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: "28px",
-                color: "#60a5fa",
-              }}
-            >
-              {statsLine}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: "22px",
-                color: "#94a3b8",
-              }}
-            >
-              @{profile.username}
-            </div>
-            {showCounts ? (
+          <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt=""
+                width={88}
+                height={88}
+                style={{
+                  width: "88px",
+                  height: "88px",
+                  borderRadius: "50%",
+                  border: `3px solid ${BRAND.colors.visited}`,
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: "88px",
+                  height: "88px",
+                  borderRadius: "50%",
+                  border: `3px solid ${BRAND.colors.visited}`,
+                  background: BRAND.colors.surface,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "36px",
+                  fontWeight: 700,
+                  color: "#f8fafc",
+                }}
+              >
+                {profileInitial(name)}
+              </div>
+            )}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <div
                 style={{
                   display: "flex",
-                  gap: "16px",
-                  marginTop: "8px",
+                  fontSize: "42px",
+                  fontWeight: 700,
+                  color: "#f8fafc",
+                  lineHeight: 1.1,
+                  maxWidth: "620px",
                 }}
               >
-                {visitedCount > 0 ? (
-                  <div style={{ display: "flex", fontSize: "18px", color: "#93c5fd" }}>
-                    {visitedCount} visited
-                  </div>
-                ) : null}
-                {wishlistCount > 0 ? (
-                  <div style={{ display: "flex", fontSize: "18px", color: "#fbbf24" }}>
-                    {wishlistCount} wishlist
-                  </div>
-                ) : null}
+                {name}
               </div>
-            ) : null}
+              <div style={{ display: "flex", fontSize: "26px", color: "#60a5fa" }}>
+                {statsLine}
+              </div>
+              <div style={{ display: "flex", fontSize: "20px", color: "#94a3b8" }}>
+                @{profile.username}
+              </div>
+            </div>
           </div>
 
           <div
@@ -162,22 +197,16 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
               display: "flex",
               flexDirection: "column",
               alignItems: "flex-end",
-              gap: "10px",
+              gap: "8px",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-              }}
-            >
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <div
                 style={{
-                  width: "40px",
-                  height: "40px",
+                  width: "36px",
+                  height: "36px",
                   borderRadius: "10px",
-                  background: "#60a5fa",
+                  background: BRAND.colors.pin,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -185,8 +214,8 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
               >
                 <div
                   style={{
-                    width: "14px",
-                    height: "14px",
+                    width: "12px",
+                    height: "12px",
                     borderRadius: "50%",
                     background: BRAND.colors.background,
                   }}
@@ -195,21 +224,15 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
               <div
                 style={{
                   display: "flex",
-                  fontSize: "26px",
+                  fontSize: "24px",
                   color: "#e2e8f0",
-                  fontWeight: 600,
+                  fontWeight: 700,
                 }}
               >
                 {BRAND.name}
               </div>
             </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: "18px",
-                color: "#64748b",
-              }}
-            >
+            <div style={{ display: "flex", fontSize: "18px", color: "#64748b" }}>
               {BRAND.domain}
             </div>
           </div>

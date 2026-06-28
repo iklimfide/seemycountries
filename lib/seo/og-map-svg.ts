@@ -90,12 +90,12 @@ export function buildOgMapSvg(
 </svg>`;
 }
 
+/** Edge-safe data URL for next/og ImageResponse. */
 export function ogMapDataUrl(
   visitedCountryCodes: string[],
   cities: VisitedCity[],
   wishlistCountryCodes: string[] = []
 ): string {
   const svg = buildOgMapSvg(visitedCountryCodes, cities, wishlistCountryCodes);
-  const base64 = Buffer.from(svg, "utf-8").toString("base64");
-  return `data:image/svg+xml;base64,${base64}`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }

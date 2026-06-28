@@ -22,17 +22,23 @@ import {
 import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("home");
-  const title = `${BRAND.name} — ${t("hero")}`;
+  const ogTitle = "SeeMyCountries — What's your travel status?";
+  const ogDescription =
+    "Don't just list your trips, claim your title. Pin your visited cities, map your ultimate bucket list, and unlock exclusive traveler badges.";
 
   return {
-    title,
-    description: t("subtitle"),
+    title: ogTitle,
+    description: ogDescription,
     alternates: { canonical: "/" },
     openGraph: {
-      title,
-      description: t("subtitle"),
+      title: ogTitle,
+      description: ogDescription,
       url: getSiteUrl(),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: ogTitle,
+      description: ogDescription,
     },
   };
 }
