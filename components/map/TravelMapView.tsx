@@ -18,7 +18,7 @@ import {
   removeWishlistCountry,
 } from "@/lib/client/country-actions";
 import { countryMessages, mapMessages } from "@/lib/i18n/client-messages";
-import { getCountryContinent, type ContinentId } from "@/lib/map/continents";
+import { getCountryContinent, DEFAULT_MAP_CONTINENT, type ContinentId } from "@/lib/map/continents";
 import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
 
 type CountrySelection = {
@@ -57,7 +57,7 @@ export function TravelMapView({
   const mapFocus = useOptionalMapFocus();
   const [selectedCountry, setSelectedCountry] = useState<CountrySelection | null>(null);
   const [selectedCity, setSelectedCity] = useState<VisitedCity | null>(null);
-  const [continent, setContinent] = useState<ContinentId>("world");
+  const [continent, setContinent] = useState<ContinentId>(DEFAULT_MAP_CONTINENT);
   const [focusRequest, setFocusRequest] = useState<{ code: string; nonce: number } | null>(
     null
   );
@@ -268,26 +268,23 @@ export function TravelMapView({
 
   return (
     <>
-      <div
-        id="travel-map"
-        className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 scroll-mt-24"
-      >
-        {showContinentFilter && (
-          <div className="absolute inset-x-3 top-3 z-10 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <div className="w-full sm:w-52 sm:shrink-0">
-              <MapContinentControl
-                continent={continent}
-                onChange={(next) => {
-                  setContinent(next);
-                  setPinnedCountryCode(null);
-                }}
-              />
-            </div>
-            <div className="w-full sm:w-52 sm:shrink-0">
-              <MapCountrySearch onSelect={handleCountrySearch} />
-            </div>
+      {showContinentFilter && (
+        <div className="mb-2 flex flex-col gap-2 sm:mb-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="w-full sm:w-52 sm:shrink-0">
+            <MapContinentControl
+              continent={continent}
+              onChange={(next) => {
+                setContinent(next);
+                setPinnedCountryCode(null);
+              }}
+            />
           </div>
-        )}
+          <div className="w-full sm:w-52 sm:shrink-0 sm:ml-auto">
+            <MapCountrySearch onSelect={handleCountrySearch} />
+          </div>
+        </div>
+      )}
+      <div id="travel-map" className="relative w-full scroll-mt-24">
         <WorldMap
           visitedCountryCodes={[...visitedCodeSet]}
           wishlistCountryCodes={wishlistCountryCodes}

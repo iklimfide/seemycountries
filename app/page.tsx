@@ -117,8 +117,8 @@ export default async function HomePage() {
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-3 sm:py-8">
         <TravelMapFocusShell>
         <div className="flex flex-col gap-4 sm:gap-6">
-        <div className="order-2 flex flex-col gap-4 sm:order-1 sm:mb-0 sm:flex-row sm:items-end sm:justify-between">
-          <div className="text-left">
+        <div className="order-2 flex flex-col items-center gap-4 text-center sm:order-1 sm:mb-0 sm:flex-row sm:items-end sm:justify-between sm:text-left">
+          <div>
             <p className="text-sm font-medium text-blue-400">
               {isDemo
                 ? formatMessage(homeMessages.demoLabel, { name: DEMO_PERSONA.name })

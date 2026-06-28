@@ -73,7 +73,7 @@ export default async function DashboardPage() {
       <main className="mx-auto max-w-5xl flex-1 px-4 py-3 sm:py-8">
         <TravelMapFocusShell>
         <div className="flex flex-col gap-4 sm:gap-6">
-        <div className="order-2 mb-0 flex flex-wrap items-center justify-between gap-4 sm:order-1 sm:mb-6">
+        <div className="order-2 mb-0 flex flex-col items-center gap-4 text-center sm:order-1 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:text-left">
           <div>
             <h1 className="text-2xl font-bold text-white">
               {profile?.display_name ?? profile?.username}

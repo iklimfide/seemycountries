@@ -8,8 +8,8 @@ import {
 function BadgeIcon({ tier, className }: { tier: TravelerBadgeTier; className: string }) {
   const props = {
     className,
-    width: 16,
-    height: 16,
+    width: 10,
+    height: 10,
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
@@ -67,13 +67,9 @@ export async function TravelerBadge({ countryCount, className = "" }: TravelerBa
 
   return (
     <span
-      className={`inline-flex w-fit max-w-full items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-bold tracking-wide uppercase ${theme.shell} ${className}`}
+      className={`inline-flex w-fit max-w-full items-center gap-0.5 rounded-full border px-1.5 py-px text-[9px] font-medium leading-tight tracking-normal text-inherit sm:text-[10px] ${theme.shell} ${className}`}
     >
-      <span
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${theme.iconRing}`}
-      >
-        <BadgeIcon tier={tier} className={`h-3.5 w-3.5 ${theme.icon}`} />
-      </span>
+      <BadgeIcon tier={tier} className={`h-2.5 w-2.5 shrink-0 ${theme.icon}`} />
       {t(tier)}
     </span>
   );

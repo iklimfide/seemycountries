@@ -17,6 +17,9 @@ export const CONTINENT_IDS = [
   "oceania",
 ] as const satisfies readonly ContinentId[];
 
+/** Default continent for all interactive maps (larger initial view than world). */
+export const DEFAULT_MAP_CONTINENT: ContinentId = "europe";
+
 const AFRICA = [
   "DZ", "AO", "BJ", "BW", "BF", "BI", "CV", "CM", "CF", "TD", "KM", "CG", "CD", "CI",
   "DJ", "EG", "GQ", "ER", "SZ", "ET", "GA", "GM", "GH", "GN", "GW", "KE", "LS", "LR",

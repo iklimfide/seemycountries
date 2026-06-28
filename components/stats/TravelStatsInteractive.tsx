@@ -2,29 +2,37 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMapFocus } from "@/components/map/MapFocusContext";
-import { commonMessages } from "@/lib/i18n/client-messages";
+import { commonMessages, profileMessages } from "@/lib/i18n/client-messages";
 import {
   buildVisitedCityList,
   buildVisitedCountryList,
 } from "@/lib/map/travel-lists";
-import type { TravelStats, VisitedCity, VisitedCountry } from "@/types/database";
+import type {
+  TravelStats,
+  VisitedCity,
+  VisitedCountry,
+  WishlistCountry,
+} from "@/types/database";
 
 type TravelStatsInteractiveProps = {
   stats: TravelStats;
   visitedCountries: VisitedCountry[];
   visitedCities: VisitedCity[];
+  wishlistCountries?: WishlistCountry[];
   className?: string;
 };
 
-type OpenPanel = "countries" | "cities" | null;
+type OpenPanel = "countries" | "cities" | "wishlist" | null;
 
 export function TravelStatsInteractive({
   stats,
   visitedCountries,
   visitedCities,
+  wishlistCountries = [],
   className = "",
 }: TravelStatsInteractiveProps) {
   const t = commonMessages;
+  const p = profileMessages;
   const { focusCountry } = useMapFocus();
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -35,6 +43,17 @@ export function TravelStatsInteractive({
   );
 
   const cities = useMemo(() => buildVisitedCityList(visitedCities), [visitedCities]);
+
+  const wishlist = useMemo(
+    () =>
+      [...wishlistCountries]
+        .map((country) => ({
+          code: country.country_code,
+          name: country.country_name,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [wishlistCountries]
+  );
 
   useEffect(() => {
     if (!openPanel) return;
@@ -75,75 +94,118 @@ export function TravelStatsInteractive({
     focusCountry({ code: city.country_code, name: city.country_name });
   }
 
-  const segmentClass =
+  const visitedSegmentClass =
     "rounded-full px-2 py-0.5 transition-colors hover:bg-blue-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50";
+
+  const wishlistSegmentClass =
+    "rounded-full px-2 py-0.5 transition-colors hover:bg-amber-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50";
+
+  const panelTitle =
+    openPanel === "countries"
+      ? t.visitedCountries
+      : openPanel === "cities"
+        ? t.visitedCities
+        : openPanel === "wishlist"
+          ? p.wishlistCountries
+          : "";
+
+  const panelEmpty =
+    openPanel === "countries"
+      ? countries.length === 0
+      : openPanel === "cities"
+        ? cities.length === 0
+        : openPanel === "wishlist"
+          ? wishlist.length === 0
+          : true;
 
   return (
     <div ref={rootRef} className={`relative ${className}`}>
-      <div className="inline-flex items-center gap-3 rounded-full border border-blue-500/30 bg-blue-500/10 px-6 py-3 text-lg font-semibold tracking-wide text-blue-800 dark:text-blue-100">
-        <button
-          type="button"
-          onClick={() => togglePanel("countries")}
-          className={`inline-flex items-center gap-2 ${segmentClass}`}
-          aria-expanded={openPanel === "countries"}
-        >
-          <span className="text-2xl font-bold text-foreground">{stats.countries}</span>
-          <span className="text-sm font-medium text-blue-700 dark:text-blue-200">{t.countries}</span>
-        </button>
-        <span className="text-blue-500/60 dark:text-blue-400/60" aria-hidden>
-          |
-        </span>
-        <button
-          type="button"
-          onClick={() => togglePanel("cities")}
-          className={`inline-flex items-center gap-2 ${segmentClass}`}
-          aria-expanded={openPanel === "cities"}
-        >
-          <span className="text-2xl font-bold text-foreground">{stats.cities}</span>
-          <span className="text-sm font-medium text-blue-700 dark:text-blue-200">{t.cities}</span>
-        </button>
+      <div className="inline-flex flex-wrap items-center justify-center gap-2">
+        <div className="inline-flex items-center gap-3 rounded-full border border-blue-500/30 bg-blue-500/10 px-6 py-3 text-lg font-semibold tracking-wide text-blue-800 dark:text-blue-100">
+          <button
+            type="button"
+            onClick={() => togglePanel("countries")}
+            className={`inline-flex items-center gap-2 ${visitedSegmentClass}`}
+            aria-expanded={openPanel === "countries"}
+          >
+            <span className="text-2xl font-bold text-foreground">{stats.countries}</span>
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-200">{t.countries}</span>
+          </button>
+          <span className="text-blue-500/60 dark:text-blue-400/60" aria-hidden>
+            |
+          </span>
+          <button
+            type="button"
+            onClick={() => togglePanel("cities")}
+            className={`inline-flex items-center gap-2 ${visitedSegmentClass}`}
+            aria-expanded={openPanel === "cities"}
+          >
+            <span className="text-2xl font-bold text-foreground">{stats.cities}</span>
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-200">{t.cities}</span>
+          </button>
+        </div>
+
+        {wishlist.length > 0 && (
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/35 bg-amber-500/10 px-5 py-3 text-lg font-semibold tracking-wide">
+            <button
+              type="button"
+              onClick={() => togglePanel("wishlist")}
+              className={`inline-flex items-center gap-2 ${wishlistSegmentClass}`}
+              aria-expanded={openPanel === "wishlist"}
+            >
+              <span className="text-2xl font-bold text-foreground">{wishlist.length}</span>
+              <span className="text-sm font-medium text-amber-800 dark:text-amber-200">{t.countries}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {openPanel && (
         <div className="absolute left-1/2 top-full z-30 mt-2 w-[min(100vw-2rem,20rem)] -translate-x-1/2 overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-xl">
           <div className="border-b border-slate-800 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            {openPanel === "countries" ? t.visitedCountries : t.visitedCities}
+            {panelTitle}
           </div>
           <ul className="max-h-64 overflow-y-auto py-1">
-            {openPanel === "countries" &&
-              (countries.length > 0 ? (
-                countries.map((country) => (
-                  <li key={country.code}>
-                    <button
-                      type="button"
-                      onClick={() => handleCountrySelect(country)}
-                      className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800 hover:text-white"
-                    >
-                      {country.name}
-                    </button>
-                  </li>
-                ))
-              ) : (
-                <li className="px-3 py-2 text-sm text-slate-500">{t.statsListEmpty}</li>
-              ))}
-
-            {openPanel === "cities" &&
-              (cities.length > 0 ? (
-                cities.map((city) => (
-                  <li key={city.id}>
-                    <button
-                      type="button"
-                      onClick={() => handleCitySelect(city)}
-                      className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800 hover:text-white"
-                    >
-                      <span className="font-medium">{city.city_name}</span>
-                      <span className="text-slate-500"> · {city.country_name}</span>
-                    </button>
-                  </li>
-                ))
-              ) : (
-                <li className="px-3 py-2 text-sm text-slate-500">{t.statsListEmpty}</li>
-              ))}
+            {panelEmpty ? (
+              <li className="px-3 py-2 text-sm text-slate-500">{t.statsListEmpty}</li>
+            ) : openPanel === "countries" ? (
+              countries.map((country) => (
+                <li key={country.code}>
+                  <button
+                    type="button"
+                    onClick={() => handleCountrySelect(country)}
+                    className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800 hover:text-white"
+                  >
+                    {country.name}
+                  </button>
+                </li>
+              ))
+            ) : openPanel === "cities" ? (
+              cities.map((city) => (
+                <li key={city.id}>
+                  <button
+                    type="button"
+                    onClick={() => handleCitySelect(city)}
+                    className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800 hover:text-white"
+                  >
+                    <span className="font-medium">{city.city_name}</span>
+                    <span className="text-slate-500"> · {city.country_name}</span>
+                  </button>
+                </li>
+              ))
+            ) : (
+              wishlist.map((country) => (
+                <li key={country.code}>
+                  <button
+                    type="button"
+                    onClick={() => handleCountrySelect(country)}
+                    className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800 hover:text-white"
+                  >
+                    {country.name}
+                  </button>
+                </li>
+              ))
+            )}
           </ul>
         </div>
       )}

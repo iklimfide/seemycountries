@@ -40,8 +40,8 @@ export const BADGE_TIER_THEMES: Record<TravelerBadgeTier, BadgeTierTheme> = {
   },
   super_voyager: {
     shell:
-      "border-violet-600/55 bg-violet-100 text-violet-950 shadow-sm dark:border-violet-500/45 dark:bg-violet-500/12 dark:text-violet-100 dark:shadow-[0_0_22px_rgba(139,92,246,0.16)]",
-    icon: "text-violet-800 dark:text-violet-400",
+      "border-violet-500/40 bg-violet-50 text-violet-800 dark:border-violet-500/35 dark:bg-violet-500/10 dark:text-violet-200",
+    icon: "text-violet-700 dark:text-violet-400",
     iconRing: "border-violet-400/60 bg-violet-200/80 dark:border-white/10 dark:bg-black/20",
   },
   world_citizen: {

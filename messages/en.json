@@ -10,6 +10,8 @@
     "dashboard": "My map",
     "profile": "Profile Settings",
     "openMenu": "Open account menu",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
     "visitedCountries": "Visited countries",
     "visitedCities": "Visited cities",
     "statsListEmpty": "None yet",

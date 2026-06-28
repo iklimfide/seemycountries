@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type HeaderUserMenuProps = {
   username: string;
@@ -102,6 +103,8 @@ export function HeaderUserMenu({
               {t("profile")}
             </Link>
 
+            <ThemeToggle variant="menu" onToggled={() => setOpen(false)} />
+
             <div className="my-1 border-t border-slate-200 dark:border-slate-800" />
 
             <form action="/auth/signout" method="post" role="none">
@@ -114,7 +117,7 @@ export function HeaderUserMenu({
       </div>
 
       {showInlineIdentity && (
-        <div className="min-w-0 flex flex-col gap-1">
+        <div className="min-w-0 flex flex-col gap-0.5">
           <h1 className="truncate text-base font-bold leading-tight text-foreground sm:text-lg">
             {displayName}
           </h1>

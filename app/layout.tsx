@@ -86,7 +86,7 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${theme} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col bg-background text-foreground">
+      <body className="flex min-h-full flex-col overflow-x-clip bg-background text-foreground">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider defaultTheme={theme}>
             <ModalProvider>

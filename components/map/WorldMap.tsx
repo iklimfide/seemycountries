@@ -19,7 +19,7 @@ import {
   findCountryFeatureByCode,
   normalizeCountryNumericId,
 } from "@/lib/map/country";
-import { type ContinentId } from "@/lib/map/continents";
+import { type ContinentId, DEFAULT_MAP_CONTINENT } from "@/lib/map/continents";
 import { filterVisibleForContinent, selectFitFeatures } from "@/lib/map/continent-fit";
 import { clipCountryToMainland } from "@/lib/map/mainland";
 import { clampFocusTransform, clampTransform, transformForCountryFocus, transformForFeature, transformToString } from "@/lib/map/zoom";
@@ -78,7 +78,7 @@ export function WorldMap({
   onCityClick,
   interactive = true,
   explorable = false,
-  continent = "world",
+  continent = DEFAULT_MAP_CONTINENT,
   focusRequest = null,
   onFocusComplete,
   pinnedCountryCode = null,
