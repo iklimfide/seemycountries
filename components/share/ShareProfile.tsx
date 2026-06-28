@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
 import { buildShareText } from "@/lib/seo/profile";
+import { formatMessage, shareMessages } from "@/lib/i18n/client-messages";
 import { useModal } from "@/components/ui/ModalProvider";
 import type { TravelStats } from "@/types/database";
 
@@ -23,7 +23,6 @@ export function ShareProfile({
   stats,
   profileUrl,
 }: ShareProfileProps) {
-  const t = useTranslations("share");
   const modal = useModal();
   const [canNativeShare, setCanNativeShare] = useState(false);
 
@@ -60,9 +59,9 @@ export function ShareProfile({
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(shareText);
-      await modal.alert(t("copied"), { variant: "success" });
+      await modal.alert(shareMessages.copied, { variant: "success" });
     } catch {
-      await modal.alert(t("copyFailed"), { variant: "error" });
+      await modal.alert(shareMessages.copyFailed, { variant: "error" });
     }
   }
 
@@ -70,7 +69,7 @@ export function ShareProfile({
     if (!navigator.share) return;
     try {
       await navigator.share({
-        title: t("shareTitle", { name: displayName }),
+        title: formatMessage(shareMessages.shareTitle, { name: displayName }),
         text: tweetText,
         url: profileUrl,
       });
@@ -81,7 +80,7 @@ export function ShareProfile({
 
   return (
     <section className="flex flex-col items-center gap-3">
-      <p className="text-sm text-slate-500">{t("hint")}</p>
+      <p className="text-sm text-slate-500">{shareMessages.hint}</p>
       <div className="flex flex-wrap items-center justify-center gap-2">
         {canNativeShare && (
           <button
@@ -89,7 +88,7 @@ export function ShareProfile({
             onClick={handleNativeShare}
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
           >
-            {t("native")}
+            {shareMessages.native}
           </button>
         )}
         <button
@@ -97,7 +96,7 @@ export function ShareProfile({
           onClick={handleCopy}
           className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-500 hover:text-white"
         >
-          {t("copyLink")}
+          {shareMessages.copyLink}
         </button>
         {shareLinks.map((link) => (
           <a

@@ -93,6 +93,87 @@ function isRelevantNominatim(item: NominatimItem): boolean {
   return false;
 }
 
+function pickNominatimSubtitle(item: NominatimItem): string {
+  const address = item.address;
+  if (!address) return "";
+
+  const parts: string[] = [];
+  if (address.town && address.town !== item.name) parts.push(address.town);
+  if (address.municipality && address.municipality !== item.name) {
+    parts.push(address.municipality);
+  }
+  if (address.city && address.city !== item.name) parts.push(address.city);
+
+  return parts.slice(0, 2).join(", ");
+}
+
+function nominatimToResult(
+  item: NominatimItem,
+  countryCode: string,
+  countryName: string,
+  showCountryInSubtitle: boolean
+): CitySearchResult | null {
+  const latitude = Number.parseFloat(item.lat);
+  const longitude = Number.parseFloat(item.lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
+
+  const name = pickNominatimName(item);
+  let subtitle = pickNominatimSubtitle(item);
+  if (showCountryInSubtitle) {
+    subtitle = subtitle ? `${subtitle} · ${countryName}` : countryName;
+  }
+
+  return {
+    id: `${countryCode}-nominatim-${item.place_id}`,
+    name,
+    subtitle,
+    latitude,
+    longitude,
+    country_code: countryCode,
+    country_name: countryName,
+  };
+}
+
+async function searchCitiesViaNominatim(
+  query: string,
+  countries: CountryRef[],
+  limit: number
+): Promise<CitySearchResult[]> {
+  const trimmed = query.trim();
+  if (trimmed.length < 2 || countries.length === 0) {
+    return [];
+  }
+
+  const allowed = new Set(countries.map((c) => c.code.toUpperCase()));
+  const nameByCode = new Map(countries.map((c) => [c.code.toUpperCase(), c.name]));
+  const showCountry = countries.length > 1;
+  const results: CitySearchResult[] = [];
+
+  for (const country of countries) {
+    const params = new URLSearchParams({
+      q: trimmed,
+      countrycodes: country.code.toLowerCase(),
+      format: "json",
+      addressdetails: "1",
+      limit: String(Math.ceil(limit / countries.length) + 4),
+    });
+
+    const items = await fetchNominatim(params);
+    for (const item of items) {
+      if (!isRelevantNominatim(item)) continue;
+      const mapped = nominatimToResult(item, country.code.toUpperCase(), country.name, showCountry);
+      if (!mapped) continue;
+      if (!allowed.has(mapped.country_code)) continue;
+      if (!nameMatchesPrefix(mapped.name, trimmed)) continue;
+      results.push(mapped);
+    }
+  }
+
+  return dedupeResults(results, limit);
+}
+
 function pickNominatimName(item: NominatimItem): string {
   if (item.name) {
     return normalizeCityName(item.name);
@@ -261,24 +342,33 @@ export async function searchCitiesInCountries(
   const allowed = new Set(countries.map((c) => c.code.toUpperCase()));
   const nameByCode = new Map(countries.map((c) => [c.code.toUpperCase(), c.name]));
   const showCountry = countries.length > 1;
-  const features = await fetchPhoton(trimmed, 30);
 
-  const results = features
-    .filter((feature) => {
-      const code = feature.properties.countrycode?.toUpperCase();
-      return code !== undefined && allowed.has(code);
-    })
-    .filter(isRelevantPhoton)
-    .filter((feature) => nameMatchesPrefix(feature.properties.name, trimmed))
-    .sort((a, b) => photonRank(a, trimmed) - photonRank(b, trimmed))
-    .map((feature) => {
-      const code = feature.properties.countrycode!.toUpperCase();
-      const countryName = nameByCode.get(code) ?? code;
-      return photonToResult(feature, code, countryName, showCountry);
-    })
-    .filter((item): item is CitySearchResult => item !== null);
+  try {
+    const features = await fetchPhoton(trimmed, 30);
+    const results = features
+      .filter((feature) => {
+        const code = feature.properties.countrycode?.toUpperCase();
+        return code !== undefined && allowed.has(code);
+      })
+      .filter(isRelevantPhoton)
+      .filter((feature) => nameMatchesPrefix(feature.properties.name, trimmed))
+      .sort((a, b) => photonRank(a, trimmed) - photonRank(b, trimmed))
+      .map((feature) => {
+        const code = feature.properties.countrycode!.toUpperCase();
+        const countryName = nameByCode.get(code) ?? code;
+        return photonToResult(feature, code, countryName, showCountry);
+      })
+      .filter((item): item is CitySearchResult => item !== null);
 
-  return dedupeResults(results, limit);
+    const deduped = dedupeResults(results, limit);
+    if (deduped.length > 0) {
+      return deduped;
+    }
+  } catch {
+    // Photon unavailable — fall back to Nominatim.
+  }
+
+  return searchCitiesViaNominatim(trimmed, countries, limit);
 }
 
 export async function searchCities(

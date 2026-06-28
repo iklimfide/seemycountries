@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { popupMessages } from "@/lib/i18n/client-messages";
 import { toInstagramEmbedUrl } from "@/lib/utils/instagram";
 import type { VisitedCity } from "@/types/database";
 
@@ -12,7 +12,6 @@ type CityPopupProps = {
 };
 
 export function CityPopup({ city, onClose }: CityPopupProps) {
-  const t = useTranslations("popup");
   const embedContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,7 +69,7 @@ export function CityPopup({ city, onClose }: CityPopupProps) {
             type="button"
             onClick={onClose}
             className="rounded-lg px-3 py-1 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
-            aria-label={t("close")}
+            aria-label={popupMessages.close}
           >
             ✕
           </button>

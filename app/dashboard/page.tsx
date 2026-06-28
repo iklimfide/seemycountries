@@ -41,7 +41,7 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single();
 
-  const [{ data: countries, error: countriesError }, { data: cities }, { data: wishlist }] =
+  const [{ data: countries, error: countriesError }, { data: cities, error: citiesError }, { data: wishlist, error: wishlistError }] =
     await Promise.all([
       supabase
         .from("visited_countries")
@@ -61,8 +61,8 @@ export default async function DashboardPage() {
     ]);
 
   const visitedCountries = (countriesError ? [] : (countries ?? [])) as VisitedCountry[];
-  const visitedCities = (cities ?? []) as VisitedCity[];
-  const wishlistCountries = (wishlist ?? []) as WishlistCountry[];
+  const visitedCities = (citiesError ? [] : (cities ?? [])) as VisitedCity[];
+  const wishlistCountries = (wishlistError ? [] : (wishlist ?? [])) as WishlistCountry[];
   const stats = computeTravelStats(visitedCountries, visitedCities);
   const visitedCodes = getVisitedCountryCodes(visitedCountries, visitedCities);
   const wishlistCodes = getWishlistCountryCodes(wishlistCountries);
@@ -101,9 +101,17 @@ export default async function DashboardPage() {
 
         <div className="mb-8">
           <TravelMapView
-            cities={visitedCities}
             visitedCountryCodes={visitedCodes}
             wishlistCountryCodes={wishlistCodes}
+            visitedCountries={visitedCountries}
+            wishlistCountries={wishlistCountries}
+            userCities={visitedCities}
+            citiesCountryCodes={[
+              ...new Set(visitedCities.map((c) => c.country_code.toUpperCase())),
+            ]}
+            isLoggedIn
+            explorable
+            showContinentFilter
           />
         </div>
 

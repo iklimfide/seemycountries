@@ -7,6 +7,7 @@ import { DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, getSiteUrl } from "@/lib/seo/sit
 import { defaultLocale, type Locale } from "@/lib/i18n/config";
 import enMessages from "@/messages/en.json";
 import { ModalProvider } from "@/components/ui/ModalProvider";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -77,7 +78,9 @@ export default async function RootLayout({
     <html lang={locale} className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-100">
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <ModalProvider>{children}</ModalProvider>
+          <ModalProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </ModalProvider>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -3,16 +3,22 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
 import { TravelStatsBar } from "@/components/stats/TravelStats";
+import { DemoTravelerSummary } from "@/components/home/DemoTravelerSummary";
 import { TravelMapView } from "@/components/map/TravelMapView";
 import { createClient } from "@/lib/supabase/server";
 import { BRAND } from "@/lib/constants";
 import { DEMO_CITIES } from "@/lib/data/demo-cities";
+import { DEMO_VISITED_COUNTRIES } from "@/lib/data/demo-countries";
+import { DEMO_WISHLIST_COUNTRIES } from "@/lib/data/demo-wishlist";
+import { DEMO_PERSONA, getDemoTravelStats } from "@/lib/data/demo-persona";
+import { formatMessage, homeMessages } from "@/lib/i18n/client-messages";
 import { getSiteUrl } from "@/lib/seo/site";
 import {
   computeTravelStats,
   getVisitedCountryCodes,
+  getWishlistCountryCodes,
 } from "@/lib/utils/stats";
-import type { VisitedCity, VisitedCountry } from "@/types/database";
+import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("home");
@@ -39,7 +45,11 @@ export default async function HomePage() {
   let displayName: string | null = null;
   let countries: VisitedCountry[] = [];
   let cities: VisitedCity[] = DEMO_CITIES;
+  let dbCountries: VisitedCountry[] = [];
+  let dbCities: VisitedCity[] = [];
   let isDemo = true;
+
+  let wishlistCountries: WishlistCountry[] = [];
 
   if (supabase) {
     const { data } = await supabase.auth.getUser();
@@ -55,7 +65,8 @@ export default async function HomePage() {
       username = profile?.username ?? null;
       displayName = profile?.display_name ?? profile?.username ?? null;
 
-      const [{ data: userCountries }, { data: userCities }] = await Promise.all([
+      const [{ data: userCountries }, { data: userCities }, { data: userWishlist }] =
+        await Promise.all([
         supabase
           .from("visited_countries")
           .select("*")
@@ -66,27 +77,38 @@ export default async function HomePage() {
           .select("*")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
+        supabase
+          .from("wishlist_countries")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("country_name", { ascending: true }),
       ]);
 
-      if (
-        (userCountries && userCountries.length > 0) ||
-        (userCities && userCities.length > 0)
-      ) {
-        countries = userCountries as VisitedCountry[];
-        cities = (userCities ?? []) as VisitedCity[];
+      wishlistCountries = (userWishlist ?? []) as WishlistCountry[];
+      dbCountries = (userCountries ?? []) as VisitedCountry[];
+      dbCities = (userCities ?? []) as VisitedCity[];
+
+      if (dbCountries.length > 0 || dbCities.length > 0) {
+        countries = dbCountries;
+        cities = dbCities;
         isDemo = false;
       }
     }
   }
 
-  const stats = computeTravelStats(
-    isDemo ? [] : countries,
-    cities
-  );
+  const stats = isDemo
+    ? getDemoTravelStats()
+    : computeTravelStats(countries, cities);
+  const wishlistCount = isDemo
+    ? DEMO_PERSONA.wishlistCountries
+    : wishlistCountries.length;
   const countryCodes = getVisitedCountryCodes(
-    isDemo ? [] : countries,
-    cities
+    isDemo ? DEMO_VISITED_COUNTRIES : countries,
+    isDemo ? [] : cities
   );
+  const wishlistCodes = isDemo
+    ? getWishlistCountryCodes(DEMO_WISHLIST_COUNTRIES)
+    : getWishlistCountryCodes(wishlistCountries);
 
   return (
     <>
@@ -95,7 +117,9 @@ export default async function HomePage() {
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="text-left">
             <p className="text-sm font-medium text-blue-400">
-              {isDemo ? t("demoLabel") : displayName}
+              {isDemo
+                ? formatMessage(homeMessages.demoLabel, { name: DEMO_PERSONA.name })
+                : displayName}
             </p>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">
               {t("hero")}
@@ -104,10 +128,30 @@ export default async function HomePage() {
               {isDemo ? t("subtitle") : t("yourMap")}
             </p>
           </div>
-          <TravelStatsBar stats={stats} />
+          {isDemo ? (
+            <DemoTravelerSummary
+              name={DEMO_PERSONA.name}
+              stats={stats}
+              wishlistCountries={wishlistCount}
+            />
+          ) : (
+            <TravelStatsBar stats={stats} />
+          )}
         </div>
 
-        <TravelMapView cities={cities} visitedCountryCodes={countryCodes} />
+        <TravelMapView
+          visitedCountryCodes={countryCodes}
+          wishlistCountryCodes={wishlistCodes}
+          visitedCountries={user ? dbCountries : []}
+          wishlistCountries={user ? wishlistCountries : []}
+          userCities={user ? dbCities : []}
+          citiesCountryCodes={
+            user ? [...new Set(dbCities.map((c) => c.country_code.toUpperCase()))] : []
+          }
+          isLoggedIn={!!user}
+          explorable
+          showContinentFilter
+        />
 
         <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/50 px-6 py-5 text-center sm:flex-row sm:justify-between sm:text-left">
           <div>

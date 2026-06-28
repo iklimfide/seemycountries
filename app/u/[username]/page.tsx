@@ -198,7 +198,6 @@ export default async function PublicProfilePage({ params }: PageProps) {
         {hasMapContent ? (
           <>
             <TravelMapView
-              cities={visitedCities}
               visitedCountryCodes={visitedCodes}
               wishlistCountryCodes={wishlistCodes}
               interactive

@@ -16,9 +16,11 @@
   },
   "home": {
     "hero": "Mark the world. Share your journey.",
-    "subtitle": "Tap any pin to explore a sample travel memory. Sign up when you're ready to build and share your own map.",
-    "demoLabel": "Sample journey",
-    "yourMap": "Your travel map — tap a pin to view your memories.",
+    "subtitle": "Tap a country to explore the sample map. Sign up when you're ready to build and share your own.",
+    "demoLabel": "{name}'s journey",
+    "demoTravelerStory": "{name} has visited {countries} countries and {cities} cities, and wants to visit {wishlist} more countries.",
+    "createYourMap": "Create your own map too.",
+    "yourMap": "Your travel map — tap a country to view your memories.",
     "ctaTitle": "Want your own map?",
     "ctaHint": "Free account · One photo or Instagram post per city · Share with one link",
     "cta": "Create your map",
@@ -97,6 +99,34 @@
     "mediaNone": "None"
   },
   "popup": {
+    "close": "Close"
+  },
+  "map": {
+    "exploreHint": "Drag to pan · Scroll to zoom · Double-click to reset · Tap a country",
+    "demoExploreHint": "Choose a continent or search for a country · Drag to pan · Scroll to zoom · Tap a country",
+    "continentLabel": "Continent",
+    "searchCountryLabel": "Search country",
+    "searchCountry": "Search country",
+    "searchCountryNoResults": "No countries match.",
+    "continents": {
+      "world": "World",
+      "africa": "Africa",
+      "asia": "Asia",
+      "europe": "Europe",
+      "north-america": "North America",
+      "south-america": "South America",
+      "oceania": "Oceania"
+    },
+    "countryEmpty": "No travel memories on the map for this country yet.",
+    "loginToMark": "Please sign in to mark countries on your map.",
+    "pickCities": "Add cities",
+    "pickCitiesHint": "Pick popular destinations to add to your travel list.",
+    "filterCities": "Filter cities…",
+    "citiesLoading": "Loading cities…",
+    "citiesEmpty": "No cities match your filter.",
+    "addSelectedCities": "Add {count} to my list",
+    "citiesAdded": "{count} cities added.",
+    "cityOnMap": "Already on your map",
     "close": "Close"
   },
   "share": {
