@@ -192,7 +192,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
       />
       <main className="mx-auto max-w-5xl flex-1 px-4 py-2 sm:py-8">
         <TravelMapFocusShell>
-        <div className="flex flex-col gap-2 sm:gap-6">
+        <div className="flex flex-col gap-3 sm:gap-4">
           <PublicProfileTravelSummary
             stats={stats}
             visitedCountries={visitedCountries}

@@ -273,18 +273,20 @@ export function TravelMapView({
         className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 scroll-mt-24"
       >
         {showContinentFilter && (
-          <>
-            <MapContinentControl
-              continent={continent}
-              onChange={(next) => {
-                setContinent(next);
-                setPinnedCountryCode(null);
-              }}
-            />
-            <div className="absolute right-3 top-3 z-10 w-[min(100%-1.5rem,14rem)] sm:w-52">
+          <div className="absolute inset-x-3 top-3 z-10 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div className="w-full sm:w-52 sm:shrink-0">
+              <MapContinentControl
+                continent={continent}
+                onChange={(next) => {
+                  setContinent(next);
+                  setPinnedCountryCode(null);
+                }}
+              />
+            </div>
+            <div className="w-full sm:w-52 sm:shrink-0">
               <MapCountrySearch onSelect={handleCountrySearch} />
             </div>
-          </>
+          </div>
         )}
         <WorldMap
           visitedCountryCodes={[...visitedCodeSet]}
@@ -301,7 +303,7 @@ export function TravelMapView({
         />
       </div>
       {explorable && (
-        <p className="mt-2 hidden text-center text-xs text-slate-500 sm:block">
+        <p className="mt-1 hidden text-center text-xs text-slate-500 sm:mt-2 sm:block">
           {showContinentFilter ? mapMessages.demoExploreHint : mapMessages.exploreHint}
         </p>
       )}

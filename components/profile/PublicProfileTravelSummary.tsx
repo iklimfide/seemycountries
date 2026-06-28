@@ -86,11 +86,11 @@ export function PublicProfileTravelSummary({
     focusCountry({ code: city.country_code, name: city.country_name });
   }
 
-  const segmentClass =
-    "rounded-md px-1 py-0.5 font-semibold text-foreground transition-colors hover:bg-blue-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50";
+  const visitedSegmentClass =
+    "rounded-full px-2 py-0.5 transition-colors hover:bg-blue-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50";
 
   const wishlistSegmentClass =
-    "rounded-md px-1 py-0.5 font-semibold text-amber-700 transition-colors hover:bg-amber-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 dark:text-amber-100";
+    "rounded-full px-2 py-0.5 transition-colors hover:bg-amber-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50";
 
   const panelTitle =
     openPanel === "countries"
@@ -151,44 +151,57 @@ export function PublicProfileTravelSummary({
           : true;
 
   return (
-    <div ref={rootRef} className="relative flex flex-col gap-1 text-xs leading-snug sm:gap-2 sm:text-base">
-      <p className="text-slate-300">
-        <button
-          type="button"
-          onClick={() => togglePanel("countries")}
-          className={segmentClass}
-          aria-expanded={openPanel === "countries"}
-        >
-          {stats.countries} {t.countries.toLowerCase()}
-        </button>
-        <span className="text-slate-500"> · </span>
-        <button
-          type="button"
-          onClick={() => togglePanel("cities")}
-          className={segmentClass}
-          aria-expanded={openPanel === "cities"}
-        >
-          {stats.cities} {t.cities.toLowerCase()}
-        </button>{" "}
-        <span className="text-slate-400">{p.visited}</span>
-      </p>
-
-      {wishlist.length > 0 && (
-        <p className="text-slate-300">
+    <div ref={rootRef} className="relative flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-sm font-medium capitalize text-slate-500 dark:text-slate-400">
+          {p.visited}
+        </span>
+        <div className="inline-flex max-w-full flex-wrap items-center justify-center gap-3 rounded-full border border-blue-500/30 bg-blue-500/10 px-5 py-2.5 text-lg font-semibold tracking-wide text-blue-800 sm:px-6 sm:py-3 dark:text-blue-100">
           <button
             type="button"
-            onClick={() => togglePanel("wishlist")}
-            className={wishlistSegmentClass}
-            aria-expanded={openPanel === "wishlist"}
+            onClick={() => togglePanel("countries")}
+            className={`inline-flex items-center gap-2 ${visitedSegmentClass}`}
+            aria-expanded={openPanel === "countries"}
           >
-            {wishlist.length} {t.countries.toLowerCase()}
-          </button>{" "}
-          <span className="text-amber-700 dark:text-amber-200/80">{p.wantsToVisit}</span>
-        </p>
+            <span className="text-2xl font-bold text-foreground">{stats.countries}</span>
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-200">{t.countries}</span>
+          </button>
+          <span className="text-blue-500/60 dark:text-blue-400/60" aria-hidden>
+            |
+          </span>
+          <button
+            type="button"
+            onClick={() => togglePanel("cities")}
+            className={`inline-flex items-center gap-2 ${visitedSegmentClass}`}
+            aria-expanded={openPanel === "cities"}
+          >
+            <span className="text-2xl font-bold text-foreground">{stats.cities}</span>
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-200">{t.cities}</span>
+          </button>
+        </div>
+      </div>
+
+      {wishlist.length > 0 && (
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-sm font-medium capitalize text-amber-700 dark:text-amber-200/80">
+            {p.wantsToVisit}
+          </span>
+          <div className="inline-flex max-w-full flex-wrap items-center justify-center gap-3 rounded-full border border-amber-500/35 bg-amber-500/10 px-5 py-2.5 text-lg font-semibold tracking-wide sm:px-6 sm:py-3">
+            <button
+              type="button"
+              onClick={() => togglePanel("wishlist")}
+              className={`inline-flex items-center gap-2 ${wishlistSegmentClass}`}
+              aria-expanded={openPanel === "wishlist"}
+            >
+              <span className="text-2xl font-bold text-foreground">{wishlist.length}</span>
+              <span className="text-sm font-medium text-amber-800 dark:text-amber-200">{t.countries}</span>
+            </button>
+          </div>
+        </div>
       )}
 
       {openPanel && (
-        <div className="absolute left-0 top-full z-30 mt-1 w-[min(100vw-2rem,20rem)] overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-xl">
+        <div className="absolute left-1/2 top-full z-30 mt-2 w-[min(100vw-2rem,20rem)] -translate-x-1/2 overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-xl">
           <div className="border-b border-slate-800 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
             {panelTitle}
           </div>

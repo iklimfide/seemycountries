@@ -385,9 +385,9 @@ export function WorldMap({
 
   return (
     <div
-      className={`relative w-full overflow-hidden border-y border-slate-700/50 bg-slate-900 ${
+      className={`relative w-full overflow-hidden border-y border-slate-700/50 aspect-[800/450] ${
         explorable ? "touch-none" : ""
-      } h-[min(72dvh,680px)] min-h-[300px] sm:h-[min(58vh,680px)] sm:min-h-[440px]`}
+      }`}
       style={{ backgroundColor: MAP_CSS.background }}
     >
       <svg

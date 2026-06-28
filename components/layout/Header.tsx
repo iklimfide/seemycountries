@@ -72,31 +72,42 @@ export async function Header({ isLoggedIn, profileLead = null }: HeaderProps) {
     menuUser != null &&
     menuUser.username.toLowerCase() === profileLead.username.toLowerCase();
 
+  const brandLink = (
+    <Link
+      href="/"
+      className="shrink-0 text-lg font-bold tracking-tight text-foreground transition-colors hover:text-blue-600 dark:hover:text-blue-400"
+    >
+      {BRAND.name}
+    </Link>
+  );
+
   return (
-    <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-sm">
+    <header className="relative z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-sm">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:py-4">
-        {profileLead ? (
-          isOwnProfileLead && menuUser ? (
-            <HeaderUserMenu
-              username={menuUser.username}
-              displayName={menuUser.displayName}
-              avatarUrl={menuUser.avatarUrl}
-              showInlineIdentity
-              badge={<TravelerBadge countryCount={profileLead.countryCount} />}
-            />
-          ) : (
-            <HeaderProfileIdentity
-              avatarUrl={profileLead.avatarUrl}
-              displayName={profileLead.displayName}
-              username={profileLead.username}
-              countryCount={profileLead.countryCount}
-            />
-          )
-        ) : (
-          <Link href="/" className="text-lg font-bold tracking-tight text-foreground">
-            {BRAND.name}
-          </Link>
-        )}
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          {brandLink}
+          {profileLead ? (
+            <>
+              <span className="hidden h-5 w-px shrink-0 bg-slate-300 dark:bg-slate-700 sm:block" aria-hidden />
+              {isOwnProfileLead && menuUser ? (
+                <HeaderUserMenu
+                  username={menuUser.username}
+                  displayName={menuUser.displayName}
+                  avatarUrl={menuUser.avatarUrl}
+                  showInlineIdentity
+                  badge={<TravelerBadge countryCount={profileLead.countryCount} />}
+                />
+              ) : (
+                <HeaderProfileIdentity
+                  avatarUrl={profileLead.avatarUrl}
+                  displayName={profileLead.displayName}
+                  username={profileLead.username}
+                  countryCount={profileLead.countryCount}
+                />
+              )}
+            </>
+          ) : null}
+        </div>
         <nav className="flex shrink-0 items-center gap-3 text-sm">
           <ThemeToggle />
           {isLoggedIn && menuUser && !isOwnProfileLead ? (

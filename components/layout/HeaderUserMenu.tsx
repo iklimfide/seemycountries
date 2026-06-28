@@ -46,11 +46,14 @@ export function HeaderUserMenu({
   }, [open]);
 
   const itemClass =
-    "block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800 hover:text-white";
+    "block w-full px-3 py-2 text-left text-sm text-foreground hover:bg-slate-100 dark:hover:bg-slate-800";
 
   return (
-    <div className={`flex min-w-0 items-center gap-3 ${showInlineIdentity ? "" : "relative"}`} ref={rootRef}>
-      <div className="relative shrink-0">
+    <div
+      className={`flex min-w-0 items-center gap-3 ${showInlineIdentity ? "" : "relative"}`}
+      ref={rootRef}
+    >
+      <div className="relative z-50 shrink-0">
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
@@ -71,11 +74,13 @@ export function HeaderUserMenu({
         {open && (
           <div
             role="menu"
-            className="absolute left-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-slate-700 bg-slate-900 py-1 shadow-xl sm:left-auto sm:right-0"
+            className={`absolute top-full z-50 mt-2 w-56 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-2xl dark:border-slate-700 dark:bg-slate-950 ${
+              showInlineIdentity ? "left-0" : "right-0"
+            }`}
           >
             {!showInlineIdentity && (
-              <div className="border-b border-slate-800 px-3 py-2.5">
-                <p className="truncate text-sm font-medium text-white">{displayName}</p>
+              <div className="border-b border-slate-200 px-3 py-2.5 dark:border-slate-800">
+                <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
                 <p className="truncate text-xs text-slate-500">@{username}</p>
               </div>
             )}
@@ -97,7 +102,7 @@ export function HeaderUserMenu({
               {t("profile")}
             </Link>
 
-            <div className="my-1 border-t border-slate-800" />
+            <div className="my-1 border-t border-slate-200 dark:border-slate-800" />
 
             <form action="/auth/signout" method="post" role="none">
               <button type="submit" role="menuitem" className={itemClass}>

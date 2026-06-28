@@ -9,7 +9,7 @@ type MapLegendProps = {
 
 export function MapLegend({ showWishlist = false }: MapLegendProps) {
   return (
-    <div className="mt-2 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 sm:mt-3 sm:gap-4">
+    <div className="mt-1 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 sm:mt-2 sm:gap-4">
       <span className="inline-flex items-center gap-2">
         <span
           className="h-3 w-5 rounded-sm border border-slate-700"
