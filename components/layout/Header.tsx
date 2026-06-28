@@ -1,14 +1,60 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { HeaderUserMenu } from "@/components/layout/HeaderUserMenu";
 import { BRAND } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/server";
 
 type HeaderProps = {
   username?: string | null;
   isLoggedIn?: boolean;
 };
 
-export async function Header({ username, isLoggedIn }: HeaderProps) {
+export async function Header({ isLoggedIn }: HeaderProps) {
   const t = await getTranslations("common");
+
+  let menuUser: {
+    username: string;
+    displayName: string;
+    avatarUrl: string | null;
+  } | null = null;
+
+  if (isLoggedIn) {
+    const supabase = await createClient();
+    if (supabase) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: extended } = await supabase
+          .from("profiles")
+          .select("username, display_name, avatar_url")
+          .eq("id", user.id)
+          .single();
+
+        const profile =
+          extended ??
+          (
+            await supabase
+              .from("profiles")
+              .select("username, display_name")
+              .eq("id", user.id)
+              .single()
+          ).data;
+
+        if (profile?.username) {
+          const avatarUrl =
+            extended && typeof extended.avatar_url === "string" ? extended.avatar_url : null;
+
+          menuUser = {
+            username: profile.username,
+            displayName: profile.display_name ?? profile.username,
+            avatarUrl,
+          };
+        }
+      }
+    }
+  }
 
   return (
     <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-sm">
@@ -16,34 +62,15 @@ export async function Header({ username, isLoggedIn }: HeaderProps) {
         <Link href="/" className="text-lg font-bold tracking-tight text-white">
           {BRAND.name}
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
-          {isLoggedIn ? (
-            <>
-              <Link
-                href="/dashboard"
-                className="text-slate-300 hover:text-white"
-              >
-                {t("dashboard")}
-              </Link>
-              {username && (
-                <Link
-                  href={`/u/${username}`}
-                  className="text-slate-300 hover:text-white"
-                >
-                  @{username}
-                </Link>
-              )}
-              <form action="/auth/signout" method="post">
-                <button
-                  type="submit"
-                  className="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300 hover:border-slate-500 hover:text-white"
-                >
-                  {t("logout")}
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
+        <nav className="flex items-center text-sm">
+          {isLoggedIn && menuUser ? (
+            <HeaderUserMenu
+              username={menuUser.username}
+              displayName={menuUser.displayName}
+              avatarUrl={menuUser.avatarUrl}
+            />
+          ) : isLoggedIn ? null : (
+            <div className="flex items-center gap-4">
               <Link href="/login" className="text-slate-300 hover:text-white">
                 {t("login")}
               </Link>
@@ -53,7 +80,7 @@ export async function Header({ username, isLoggedIn }: HeaderProps) {
               >
                 {t("register")}
               </Link>
-            </>
+            </div>
           )}
         </nav>
       </div>

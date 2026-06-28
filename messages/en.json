@@ -8,6 +8,8 @@
     "register": "Sign up",
     "logout": "Log out",
     "dashboard": "My map",
+    "profile": "Profile Settings",
+    "openMenu": "Open account menu",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -41,7 +43,11 @@
     "stats": "{countries} Countries | {cities} Cities",
     "notFound": "Traveler not found",
     "noCities": "No cities marked yet",
-    "noCountries": "No countries marked yet"
+    "noCountries": "No countries marked yet",
+    "livesIn": "Lives in",
+    "profession": "Profession",
+    "status": "Status",
+    "editProfile": "Edit profile"
   },
   "badge": {
     "explorer": "Explorer",
@@ -149,6 +155,30 @@
     "deleteCountryMessage": "Remove this country from your map?",
     "deleteWishlistCountryTitle": "Remove from wishlist",
     "deleteWishlistCountryMessage": "Remove this country from your wishlist?"
+  },
+  "settings": {
+    "title": "Profile Settings",
+    "subtitle": "Customize how you appear on your public travel page.",
+    "backToMap": "Back to my map",
+    "photoTitle": "Profile photo",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove",
+    "photoHint": "JPEG, PNG, or WebP — up to 5 MB",
+    "accountTitle": "Username & display name",
+    "aboutTitle": "About you",
+    "username": "Username",
+    "shareHint": "Share your map with friends and on social media using this link.",
+    "displayName": "Display name",
+    "bio": "About me",
+    "bioPlaceholder": "A short intro for visitors to your travel map…",
+    "residence": "Where you live",
+    "residencePlaceholder": "e.g. Antalya, Istanbul, Berlin…",
+    "profession": "Profession",
+    "maritalStatus": "Relationship status",
+    "charCount": "{count} / {max}",
+    "save": "Save settings",
+    "saveSuccess": "Profile updated.",
+    "saveFailed": "Could not save profile."
   },
   "wishlist": {
     "title": "Want to visit",

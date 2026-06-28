@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { profileSettingsSchema } from "@/lib/validations/profile";
+import { profileSettingsSchema, PROFILE_SELECT } from "@/lib/validations/profile";
 
 export async function PATCH(request: Request) {
   const supabase = await createClient();
@@ -26,11 +26,24 @@ export async function PATCH(request: Request) {
     );
   }
 
+  const updates: Record<string, unknown> = {};
+  const data = parsed.data;
+
+  if (data.wishlist_public !== undefined) updates.wishlist_public = data.wishlist_public;
+  if (data.display_name !== undefined) {
+    updates.display_name = data.display_name || null;
+  }
+  if (data.bio !== undefined) updates.bio = data.bio || null;
+  if (data.residence !== undefined) updates.residence = data.residence || null;
+  if (data.profession !== undefined) updates.profession = data.profession || null;
+  if (data.marital_status !== undefined) updates.marital_status = data.marital_status || null;
+  if (data.avatar_url !== undefined) updates.avatar_url = data.avatar_url;
+
   const { data: profile, error } = await supabase
     .from("profiles")
-    .update({ wishlist_public: parsed.data.wishlist_public })
+    .update(updates)
     .eq("id", user.id)
-    .select("username, display_name, wishlist_public")
+    .select(PROFILE_SELECT)
     .single();
 
   if (error) {

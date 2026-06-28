@@ -5,18 +5,47 @@ export type PublicProfile = {
   id: string;
   username: string;
   display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  residence: string | null;
+  profession: string | null;
+  marital_status: string | null;
   wishlist_public: boolean;
 };
 
-/** Load profile for public pages; tolerates missing wishlist migration. */
+const EXTENDED_SELECT =
+  "id, username, display_name, avatar_url, bio, residence, profession, marital_status, wishlist_public";
+const BASE_SELECT = "id, username, display_name";
+
+/** Load profile for public pages; tolerates missing profile-detail migration. */
 export async function fetchPublicProfile(
   supabase: SupabaseClient,
   username: string
 ): Promise<PublicProfile | null> {
+  const normalized = username.toLowerCase();
+
+  const { data: extended, error: extendedError } = await supabase
+    .from("profiles")
+    .select(EXTENDED_SELECT)
+    .eq("username", normalized)
+    .single();
+
+  if (!extendedError && extended) {
+    return {
+      ...extended,
+      avatar_url: extended.avatar_url ?? null,
+      bio: extended.bio ?? null,
+      residence: extended.residence ?? null,
+      profession: extended.profession ?? null,
+      marital_status: extended.marital_status ?? null,
+      wishlist_public: extended.wishlist_public === true,
+    };
+  }
+
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, username, display_name")
-    .eq("username", username.toLowerCase())
+    .select(BASE_SELECT)
+    .eq("username", normalized)
     .single();
 
   if (error || !profile) return null;
@@ -34,6 +63,11 @@ export async function fetchPublicProfile(
 
   return {
     ...profile,
+    avatar_url: null,
+    bio: null,
+    residence: null,
+    profession: null,
+    marital_status: null,
     wishlist_public: wishlistPublic,
   };
 }

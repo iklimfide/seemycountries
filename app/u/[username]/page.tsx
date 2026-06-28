@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
-import { ShareProfile } from "@/components/share/ShareProfile";
 import { TravelStatsBar } from "@/components/stats/TravelStats";
 import { TravelerBadge } from "@/components/profile/TravelerBadge";
 import { TravelMapView } from "@/components/map/TravelMapView";
@@ -29,6 +28,8 @@ import {
   getWishlistCountryCodes,
 } from "@/lib/utils/stats";
 import type { VisitedCity, VisitedCountry } from "@/types/database";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { PublicProfileDetails } from "@/components/profile/PublicProfileDetails";
 import { PublicWishlist } from "@/components/profile/PublicWishlist";
 
 type PageProps = {
@@ -174,6 +175,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
     },
   };
 
+  const isOwnProfile = currentUsername === profile.username;
+
   return (
     <>
       <script
@@ -183,16 +186,35 @@ export default async function PublicProfilePage({ params }: PageProps) {
       <Header username={currentUsername} isLoggedIn={!!user} />
       <main className="mx-auto max-w-5xl flex-1 px-4 py-8">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <ProfileAvatar
+            avatarUrl={profile.avatar_url}
+            displayName={displayName}
+            username={profile.username}
+            size="lg"
+          />
           <h1 className="text-3xl font-bold text-white">{displayName}</h1>
           <TravelerBadge countryCount={stats.countries} />
           <p className="text-slate-500">@{profile.username}</p>
           <TravelStatsBar stats={stats} />
-          <ShareProfile
-            username={profile.username}
-            displayName={displayName}
-            stats={stats}
-            profileUrl={publicUrl}
+          <PublicProfileDetails
+            bio={profile.bio}
+            residence={profile.residence}
+            profession={profile.profession}
+            marital_status={profile.marital_status}
+            labels={{
+              livesIn: t("livesIn"),
+              profession: t("profession"),
+              status: t("status"),
+            }}
           />
+          {isOwnProfile && (
+            <a
+              href="/dashboard/settings"
+              className="text-sm text-blue-400 hover:text-blue-300"
+            >
+              {t("editProfile")}
+            </a>
+          )}
         </div>
 
         {hasMapContent ? (

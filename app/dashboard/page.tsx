@@ -1,15 +1,13 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
-import { ShareProfile } from "@/components/share/ShareProfile";
 import { TravelStatsBar } from "@/components/stats/TravelStats";
 import { TravelMapView } from "@/components/map/TravelMapView";
 import { CityList } from "@/components/dashboard/CityList";
 import { CountryManager } from "@/components/dashboard/CountryManager";
-import { WishlistSettings } from "@/components/dashboard/WishlistSettings";
 import { createClient } from "@/lib/supabase/server";
-import { profileUrl } from "@/lib/seo/site";
 import {
   computeTravelStats,
   getVisitedCountryCodes,
@@ -22,6 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
+  const tProfile = await getTranslations("profile");
   const supabase = await createClient();
   if (!supabase) {
     redirect("/login");
@@ -37,7 +36,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name, wishlist_public")
+    .select("username, display_name")
     .eq("id", user.id)
     .single();
 
@@ -77,27 +76,24 @@ export default async function DashboardPage() {
               {profile?.display_name ?? profile?.username}
             </h1>
             {profile?.username && (
-              <Link
-                href={`/u/${profile.username}`}
-                className="text-sm text-blue-400 hover:text-blue-300"
-              >
-                seemycountries.com/u/{profile.username}
-              </Link>
+              <div className="mt-1 flex flex-wrap items-center gap-3 text-sm">
+                <Link
+                  href={`/u/${profile.username}`}
+                  className="text-blue-400 hover:text-blue-300"
+                >
+                  seemycountries.com/u/{profile.username}
+                </Link>
+                <Link
+                  href="/dashboard/settings"
+                  className="text-slate-400 hover:text-slate-300"
+                >
+                  {tProfile("editProfile")}
+                </Link>
+              </div>
             )}
           </div>
           <TravelStatsBar stats={stats} />
         </div>
-
-        {profile?.username && (
-          <div className="mb-8">
-            <ShareProfile
-              username={profile.username}
-              displayName={profile.display_name ?? profile.username}
-              stats={stats}
-              profileUrl={profileUrl(profile.username)}
-            />
-          </div>
-        )}
 
         <div className="mb-8">
           <TravelMapView
@@ -116,7 +112,6 @@ export default async function DashboardPage() {
         </div>
 
         <div className="flex flex-col gap-10">
-          <WishlistSettings wishlistPublic={profile?.wishlist_public ?? false} />
           <CountryManager
             visitedCountries={visitedCountries}
             wishlistCountries={wishlistCountries}

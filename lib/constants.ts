@@ -15,7 +15,12 @@ export const BRAND = {
 
 export const LIMITS = {
   noteMaxLength: 1000,
+  bioMaxLength: 500,
+  displayNameMaxLength: 50,
+  residenceMaxLength: 100,
   imageMaxWidth: 1080,
+  avatarSize: 400,
+  avatarMaxBytes: 5 * 1024 * 1024,
   usernameMin: 3,
   usernameMax: 30,
   minCityPopulation: 100_000,

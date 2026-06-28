@@ -4,6 +4,11 @@ export interface Profile {
   id: string;
   username: string;
   display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  residence: string | null;
+  profession: string | null;
+  marital_status: string | null;
   wishlist_public: boolean;
   created_at: string;
 }
