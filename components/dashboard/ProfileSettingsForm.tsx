@@ -11,7 +11,6 @@ import {
   MARITAL_STATUS_OPTIONS,
   PROFESSION_OPTIONS,
 } from "@/lib/data/profile-options";
-import { profileUrl } from "@/lib/seo/site";
 import type { Profile, TravelStats } from "@/types/database";
 
 type ProfileSettingsFormProps = {
@@ -50,7 +49,6 @@ export function ProfileSettingsForm({ profile, stats }: ProfileSettingsFormProps
   const [loading, setLoading] = useState(false);
 
   const previewName = displayName.trim() || username;
-  const publicLink = profileUrl(username);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -118,7 +116,6 @@ export function ProfileSettingsForm({ profile, stats }: ProfileSettingsFormProps
               <ShareProfile
                 username={username}
                 displayName={previewName}
-                profileUrl={publicLink}
                 stats={stats}
                 isOwnProfile
               />

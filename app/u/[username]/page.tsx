@@ -260,7 +260,6 @@ export default async function PublicProfilePage({ params }: PageProps) {
                   username={profile.username}
                   displayName={displayName}
                   stats={stats}
-                  profileUrl={publicUrl}
                   isOwnProfile={isOwnProfile}
                 />
               </div>

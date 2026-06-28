@@ -1,5 +1,5 @@
 import type { TravelStats } from "@/types/database";
-import { profileUrl } from "@/lib/seo/site";
+import { profileShareUrl } from "@/lib/seo/site";
 import { getTravelerBadgeTier, type TravelerBadgeTier } from "@/lib/utils/traveler-badge";
 
 const BADGE_OG_LABELS: Record<TravelerBadgeTier, string> = {
@@ -53,11 +53,16 @@ export function buildProfileDescription(
 export function buildShareText(
   displayName: string,
   stats: TravelStats,
-  username: string
+  username: string,
+  options?: { url?: string; isOwnProfile?: boolean }
 ): string {
-  const url = profileUrl(username);
+  const url = options?.url ?? profileShareUrl(username);
+  const isOwnProfile = options?.isOwnProfile ?? true;
+
   if (stats.countries === 0 && stats.cities === 0) {
-    return `Follow my travel journey on SeeMyCountries: ${url}`;
+    return isOwnProfile
+      ? `Follow my travel journey on SeeMyCountries: ${url}`
+      : `Follow ${displayName}'s travel journey on SeeMyCountries: ${url}`;
   }
 
   const parts: string[] = [];
@@ -70,5 +75,8 @@ export function buildShareText(
     parts.push(`${stats.cities} ${stats.cities === 1 ? "city" : "cities"}`);
   }
 
-  return `I've visited ${parts.join(" and ")}! See my travel map on SeeMyCountries: ${url}`;
+  const statsPhrase = parts.join(" and ");
+  return isOwnProfile
+    ? `I've visited ${statsPhrase}! See my travel map on SeeMyCountries: ${url}`
+    : `${displayName} has visited ${statsPhrase}! See their travel map on SeeMyCountries: ${url}`;
 }

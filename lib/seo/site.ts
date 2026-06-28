@@ -23,6 +23,13 @@ export function profileUrl(username: string): string {
   return `${getSiteUrl()}${profilePath(username)}`;
 }
 
+/** Profile URL with a stable share query param to bust link-preview caches. */
+export function profileShareUrl(username: string): string {
+  const url = new URL(profilePath(username), `${getSiteUrl()}/`);
+  url.searchParams.set("share", "1");
+  return url.toString();
+}
+
 export const DEFAULT_DESCRIPTION =
   "Mark the countries and cities you've visited. One photo and memory per city — share your travel map with one link.";
 

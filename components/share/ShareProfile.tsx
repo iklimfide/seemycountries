@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { buildShareText } from "@/lib/seo/profile";
+import { profileShareUrl } from "@/lib/seo/site";
 import { formatMessage, shareMessages } from "@/lib/i18n/client-messages";
 import { useModal } from "@/components/ui/ModalProvider";
 import type { TravelStats } from "@/types/database";
@@ -10,7 +11,6 @@ type ShareProfileProps = {
   username: string;
   displayName: string;
   stats: TravelStats;
-  profileUrl: string;
   isOwnProfile?: boolean;
 };
 
@@ -34,7 +34,6 @@ export function ShareProfile({
   username,
   displayName,
   stats,
-  profileUrl,
   isOwnProfile = false,
 }: ShareProfileProps) {
   const modal = useModal();
@@ -44,8 +43,12 @@ export function ShareProfile({
     setCanNativeShare(typeof navigator.share === "function");
   }, []);
 
-  const shareText = buildShareText(displayName, stats, username);
-  const tweetText = shareText.replace(profileUrl, "").trim();
+  const shareUrl = profileShareUrl(username);
+  const shareText = buildShareText(displayName, stats, username, {
+    url: shareUrl,
+    isOwnProfile,
+  });
+  const captionText = shareText.replace(shareUrl, "").trim();
   const shareTitle = formatMessage(shareMessages.shareTitle, { name: displayName });
 
   const shareLinks = [
@@ -57,22 +60,22 @@ export function ShareProfile({
     {
       id: "telegram",
       label: shareMessages.telegram,
-      href: `https://t.me/share/url?url=${encode(profileUrl)}&text=${encode(tweetText)}`,
+      href: `https://t.me/share/url?url=${encode(shareUrl)}&text=${encode(captionText)}`,
     },
     {
       id: "x",
       label: shareMessages.x,
-      href: `https://twitter.com/intent/tweet?text=${encode(tweetText)}&url=${encode(profileUrl)}`,
+      href: `https://x.com/intent/post?text=${encode(shareText)}`,
     },
     {
       id: "facebook",
       label: shareMessages.facebook,
-      href: `https://www.facebook.com/sharer/sharer.php?u=${encode(profileUrl)}`,
+      href: `https://www.facebook.com/sharer/sharer.php?u=${encode(shareUrl)}`,
     },
     {
       id: "linkedin",
       label: shareMessages.linkedin,
-      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encode(profileUrl)}`,
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encode(shareUrl)}`,
     },
   ];
 
@@ -90,8 +93,8 @@ export function ShareProfile({
     try {
       await navigator.share({
         title: shareTitle,
-        text: tweetText,
-        url: profileUrl,
+        text: captionText,
+        url: shareUrl,
       });
     } catch {
       /* user cancelled */
