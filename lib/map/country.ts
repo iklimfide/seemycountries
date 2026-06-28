@@ -1,5 +1,6 @@
 import countriesLib from "i18n-iso-countries";
 import type { Feature, Geometry } from "geojson";
+import { featureInContinent, type ContinentId } from "@/lib/map/continents";
 
 export type CountryMeta = {
   code: string;
@@ -16,6 +17,20 @@ export function countryMetaFromFeature(
 
   const name = countriesLib.getName(code, "en") ?? code;
   return { code, name };
+}
+
+export function findCountryFeatureByCode(
+  features: Feature<Geometry>[],
+  code: string,
+  continent: ContinentId = "world"
+): Feature<Geometry> | undefined {
+  const normalized = code.toUpperCase();
+
+  return features.find((feature) => {
+    const meta = countryMetaFromFeature(feature);
+    if (!meta || meta.code !== normalized) return false;
+    return featureInContinent(meta.code, continent);
+  });
 }
 
 export function normalizeCountryNumericId(id: string | number): string {

@@ -9,6 +9,8 @@ export type BadgeTierTheme = {
   shell: string;
   /** Icon stroke/fill color class */
   icon: string;
+  /** Inner icon circle */
+  iconRing: string;
 };
 
 /** Visited country count → badge tier (1-based thresholds per product spec). */
@@ -26,22 +28,26 @@ export function getTravelerBadgeTier(
 export const BADGE_TIER_THEMES: Record<TravelerBadgeTier, BadgeTierTheme> = {
   explorer: {
     shell:
-      "border-emerald-500/45 bg-emerald-500/12 text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.12)]",
-    icon: "text-emerald-400",
+      "border-emerald-600/45 bg-emerald-50 text-emerald-900 shadow-sm dark:border-emerald-500/45 dark:bg-emerald-500/12 dark:text-emerald-100 dark:shadow-[0_0_20px_rgba(16,185,129,0.12)]",
+    icon: "text-emerald-700 dark:text-emerald-400",
+    iconRing: "border-emerald-300/70 bg-emerald-100 dark:border-white/10 dark:bg-black/20",
   },
   globetrotter: {
     shell:
-      "border-sky-500/45 bg-sky-500/12 text-sky-100 shadow-[0_0_20px_rgba(14,165,233,0.14)]",
-    icon: "text-sky-400",
+      "border-sky-600/45 bg-sky-50 text-sky-900 shadow-sm dark:border-sky-500/45 dark:bg-sky-500/12 dark:text-sky-100 dark:shadow-[0_0_20px_rgba(14,165,233,0.14)]",
+    icon: "text-sky-700 dark:text-sky-400",
+    iconRing: "border-sky-300/70 bg-sky-100 dark:border-white/10 dark:bg-black/20",
   },
   super_voyager: {
     shell:
-      "border-violet-500/45 bg-violet-500/12 text-violet-100 shadow-[0_0_22px_rgba(139,92,246,0.16)]",
-    icon: "text-violet-400",
+      "border-violet-600/55 bg-violet-100 text-violet-950 shadow-sm dark:border-violet-500/45 dark:bg-violet-500/12 dark:text-violet-100 dark:shadow-[0_0_22px_rgba(139,92,246,0.16)]",
+    icon: "text-violet-800 dark:text-violet-400",
+    iconRing: "border-violet-400/60 bg-violet-200/80 dark:border-white/10 dark:bg-black/20",
   },
   world_citizen: {
     shell:
-      "border-amber-400/55 bg-gradient-to-r from-amber-500/20 via-amber-400/15 to-orange-500/15 text-amber-50 shadow-[0_0_24px_rgba(251,191,36,0.2)]",
-    icon: "text-amber-300",
+      "border-amber-600/50 bg-gradient-to-r from-amber-50 via-amber-100/90 to-orange-50 text-amber-950 shadow-sm dark:border-amber-400/55 dark:from-amber-500/20 dark:via-amber-400/15 dark:to-orange-500/15 dark:text-amber-50 dark:shadow-[0_0_24px_rgba(251,191,36,0.2)]",
+    icon: "text-amber-800 dark:text-amber-300",
+    iconRing: "border-amber-400/60 bg-amber-100 dark:border-white/10 dark:bg-black/20",
   },
 };

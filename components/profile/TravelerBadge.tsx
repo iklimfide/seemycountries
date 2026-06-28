@@ -67,12 +67,12 @@ export async function TravelerBadge({ countryCount, className = "" }: TravelerBa
 
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold tracking-wide uppercase backdrop-blur-sm ${theme.shell} ${className}`}
+      className={`inline-flex w-fit max-w-full items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-bold tracking-wide uppercase ${theme.shell} ${className}`}
     >
       <span
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/20 ${theme.icon}`}
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${theme.iconRing}`}
       >
-        <BadgeIcon tier={tier} className="h-3.5 w-3.5" />
+        <BadgeIcon tier={tier} className={`h-3.5 w-3.5 ${theme.icon}`} />
       </span>
       {t(tier)}
     </span>

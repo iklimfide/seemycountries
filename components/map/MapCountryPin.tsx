@@ -1,5 +1,6 @@
 import { BRAND } from "@/lib/constants";
 import { formatMapCoord } from "@/lib/map/coords";
+import { MAP_CSS } from "@/lib/theme/map-css-vars";
 
 /** Favicon-style map pin, anchored at the tip (bottom center). */
 const PIN_PATH =
@@ -12,16 +13,18 @@ type MapCountryPinProps = {
   x: number;
   y: number;
   scale?: number;
+  inverseScale?: number;
 };
 
-export function MapCountryPin({ x, y, scale = 0.5 }: MapCountryPinProps) {
+export function MapCountryPin({ x, y, scale = 0.5, inverseScale = 1 }: MapCountryPinProps) {
+  const pinScale = scale * inverseScale;
   return (
     <g
-      transform={`translate(${formatMapCoord(x)}, ${formatMapCoord(y)}) scale(${scale}) translate(${-PIN_CENTER_X}, ${-PIN_TIP_Y})`}
+      transform={`translate(${formatMapCoord(x)}, ${formatMapCoord(y)}) scale(${pinScale}) translate(${-PIN_CENTER_X}, ${-PIN_TIP_Y})`}
       pointerEvents="none"
     >
       <path d={PIN_PATH} fill={BRAND.colors.pin} stroke="#ffffff" strokeWidth={0.75} />
-      <circle cx={PIN_CENTER_X} cy={12.75} r={2.25} fill={BRAND.colors.background} />
+      <circle cx={PIN_CENTER_X} cy={12.75} r={2.25} fill={MAP_CSS.pinCenter} />
     </g>
   );
 }

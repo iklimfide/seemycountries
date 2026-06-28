@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
-import { TravelStatsBar } from "@/components/stats/TravelStats";
+import { TravelStatsInteractive } from "@/components/stats/TravelStatsInteractive";
+import { TravelMapFocusShell } from "@/components/map/TravelMapFocusShell";
 import { DemoTravelerSummary } from "@/components/home/DemoTravelerSummary";
 import { TravelMapView } from "@/components/map/TravelMapView";
 import { createClient } from "@/lib/supabase/server";
@@ -113,18 +114,20 @@ export default async function HomePage() {
   return (
     <>
       <Header username={username} isLoggedIn={!!user} />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-6 sm:py-8">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-3 sm:py-8">
+        <TravelMapFocusShell>
+        <div className="flex flex-col gap-4 sm:gap-6">
+        <div className="order-2 flex flex-col gap-4 sm:order-1 sm:mb-0 sm:flex-row sm:items-end sm:justify-between">
           <div className="text-left">
             <p className="text-sm font-medium text-blue-400">
               {isDemo
                 ? formatMessage(homeMessages.demoLabel, { name: DEMO_PERSONA.name })
                 : displayName}
             </p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <h1 className="mt-1 text-xl font-bold tracking-tight text-white sm:text-3xl">
               {t("hero")}
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-slate-400 sm:text-base">
+            <p className="mt-2 hidden max-w-xl text-sm text-slate-400 sm:block sm:text-base">
               {isDemo ? t("subtitle") : t("yourMap")}
             </p>
           </div>
@@ -135,10 +138,15 @@ export default async function HomePage() {
               wishlistCountries={wishlistCount}
             />
           ) : (
-            <TravelStatsBar stats={stats} />
+            <TravelStatsInteractive
+              stats={stats}
+              visitedCountries={dbCountries}
+              visitedCities={dbCities}
+            />
           )}
         </div>
 
+        <div className="order-1 sm:order-2">
         <TravelMapView
           visitedCountryCodes={countryCodes}
           wishlistCountryCodes={wishlistCodes}
@@ -152,8 +160,9 @@ export default async function HomePage() {
           explorable
           showContinentFilter
         />
+        </div>
 
-        <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/50 px-6 py-5 text-center sm:flex-row sm:justify-between sm:text-left">
+        <div className="order-3 mt-2 flex flex-col items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/50 px-6 py-5 text-center sm:mt-8 sm:flex-row sm:justify-between sm:text-left">
           <div>
             <p className="font-medium text-white">{t("ctaTitle")}</p>
             <p className="mt-1 text-sm text-slate-500">{t("ctaHint")}</p>
@@ -182,6 +191,8 @@ export default async function HomePage() {
             </div>
           )}
         </div>
+        </div>
+        </TravelMapFocusShell>
       </main>
     </>
   );

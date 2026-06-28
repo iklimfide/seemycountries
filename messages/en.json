@@ -10,6 +10,9 @@
     "dashboard": "My map",
     "profile": "Profile Settings",
     "openMenu": "Open account menu",
+    "visitedCountries": "Visited countries",
+    "visitedCities": "Visited cities",
+    "statsListEmpty": "None yet",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -47,7 +50,10 @@
     "livesIn": "Lives in",
     "profession": "Profession",
     "status": "Status",
-    "editProfile": "Edit profile"
+    "editProfile": "Edit profile",
+    "visited": "visited",
+    "wantsToVisit": "wants to visit",
+    "wishlistCountries": "Countries to visit"
   },
   "badge": {
     "explorer": "Explorer",

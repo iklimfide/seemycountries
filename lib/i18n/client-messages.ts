@@ -1,6 +1,7 @@
 import enMessages from "@/messages/en.json";
 
 /** Static copy for client map components (English-only; avoids NextIntl provider edge cases). */
+export const commonMessages = enMessages.common;
 export const mapMessages = enMessages.map;
 export const countryMessages = enMessages.country;
 export const cityMessages = enMessages.city;
@@ -8,6 +9,7 @@ export const wishlistMessages = enMessages.wishlist;
 export const popupMessages = enMessages.popup;
 export const homeMessages = enMessages.home;
 export const shareMessages = enMessages.share;
+export const profileMessages = enMessages.profile;
 
 export function formatMessage(
   template: string,

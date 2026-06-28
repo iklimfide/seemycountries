@@ -4,13 +4,15 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useModal } from "@/components/ui/ModalProvider";
+import { CountryCityPickerSheet } from "@/components/map/CountryCityPickerSheet";
 import { COUNTRY_LIST, getCountryName } from "@/lib/data/countries";
-import type { VisitedCountry, WishlistCountry } from "@/types/database";
+import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
 
 type CountryManagerProps = {
   visitedCountries: VisitedCountry[];
   wishlistCountries: WishlistCountry[];
   visitedCountryCodes: string[];
+  visitedCities: VisitedCity[];
 };
 
 type CountryRow = {
@@ -27,6 +29,7 @@ export function CountryManager({
   visitedCountries,
   wishlistCountries,
   visitedCountryCodes,
+  visitedCities,
 }: CountryManagerProps) {
   const t = useTranslations("country");
   const tWishlist = useTranslations("wishlist");
@@ -34,6 +37,10 @@ export function CountryManager({
   const modal = useModal();
   const [query, setQuery] = useState("");
   const [busyCode, setBusyCode] = useState<string | null>(null);
+  const [cityPickerTarget, setCityPickerTarget] = useState<{
+    code: string;
+    name: string;
+  } | null>(null);
 
   const visitedByCode = useMemo(() => {
     const map = new Map<string, VisitedCountry>();
@@ -55,6 +62,14 @@ export function CountryManager({
     () => new Set(visitedCountryCodes.map((c) => c.toUpperCase())),
     [visitedCountryCodes]
   );
+
+  const existingCityNamesForPicker = useMemo(() => {
+    if (!cityPickerTarget) return [];
+    const code = cityPickerTarget.code.toUpperCase();
+    return visitedCities
+      .filter((city) => city.country_code.toUpperCase() === code)
+      .map((city) => city.city_name);
+  }, [cityPickerTarget, visitedCities]);
 
   const rows = useMemo((): CountryRow[] => {
     const q = query.trim().toLowerCase();
@@ -155,7 +170,12 @@ export function CountryManager({
 
     try {
       const ok = checked ? await addVisited(row.code) : await removeVisited(row);
-      if (ok) router.refresh();
+      if (ok) {
+        if (checked) {
+          setCityPickerTarget({ code: row.code, name: row.name });
+        }
+        router.refresh();
+      }
     } finally {
       setBusyCode(null);
     }
@@ -249,6 +269,19 @@ export function CountryManager({
           )}
         </ul>
       </div>
+
+      {cityPickerTarget && (
+        <CountryCityPickerSheet
+          countryCode={cityPickerTarget.code}
+          countryName={cityPickerTarget.name}
+          existingCityNames={existingCityNamesForPicker}
+          onAdded={() => {
+            setCityPickerTarget(null);
+            router.refresh();
+          }}
+          onClose={() => setCityPickerTarget(null)}
+        />
+      )}
     </section>
   );
 }

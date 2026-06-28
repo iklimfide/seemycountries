@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { BRAND } from "@/lib/constants";
 import { DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, getSiteUrl } from "@/lib/seo/site";
 import { defaultLocale, type Locale } from "@/lib/i18n/config";
+import { parseTheme } from "@/lib/theme/resolve";
 import enMessages from "@/messages/en.json";
 import { ModalProvider } from "@/components/ui/ModalProvider";
 import { ToastProvider } from "@/components/ui/ToastProvider";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -74,13 +77,22 @@ export default async function RootLayout({
     // Fallback when request config is unavailable (e.g. during error recovery)
   }
 
+  const cookieStore = await cookies();
+  const theme = parseTheme(cookieStore.get("theme")?.value);
+
   return (
-    <html lang={locale} className={`${geistSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100">
+    <html
+      lang={locale}
+      className={`${geistSans.variable} ${theme} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <body className="flex min-h-full flex-col bg-background text-foreground">
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <ModalProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </ModalProvider>
+          <ThemeProvider defaultTheme={theme}>
+            <ModalProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </ModalProvider>
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -26,7 +26,7 @@ export function PublicProfileDetails({
   if (!hasDetails) return null;
 
   return (
-    <div className="mx-auto mb-2 max-w-lg rounded-xl border border-slate-700/80 bg-slate-900/50 px-5 py-4 text-left">
+    <div className="mx-auto w-full max-w-lg rounded-xl border border-slate-700/80 bg-slate-900/50 px-4 py-3 text-left sm:mb-2 sm:px-5 sm:py-4">
       {bio && (
         <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-300">{bio}</p>
       )}

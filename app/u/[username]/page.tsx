@@ -2,8 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
-import { TravelStatsBar } from "@/components/stats/TravelStats";
-import { TravelerBadge } from "@/components/profile/TravelerBadge";
+import { TravelMapFocusShell } from "@/components/map/TravelMapFocusShell";
 import { TravelMapView } from "@/components/map/TravelMapView";
 import { BRAND } from "@/lib/constants";
 import {
@@ -28,9 +27,8 @@ import {
   getWishlistCountryCodes,
 } from "@/lib/utils/stats";
 import type { VisitedCity, VisitedCountry } from "@/types/database";
-import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { PublicProfileDetails } from "@/components/profile/PublicProfileDetails";
-import { PublicWishlist } from "@/components/profile/PublicWishlist";
+import { PublicProfileBio } from "@/components/profile/PublicProfileBio";
+import { PublicProfileTravelSummary } from "@/components/profile/PublicProfileTravelSummary";
 
 type PageProps = {
   params: Promise<{ username: string }>;
@@ -183,30 +181,38 @@ export default async function PublicProfilePage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Header username={currentUsername} isLoggedIn={!!user} />
-      <main className="mx-auto max-w-5xl flex-1 px-4 py-8">
-        <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <ProfileAvatar
-            avatarUrl={profile.avatar_url}
-            displayName={displayName}
-            username={profile.username}
-            size="lg"
+      <Header
+        isLoggedIn={!!user}
+        profileLead={{
+          avatarUrl: profile.avatar_url,
+          displayName,
+          username: profile.username,
+          countryCount: stats.countries,
+        }}
+      />
+      <main className="mx-auto max-w-5xl flex-1 px-4 py-2 sm:py-8">
+        <TravelMapFocusShell>
+        <div className="flex flex-col gap-2 sm:gap-6">
+          <PublicProfileTravelSummary
+            stats={stats}
+            visitedCountries={visitedCountries}
+            visitedCities={visitedCities}
+            wishlistCountries={wishlistPublic ? wishlistCountries : []}
           />
-          <h1 className="text-3xl font-bold text-white">{displayName}</h1>
-          <TravelerBadge countryCount={stats.countries} />
-          <p className="text-slate-500">@{profile.username}</p>
-          <TravelStatsBar stats={stats} />
-          <PublicProfileDetails
-            bio={profile.bio}
-            residence={profile.residence}
-            profession={profile.profession}
-            marital_status={profile.marital_status}
-            labels={{
-              livesIn: t("livesIn"),
-              profession: t("profession"),
-              status: t("status"),
-            }}
-          />
+
+          {hasMapContent ? (
+            <TravelMapView
+              visitedCountryCodes={visitedCodes}
+              wishlistCountryCodes={wishlistCodes}
+              userCities={visitedCities}
+              interactive
+            />
+          ) : (
+            <p className="text-center text-slate-500">{t("noCountries")}</p>
+          )}
+
+          <PublicProfileBio bio={profile.bio} />
+
           {isOwnProfile && (
             <a
               href="/dashboard/settings"
@@ -216,19 +222,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
             </a>
           )}
         </div>
-
-        {hasMapContent ? (
-          <>
-            <TravelMapView
-              visitedCountryCodes={visitedCodes}
-              wishlistCountryCodes={wishlistCodes}
-              interactive
-            />
-            {wishlistPublic && <PublicWishlist countries={wishlistCountries} />}
-          </>
-        ) : (
-          <p className="text-center text-slate-500">{t("noCountries")}</p>
-        )}
+        </TravelMapFocusShell>
       </main>
     </>
   );

@@ -17,6 +17,7 @@ type CountryPopupProps = {
   onWishlistChange: (checked: boolean) => void;
   onCitiesAdded: () => void;
   onClose: () => void;
+  cityPickerFirst?: boolean;
 };
 
 export function CountryPopup({
@@ -32,6 +33,7 @@ export function CountryPopup({
   onWishlistChange,
   onCitiesAdded,
   onClose,
+  cityPickerFirst = false,
 }: CountryPopupProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -72,6 +74,15 @@ export function CountryPopup({
           </button>
         </div>
 
+        {cityPickerFirst && showCityPicker ? (
+          <CountryCityPicker
+            countryCode={countryCode}
+            countryName={countryName}
+            existingCityNames={existingCityNames}
+            onAdded={onCitiesAdded}
+          />
+        ) : (
+          <>
         <div className="flex flex-col gap-3 px-5 py-4">
           <label
             className={`flex cursor-pointer items-center gap-3 rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 transition-colors hover:border-blue-500/40 ${
@@ -112,6 +123,8 @@ export function CountryPopup({
             existingCityNames={existingCityNames}
             onAdded={onCitiesAdded}
           />
+        )}
+          </>
         )}
       </div>
     </div>

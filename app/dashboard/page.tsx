@@ -3,7 +3,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
-import { TravelStatsBar } from "@/components/stats/TravelStats";
+import { TravelStatsInteractive } from "@/components/stats/TravelStatsInteractive";
+import { TravelMapFocusShell } from "@/components/map/TravelMapFocusShell";
 import { TravelMapView } from "@/components/map/TravelMapView";
 import { CityList } from "@/components/dashboard/CityList";
 import { CountryManager } from "@/components/dashboard/CountryManager";
@@ -69,8 +70,10 @@ export default async function DashboardPage() {
   return (
     <>
       <Header username={profile?.username} isLoggedIn />
-      <main className="mx-auto max-w-5xl flex-1 px-4 py-8">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <main className="mx-auto max-w-5xl flex-1 px-4 py-3 sm:py-8">
+        <TravelMapFocusShell>
+        <div className="flex flex-col gap-4 sm:gap-6">
+        <div className="order-2 mb-0 flex flex-wrap items-center justify-between gap-4 sm:order-1 sm:mb-6">
           <div>
             <h1 className="text-2xl font-bold text-white">
               {profile?.display_name ?? profile?.username}
@@ -92,9 +95,14 @@ export default async function DashboardPage() {
               </div>
             )}
           </div>
-          <TravelStatsBar stats={stats} />
+          <TravelStatsInteractive
+            stats={stats}
+            visitedCountries={visitedCountries}
+            visitedCities={visitedCities}
+          />
         </div>
 
+        <div className="order-1 sm:order-2">
         <div className="mb-8">
           <TravelMapView
             visitedCountryCodes={visitedCodes}
@@ -110,15 +118,19 @@ export default async function DashboardPage() {
             showContinentFilter
           />
         </div>
+        </div>
 
-        <div className="flex flex-col gap-10">
+        <div className="order-3 flex flex-col gap-10">
           <CountryManager
             visitedCountries={visitedCountries}
             wishlistCountries={wishlistCountries}
             visitedCountryCodes={visitedCodes}
+            visitedCities={visitedCities}
           />
           <CityList cities={visitedCities} countries={visitedCountries} />
         </div>
+        </div>
+        </TravelMapFocusShell>
       </main>
     </>
   );

@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { WorldMap } from "@/components/map/WorldMap";
 import { CountryPopup } from "@/components/map/CountryPopup";
+import { CityPopup } from "@/components/map/CityPopup";
 import { MapContinentControl } from "@/components/map/MapContinentControl";
 import { MapCountrySearch } from "@/components/map/MapCountrySearch";
 import { MapLegend } from "@/components/map/MapLegend";
+import { useOptionalMapFocus, type MapFocusTarget } from "@/components/map/MapFocusContext";
 import { useModal } from "@/components/ui/ModalProvider";
 import { useToast } from "@/components/ui/ToastProvider";
 import {
@@ -52,10 +54,15 @@ export function TravelMapView({
   const router = useRouter();
   const modal = useModal();
   const toast = useToast();
+  const mapFocus = useOptionalMapFocus();
   const [selectedCountry, setSelectedCountry] = useState<CountrySelection | null>(null);
+  const [selectedCity, setSelectedCity] = useState<VisitedCity | null>(null);
   const [continent, setContinent] = useState<ContinentId>("world");
-  const [focusCountryCode, setFocusCountryCode] = useState<string | null>(null);
+  const [focusRequest, setFocusRequest] = useState<{ code: string; nonce: number } | null>(
+    null
+  );
   const [pinnedCountryCode, setPinnedCountryCode] = useState<string | null>(null);
+  const [cityPickerFirst, setCityPickerFirst] = useState(false);
   const [busyCode, setBusyCode] = useState<string | null>(null);
   const [optimisticVisitedCodes, setOptimisticVisitedCodes] = useState<Set<string>>(
     () => new Set()
@@ -143,6 +150,7 @@ export function TravelMapView({
   };
 
   const handleCountryClick = (country: CountrySelection) => {
+    setCityPickerFirst(false);
     setSelectedCountry(country);
     setPinnedCountryCode(country.code);
   };
@@ -165,6 +173,7 @@ export function TravelMapView({
           return;
         }
         setOptimisticVisitedCodes((prev) => new Set(prev).add(selectedStatus.code));
+        setCityPickerFirst(true);
       } else {
         if (selectedStatus.visitedViaCitiesOnly) {
           await modal.alert(countryMessages.removeCitiesFirst, { variant: "info" });
@@ -225,24 +234,44 @@ export function TravelMapView({
 
   const handleCitiesAdded = () => {
     router.refresh();
+    setSelectedCountry(null);
+    setPinnedCountryCode(null);
+    setCityPickerFirst(false);
   };
 
   const handleCountrySearch = (country: { code: string; name: string }) => {
-    const code = country.code.toUpperCase();
-    const countryContinent = getCountryContinent(code);
-    if (countryContinent) {
-      setContinent(countryContinent);
-    }
-    setFocusCountryCode(code);
-    setPinnedCountryCode(code);
-    if (explorable) {
-      setSelectedCountry({ code, name: country.name });
-    }
+    focusCountryOnMap(country);
   };
+
+  const focusCountryOnMap = useCallback(
+    (country: MapFocusTarget) => {
+      const code = country.code.toUpperCase();
+      const countryContinent = getCountryContinent(code);
+      setCityPickerFirst(false);
+      setPinnedCountryCode(code);
+      if (explorable) {
+        setSelectedCountry({ code, name: country.name });
+      }
+      if (countryContinent) {
+        setContinent(countryContinent);
+      }
+      setFocusRequest({ code, nonce: Date.now() });
+    },
+    [explorable]
+  );
+
+  useEffect(() => {
+    if (!mapFocus) return;
+    mapFocus.registerFocusHandler(focusCountryOnMap);
+    return () => mapFocus.registerFocusHandler(null);
+  }, [focusCountryOnMap, mapFocus]);
 
   return (
     <>
-      <div className="relative">
+      <div
+        id="travel-map"
+        className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 scroll-mt-24"
+      >
         {showContinentFilter && (
           <>
             <MapContinentControl
@@ -258,20 +287,21 @@ export function TravelMapView({
           </>
         )}
         <WorldMap
-          key={continent}
           visitedCountryCodes={[...visitedCodeSet]}
           wishlistCountryCodes={wishlistCountryCodes}
+          userCities={userCities}
           onCountryClick={explorable ? handleCountryClick : undefined}
+          onCityClick={userCities.length > 0 ? (city) => setSelectedCity(city) : undefined}
           interactive={interactive}
           explorable={explorable}
-          continent={showContinentFilter ? continent : "world"}
-          focusCountryCode={focusCountryCode}
-          onFocusCountryDone={() => setFocusCountryCode(null)}
+          continent={continent}
+          focusRequest={focusRequest}
+          onFocusComplete={() => setFocusRequest(null)}
           pinnedCountryCode={pinnedCountryCode}
         />
       </div>
       {explorable && (
-        <p className="mt-2 text-center text-xs text-slate-500">
+        <p className="mt-2 hidden text-center text-xs text-slate-500 sm:block">
           {showContinentFilter ? mapMessages.demoExploreHint : mapMessages.exploreHint}
         </p>
       )}
@@ -293,11 +323,16 @@ export function TravelMapView({
           onVisitedChange={handleVisitedChange}
           onWishlistChange={handleWishlistChange}
           onCitiesAdded={handleCitiesAdded}
+          cityPickerFirst={cityPickerFirst}
           onClose={() => {
             setSelectedCountry(null);
             setPinnedCountryCode(null);
+            setCityPickerFirst(false);
           }}
         />
+      )}
+      {selectedCity && (
+        <CityPopup city={selectedCity} onClose={() => setSelectedCity(null)} />
       )}
     </>
   );

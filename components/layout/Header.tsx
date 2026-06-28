@@ -1,15 +1,26 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { HeaderProfileIdentity } from "@/components/layout/HeaderProfileIdentity";
 import { HeaderUserMenu } from "@/components/layout/HeaderUserMenu";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { TravelerBadge } from "@/components/profile/TravelerBadge";
 import { BRAND } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
+
+export type HeaderProfileLead = {
+  avatarUrl: string | null;
+  displayName: string;
+  username: string;
+  countryCount: number;
+};
 
 type HeaderProps = {
   username?: string | null;
   isLoggedIn?: boolean;
+  profileLead?: HeaderProfileLead | null;
 };
 
-export async function Header({ isLoggedIn }: HeaderProps) {
+export async function Header({ isLoggedIn, profileLead = null }: HeaderProps) {
   const t = await getTranslations("common");
 
   let menuUser: {
@@ -56,20 +67,45 @@ export async function Header({ isLoggedIn }: HeaderProps) {
     }
   }
 
+  const isOwnProfileLead =
+    profileLead != null &&
+    menuUser != null &&
+    menuUser.username.toLowerCase() === profileLead.username.toLowerCase();
+
   return (
     <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-        <Link href="/" className="text-lg font-bold tracking-tight text-white">
-          {BRAND.name}
-        </Link>
-        <nav className="flex items-center text-sm">
-          {isLoggedIn && menuUser ? (
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:py-4">
+        {profileLead ? (
+          isOwnProfileLead && menuUser ? (
+            <HeaderUserMenu
+              username={menuUser.username}
+              displayName={menuUser.displayName}
+              avatarUrl={menuUser.avatarUrl}
+              showInlineIdentity
+              badge={<TravelerBadge countryCount={profileLead.countryCount} />}
+            />
+          ) : (
+            <HeaderProfileIdentity
+              avatarUrl={profileLead.avatarUrl}
+              displayName={profileLead.displayName}
+              username={profileLead.username}
+              countryCount={profileLead.countryCount}
+            />
+          )
+        ) : (
+          <Link href="/" className="text-lg font-bold tracking-tight text-foreground">
+            {BRAND.name}
+          </Link>
+        )}
+        <nav className="flex shrink-0 items-center gap-3 text-sm">
+          <ThemeToggle />
+          {isLoggedIn && menuUser && !isOwnProfileLead ? (
             <HeaderUserMenu
               username={menuUser.username}
               displayName={menuUser.displayName}
               avatarUrl={menuUser.avatarUrl}
             />
-          ) : isLoggedIn ? null : (
+          ) : isLoggedIn && menuUser && isOwnProfileLead ? null : isLoggedIn ? null : (
             <div className="flex items-center gap-4">
               <Link href="/login" className="text-slate-300 hover:text-white">
                 {t("login")}

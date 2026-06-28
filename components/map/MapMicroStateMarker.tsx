@@ -1,4 +1,5 @@
 import { BRAND } from "@/lib/constants";
+import { MAP_CSS } from "@/lib/theme/map-css-vars";
 import { formatMapCoord } from "@/lib/map/coords";
 
 type MapMicroStateMarkerProps = {
@@ -50,7 +51,7 @@ export function microStateMarkerColors(
   if (isVisited) {
     return {
       fill: BRAND.colors.visited,
-      stroke: isHovered ? "#93c5fd" : BRAND.colors.background,
+      stroke: isHovered ? "#93c5fd" : MAP_CSS.oceanStroke,
     };
   }
   if (isWishlist) {
@@ -60,7 +61,7 @@ export function microStateMarkerColors(
     };
   }
   return {
-    fill: BRAND.colors.unvisited,
+    fill: MAP_CSS.unvisited,
     stroke: isHovered ? "#93c5fd" : "#64748b",
   };
 }

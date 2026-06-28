@@ -4,9 +4,10 @@ type MapCountryLabelProps = {
   x: number;
   y: number;
   name: string;
+  inverseScale?: number;
 };
 
-export function MapCountryLabel({ x, y, name }: MapCountryLabelProps) {
+export function MapCountryLabel({ x, y, name, inverseScale = 1 }: MapCountryLabelProps) {
   const width = Math.min(Math.max(name.length * 6.8 + 20, 56), 200);
   const height = 24;
   const left = -width / 2;
@@ -14,7 +15,7 @@ export function MapCountryLabel({ x, y, name }: MapCountryLabelProps) {
 
   return (
     <g
-      transform={`translate(${formatMapCoord(x)}, ${formatMapCoord(y)})`}
+      transform={`translate(${formatMapCoord(x)}, ${formatMapCoord(y)}) scale(${inverseScale})`}
       pointerEvents="none"
     >
       <rect
