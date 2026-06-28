@@ -5,7 +5,9 @@ import { Header } from "@/components/layout/Header";
 import { TravelStatsInteractive } from "@/components/stats/TravelStatsInteractive";
 import { TravelMapFocusShell } from "@/components/map/TravelMapFocusShell";
 import { DemoTravelerSummary } from "@/components/home/DemoTravelerSummary";
+import { HomeFeatures } from "@/components/home/HomeFeatures";
 import { TravelMapView } from "@/components/map/TravelMapView";
+import { ShareProfile } from "@/components/share/ShareProfile";
 import { createClient } from "@/lib/supabase/server";
 import { BRAND } from "@/lib/constants";
 import { DEMO_CITIES } from "@/lib/data/demo-cities";
@@ -106,6 +108,7 @@ export default async function HomePage() {
   const stats = isDemo
     ? getDemoTravelStats()
     : computeTravelStats(countries, cities);
+  const userStats = computeTravelStats(dbCountries, dbCities);
   const wishlistCount = isDemo
     ? DEMO_PERSONA.wishlistCountries
     : wishlistCountries.length;
@@ -168,19 +171,23 @@ export default async function HomePage() {
         />
         </div>
 
-        <div className="order-3 mt-2 flex flex-col items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/50 px-6 py-5 text-center sm:mt-8 sm:flex-row sm:justify-between sm:text-left">
-          <div>
-            <p className="font-medium text-white">{t("ctaTitle")}</p>
-            <p className="mt-1 text-sm text-slate-500">{t("ctaHint")}</p>
+        {user && username ? (
+          <div className="order-3">
+            <ShareProfile
+              username={username}
+              displayName={displayName ?? username}
+              stats={userStats}
+              isOwnProfile
+            />
           </div>
-          {user ? (
-            <Link
-              href="/dashboard"
-              className="shrink-0 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
-            >
-              {t("editMap")}
-            </Link>
-          ) : (
+        ) : (
+          <>
+            <HomeFeatures />
+            <div className="order-4 mt-2 flex flex-col items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/50 px-6 py-5 text-center sm:mt-4 sm:flex-row sm:justify-between sm:text-left">
+            <div>
+              <p className="font-medium text-white">{t("ctaTitle")}</p>
+              <p className="mt-1 text-sm text-slate-500">{t("ctaHint")}</p>
+            </div>
             <div className="flex shrink-0 gap-3">
               <Link
                 href="/register"
@@ -195,8 +202,9 @@ export default async function HomePage() {
                 {t("login")}
               </Link>
             </div>
-          )}
-        </div>
+            </div>
+          </>
+        )}
         </div>
         </TravelMapFocusShell>
       </main>

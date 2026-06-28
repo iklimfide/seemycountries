@@ -3,6 +3,10 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+  --header-bg: #0f172a;
+  --header-border: #334155;
+  --header-fg: #f8fafc;
+  --header-muted: #94a3b8;
   --map-bg: #dbeafe;
   --map-unvisited: #cbd5e1;
   --map-ocean-stroke: #e2e8f0;
@@ -13,6 +17,10 @@ html.dark {
   color-scheme: dark;
   --background: #020617;
   --foreground: #f1f5f9;
+  --header-bg: #020617;
+  --header-border: #1e293b;
+  --header-fg: #f8fafc;
+  --header-muted: #94a3b8;
   --map-bg: #0f172a;
   --map-unvisited: #334155;
   --map-ocean-stroke: #0f172a;
@@ -26,6 +34,10 @@ html.light {
   color-scheme: light;
   --background: #f8fafc;
   --foreground: #0f172a;
+  --header-bg: #0f172a;
+  --header-border: #1e293b;
+  --header-fg: #f8fafc;
+  --header-muted: #cbd5e1;
   --map-bg: #dbeafe;
   --map-unvisited: #cbd5e1;
   --map-ocean-stroke: #e2e8f0;
@@ -38,6 +50,10 @@ html.light {
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-header-bg: var(--header-bg);
+  --color-header-border: var(--header-border);
+  --color-header-fg: var(--header-fg);
+  --color-header-muted: var(--header-muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -265,5 +281,38 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb {
 
   html.light .file\:bg-blue-600::file-selector-button {
     color: #ffffff !important;
+  }
+
+  html.light header {
+    background-color: var(--header-bg) !important;
+    border-color: var(--header-border) !important;
+  }
+
+  html.light header .text-header-fg {
+    color: var(--header-fg) !important;
+  }
+
+  html.light header .text-header-muted {
+    color: var(--header-muted) !important;
+  }
+
+  html.light header .hover\:text-header-fg:hover {
+    color: var(--header-fg) !important;
+  }
+
+  html.light header .border-slate-600 {
+    border-color: #475569 !important;
+  }
+
+  html.light header .border-slate-700 {
+    border-color: #334155 !important;
+  }
+
+  html.light header .bg-slate-600 {
+    background-color: #475569 !important;
+  }
+
+  html.light header .hover\:border-slate-400:hover {
+    border-color: #94a3b8 !important;
   }
 }

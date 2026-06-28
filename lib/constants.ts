@@ -23,5 +23,6 @@ export const LIMITS = {
   avatarMaxBytes: 5 * 1024 * 1024,
   usernameMin: 3,
   usernameMax: 30,
+  passwordMin: 6,
   minCityPopulation: 100_000,
 } as const;

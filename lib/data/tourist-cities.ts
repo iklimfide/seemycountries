@@ -8760,15 +8760,27 @@ export const TOURIST_CITIES: TouristCity[] = [
   },
   {
     "countryCode": "CH",
+    "name": "Chur",
+    "latitude": 46.8499,
+    "longitude": 9.5329
+  },
+  {
+    "countryCode": "CH",
     "name": "Geneva",
-    "latitude": 46.2381,
-    "longitude": 6.109
+    "latitude": 46.2044,
+    "longitude": 6.1432
   },
   {
     "countryCode": "CH",
     "name": "Interlaken",
     "latitude": 46.6863,
     "longitude": 7.8632
+  },
+  {
+    "countryCode": "CH",
+    "name": "Lausanne",
+    "latitude": 46.5197,
+    "longitude": 6.6323
   },
   {
     "countryCode": "CH",

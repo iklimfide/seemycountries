@@ -61,7 +61,7 @@ export function HeaderUserMenu({
           aria-expanded={open}
           aria-haspopup="menu"
           aria-label={t("openMenu")}
-          className="rounded-full outline-none ring-offset-2 ring-offset-slate-950 focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="rounded-full outline-none ring-offset-2 ring-offset-header-bg focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           <ProfileAvatar
             avatarUrl={avatarUrl}
@@ -118,7 +118,7 @@ export function HeaderUserMenu({
 
       {showInlineIdentity && (
         <div className="min-w-0 flex flex-col gap-0.5">
-          <h1 className="truncate text-base font-bold leading-tight text-foreground sm:text-lg">
+          <h1 className="truncate text-base font-bold leading-tight text-header-fg sm:text-lg">
             {displayName}
           </h1>
           {badge}

@@ -9,6 +9,7 @@ export const wishlistMessages = enMessages.wishlist;
 export const popupMessages = enMessages.popup;
 export const homeMessages = enMessages.home;
 export const shareMessages = enMessages.share;
+export const destinationMessages = enMessages.destinations;
 export const profileMessages = enMessages.profile;
 
 export function formatMessage(

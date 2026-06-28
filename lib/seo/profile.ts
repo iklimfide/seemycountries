@@ -11,7 +11,7 @@ const BADGE_OG_LABELS: Record<TravelerBadgeTier, string> = {
 
 /** Open Graph / Twitter card title for public profile links. */
 export function buildProfileOgTitle(displayName: string): string {
-  return `${displayName} is dominating the world map! 🌍`;
+  return `${displayName} traveled and pinned the places they've visited`;
 }
 
 /** Open Graph / Twitter card description for public profile links. */

@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:tourist-cities": "node scripts/build-tourist-cities.mjs",
+    "build:popular-destinations": "node scripts/build-popular-destinations.mjs",
     "build:map-supplements": "node scripts/build-map-supplements.mjs",
     "start": "next start",
     "lint": "eslint"

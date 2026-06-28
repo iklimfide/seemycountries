@@ -112,14 +112,6 @@ export function ProfileSettingsForm({ profile, stats }: ProfileSettingsFormProps
           <div>
             <p className="mb-1.5 text-sm text-slate-500">{t("username")}</p>
             <p className="select-none text-sm text-slate-500">@{username}</p>
-            <div className="mt-3">
-              <ShareProfile
-                username={username}
-                displayName={previewName}
-                stats={stats}
-                isOwnProfile
-              />
-            </div>
           </div>
 
           <div>
@@ -232,6 +224,13 @@ export function ProfileSettingsForm({ profile, stats }: ProfileSettingsFormProps
           </span>
         </label>
       </section>
+
+      <ShareProfile
+        username={username}
+        displayName={previewName}
+        stats={stats}
+        isOwnProfile
+      />
 
       <button
         type="submit"

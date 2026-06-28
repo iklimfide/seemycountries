@@ -32,7 +32,27 @@
     "ctaHint": "Free account · One photo or Instagram post per city · Share with one link",
     "cta": "Create your map",
     "editMap": "Edit your map",
-    "login": "Log in"
+    "login": "Log in",
+    "featuresTitle": "Your travel map in three parts",
+    "features": {
+      "map": {
+        "title": "Map",
+        "description": "Mark countries you've visited, pin cities, and keep a wishlist for where you want to go next."
+      },
+      "remember": {
+        "title": "Remember",
+        "description": "Attach one photo or Instagram post and a short note to each city — memories live on your map."
+      },
+      "share": {
+        "title": "Share",
+        "description": "Get a public profile link. Friends see your map, stats, and traveler badges in one place."
+      }
+    },
+    "steps": {
+      "signUp": "Create a free account",
+      "addPins": "Mark countries and cities",
+      "shareLink": "Share your link anywhere"
+    }
   },
   "auth": {
     "email": "Email",
@@ -62,6 +82,16 @@
     "globetrotter": "Globetrotter",
     "super_voyager": "Super Voyager",
     "world_citizen": "World Citizen"
+  },
+  "destinations": {
+    "title": "Popular destinations",
+    "hint": "Tap a city to add it in one step. Tap − to remove.",
+    "featured": "Europe & favorites",
+    "capitals": "World capitals",
+    "search": "Search capitals…",
+    "added": "Added",
+    "addedToast": "Destination added",
+    "removedToast": "Destination removed"
   },
   "country": {
     "title": "Countries",
@@ -117,11 +147,18 @@
   },
   "map": {
     "exploreHint": "Drag to pan · Scroll to zoom · Double-click to reset · Tap a country",
-    "demoExploreHint": "Choose a continent or search for a country · Drag to pan · Scroll to zoom · Tap a country",
+    "demoExploreHint": "Choose a continent, search a country, or add a popular destination · Drag to pan · Scroll to zoom · Tap a country",
     "continentLabel": "Continent",
     "searchCountryLabel": "Search country",
     "searchCountry": "Search country",
     "searchCountryNoResults": "No countries match.",
+    "popularDestinations": "Popular destinations",
+    "popularDestinationsFeatured": "Europe & favorites",
+    "popularDestinationsCapitals": "World capitals",
+    "popularDestinationsSearch": "Search cities…",
+    "popularDestinationsNoResults": "No destinations match.",
+    "addDestination": "Add",
+    "removeDestination": "Remove",
     "continents": {
       "world": "World",
       "africa": "Africa",
@@ -148,14 +185,18 @@
     "ownTitle": "Share your travel map",
     "guestTitle": "Share this travel map",
     "native": "Share",
+    "modalTitle": "Share",
+    "close": "Close",
+    "copy": "Copy",
     "copyLink": "Copy link",
-    "copied": "Link copied to clipboard.",
+    "copied": "Link copied",
     "copyFailed": "Could not copy the link.",
     "shareTitle": "{name}'s travel map",
     "whatsapp": "WhatsApp",
     "telegram": "Telegram",
     "x": "X",
     "facebook": "Facebook",
+    "instagram": "Instagram",
     "linkedin": "LinkedIn"
   },
   "modal": {

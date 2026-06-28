@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { LIMITS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { useModal } from "@/components/ui/ModalProvider";
 import {
@@ -140,7 +141,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-blue-500"
           required
           autoComplete={mode === "register" ? "new-password" : "current-password"}
-          minLength={8}
+          minLength={LIMITS.passwordMin}
         />
       </div>
 

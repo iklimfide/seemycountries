@@ -11,12 +11,12 @@ import {
 } from "react";
 
 type ToastContextValue = {
-  show: (message: string) => void;
+  show: (message: string, durationMs?: number) => void;
 };
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
-const TOAST_DURATION_MS = 4000;
+const DEFAULT_TOAST_DURATION_MS = 4000;
 
 export function useToast(): ToastContextValue {
   const ctx = useContext(ToastContext);
@@ -39,10 +39,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const show = useCallback(
-    (next: string) => {
+    (next: string, durationMs = DEFAULT_TOAST_DURATION_MS) => {
       dismiss();
       setMessage(next);
-      timerRef.current = setTimeout(dismiss, TOAST_DURATION_MS);
+      timerRef.current = setTimeout(dismiss, durationMs);
     },
     [dismiss]
   );
@@ -56,7 +56,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <div
           role="status"
           aria-live="polite"
-          className="pointer-events-none fixed bottom-6 left-1/2 z-[110] max-w-sm -translate-x-1/2 rounded-xl border border-slate-600 bg-slate-900/95 px-4 py-3 text-center text-sm text-slate-100 shadow-2xl backdrop-blur-sm"
+          className="pointer-events-none fixed top-1/2 left-1/2 z-[110] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-xl border border-slate-600 bg-slate-900/95 px-4 py-3 text-center text-sm text-slate-100 shadow-2xl backdrop-blur-sm"
         >
           {message}
         </div>

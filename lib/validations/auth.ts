@@ -3,7 +3,7 @@ import { LIMITS } from "@/lib/constants";
 
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(LIMITS.passwordMin, `Password must be at least ${LIMITS.passwordMin} characters`),
 });
 
 export const registerSchema = z.object({
@@ -13,7 +13,7 @@ export const registerSchema = z.object({
     .max(LIMITS.usernameMax, `Username must be at most ${LIMITS.usernameMax} characters`)
     .regex(/^[a-z0-9_]+$/, "Only lowercase letters, numbers, and underscores"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(LIMITS.passwordMin, `Password must be at least ${LIMITS.passwordMin} characters`),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;

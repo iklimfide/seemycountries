@@ -23,7 +23,7 @@ export function HeaderProfileIdentity({
         size="sm"
       />
       <div className="flex min-w-0 flex-col gap-0.5">
-        <h1 className="truncate text-base font-bold leading-tight text-foreground sm:text-lg">
+        <h1 className="truncate text-base font-bold leading-tight text-header-fg sm:text-lg">
           {displayName}
         </h1>
         <TravelerBadge countryCount={countryCount} />

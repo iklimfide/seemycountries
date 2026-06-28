@@ -7,6 +7,7 @@ import { CountryPopup } from "@/components/map/CountryPopup";
 import { CityPopup } from "@/components/map/CityPopup";
 import { MapContinentControl } from "@/components/map/MapContinentControl";
 import { MapCountrySearch } from "@/components/map/MapCountrySearch";
+import { MapPopularDestinations } from "@/components/map/MapPopularDestinations";
 import { MapLegend } from "@/components/map/MapLegend";
 import { useOptionalMapFocus, type MapFocusTarget } from "@/components/map/MapFocusContext";
 import { useModal } from "@/components/ui/ModalProvider";
@@ -19,6 +20,7 @@ import {
 } from "@/lib/client/country-actions";
 import { countryMessages, mapMessages } from "@/lib/i18n/client-messages";
 import { getCountryContinent, DEFAULT_MAP_CONTINENT, type ContinentId } from "@/lib/map/continents";
+import type { PopularDestination } from "@/lib/data/popular-destinations";
 import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
 
 type CountrySelection = {
@@ -260,6 +262,35 @@ export function TravelMapView({
     [explorable]
   );
 
+  const handleDestinationAdded = useCallback(
+    (destination: PopularDestination) => {
+      const code = destination.countryCode.toUpperCase();
+      const countryContinent = getCountryContinent(code);
+      setOptimisticVisitedCodes((prev) => new Set(prev).add(code));
+      setPinnedCountryCode(code);
+      if (countryContinent) {
+        setContinent(countryContinent);
+      }
+      setFocusRequest({ code, nonce: Date.now() });
+    },
+    []
+  );
+
+  const handleDestinationRemoved = useCallback(
+    (destination: PopularDestination, countryRemoved: boolean) => {
+      const code = destination.countryCode.toUpperCase();
+      if (countryRemoved) {
+        setOptimisticVisitedCodes((prev) => {
+          const next = new Set(prev);
+          next.delete(code);
+          return next;
+        });
+        setPinnedCountryCode(null);
+      }
+    },
+    []
+  );
+
   useEffect(() => {
     if (!mapFocus) return;
     mapFocus.registerFocusHandler(focusCountryOnMap);
@@ -269,8 +300,8 @@ export function TravelMapView({
   return (
     <>
       {showContinentFilter && (
-        <div className="mb-2 flex flex-col gap-2 sm:mb-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="w-full sm:w-52 sm:shrink-0">
+        <div className="mb-2 grid grid-cols-1 gap-2 sm:mb-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="w-full sm:min-w-0">
             <MapContinentControl
               continent={continent}
               onChange={(next) => {
@@ -279,9 +310,19 @@ export function TravelMapView({
               }}
             />
           </div>
-          <div className="w-full sm:w-52 sm:shrink-0 sm:ml-auto">
+          <div className="w-full sm:min-w-0">
             <MapCountrySearch onSelect={handleCountrySearch} />
           </div>
+          {isLoggedIn ? (
+            <div className="w-full sm:col-span-2 sm:min-w-0 lg:col-span-1">
+              <MapPopularDestinations
+                visitedCities={userCities}
+                visitedCountries={visitedCountries}
+                onAdded={handleDestinationAdded}
+                onRemoved={handleDestinationRemoved}
+              />
+            </div>
+          ) : null}
         </div>
       )}
       <div id="travel-map" className="relative w-full scroll-mt-24">
