@@ -400,34 +400,39 @@ export function CityForm({
     setLoading(true);
 
     try {
-      let mediaUrl: string | null = city?.media_url ?? null;
+      let mediaUrl: string | null = null;
       let finalMediaType: "photo" | "instagram" | null = null;
 
-      if (mediaType === "instagram" && instagramUrl) {
-        if (!isValidInstagramUrl(instagramUrl)) {
-          await modal.alert("Invalid Instagram post URL", { variant: "error" });
-          return;
+      if (mediaType === "instagram") {
+        const trimmedUrl = instagramUrl.trim();
+        if (trimmedUrl) {
+          if (!isValidInstagramUrl(trimmedUrl)) {
+            await modal.alert("Invalid Instagram post URL", { variant: "error" });
+            return;
+          }
+          finalMediaType = "instagram";
+          mediaUrl = trimmedUrl;
         }
-        finalMediaType = "instagram";
-        mediaUrl = instagramUrl;
-      } else if (mediaType === "photo" && photoFile) {
-        const formData = new FormData();
-        formData.append("file", photoFile);
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        if (!uploadRes.ok) {
-          const data = await uploadRes.json();
-          await modal.alert(data.error ?? "Upload failed", { variant: "error" });
-          return;
+      } else if (mediaType === "photo") {
+        if (photoFile) {
+          const formData = new FormData();
+          formData.append("file", photoFile);
+          const uploadRes = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+          if (!uploadRes.ok) {
+            const data = await uploadRes.json();
+            await modal.alert(data.error ?? "Upload failed", { variant: "error" });
+            return;
+          }
+          const { url } = await uploadRes.json();
+          finalMediaType = "photo";
+          mediaUrl = url;
+        } else if (city?.media_type === "photo" && city.media_url) {
+          finalMediaType = "photo";
+          mediaUrl = city.media_url;
         }
-        const { url } = await uploadRes.json();
-        finalMediaType = "photo";
-        mediaUrl = url;
-      } else if (city?.media_type && city.media_url && !photoFile && !instagramUrl) {
-        finalMediaType = city.media_type;
-        mediaUrl = city.media_url;
       }
 
       const payload = {

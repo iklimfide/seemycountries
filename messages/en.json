@@ -117,9 +117,14 @@
     "visa": "Visa & entry:",
     "language": "Language:",
     "parksInCity": "Parks in {city}:",
-    "recentTravelers": "Recent travelers who pinned this country",
-    "noTravelersYet": "No one has pinned this country yet.",
-    "pinCity": "Be the first to pin it"
+    "travelerMemories": "Traveler pins in {city}",
+    "viewTravelMap": "View map",
+    "viewPin": "View pin",
+    "closePin": "Close",
+    "instagramPost": "Instagram",
+    "recentTravelers": "Recent travelers who pinned {city}",
+    "noTravelersYet": "No one has pinned {city} yet.",
+    "pinCity": "Be the first to pin {city}"
   },
   "auth": {
     "email": "Email",

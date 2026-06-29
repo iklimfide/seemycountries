@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { CityPageActions } from "@/components/city/CityPageActions";
 import { CityPageNav } from "@/components/city/CityPageNav";
+import { CityHubMemories } from "@/components/city/CityHubMemories";
 import { HubRecentTravelers } from "@/components/hub/HubRecentTravelers";
 import { countryPath } from "@/lib/seo/site";
 import { parkTypeLabel } from "@/lib/utils/park-type";
@@ -10,6 +11,7 @@ import type { CountryHub } from "@/lib/data/country-hubs";
 import type { TouristCity } from "@/lib/data/tourist-cities";
 import type { TouristPark } from "@/lib/data/tourist-park-search";
 import type { CityVisitorState } from "@/lib/data/city-visitor-state";
+import type { CityTravelerPin } from "@/lib/supabase/city-travelers";
 import type { CountryTraveler } from "@/lib/supabase/country-travelers";
 
 type CityPageContentProps = {
@@ -18,6 +20,7 @@ type CityPageContentProps = {
   countryHub: CountryHub | null;
   parks: TouristPark[];
   travelers: CountryTraveler[];
+  memoryPins: CityTravelerPin[];
   visitorState: CityVisitorState;
   loginHref: string;
   labels: {
@@ -35,6 +38,11 @@ type CityPageContentProps = {
     visa: string;
     language: string;
     parksInCity: string;
+    travelerMemories: string;
+    viewTravelMap: string;
+    viewPin: string;
+    close: string;
+    instagramPost: string;
     recentTravelers: string;
     noTravelersYet: string;
     pinCity: string;
@@ -47,6 +55,7 @@ export function CityPageContent({
   countryHub,
   parks,
   travelers,
+  memoryPins,
   visitorState,
   loginHref,
   labels,
@@ -130,6 +139,18 @@ export function CityPageContent({
             ))}
           </section>
         ) : null}
+
+        <CityHubMemories
+          cityName={hub.name}
+          pins={memoryPins}
+          labels={{
+            heading: labels.travelerMemories,
+            viewMap: labels.viewTravelMap,
+            viewPin: labels.viewPin,
+            close: labels.close,
+            instagramPost: labels.instagramPost,
+          }}
+        />
 
         <HubRecentTravelers
           travelers={travelers}

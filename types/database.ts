@@ -44,6 +44,7 @@ export interface VisitedCity {
   note: string | null;
   media_type: MediaType | null;
   media_url: string | null;
+  media_preview_url: string | null;
   visit_dates: string[];
   created_at: string;
   updated_at: string;

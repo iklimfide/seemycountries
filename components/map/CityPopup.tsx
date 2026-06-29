@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
+import { InstagramEmbed } from "@/components/media/InstagramEmbed";
 import { popupMessages } from "@/lib/i18n/client-messages";
-import { toInstagramEmbedUrl } from "@/lib/utils/instagram";
 import { formatVisitDatesList } from "@/lib/utils/visit-date";
 import { getIntlLocale } from "@/lib/i18n/config";
 import type { VisitedCity } from "@/types/database";
@@ -14,35 +14,10 @@ type CityPopupProps = {
 };
 
 export function CityPopup({ city, onClose }: CityPopupProps) {
-  const embedContainerRef = useRef<HTMLDivElement>(null);
   const visitDatesLabel =
     city.visit_dates && city.visit_dates.length > 0
       ? formatVisitDatesList(city.visit_dates, getIntlLocale())
       : null;
-
-  useEffect(() => {
-    if (city.media_type !== "instagram" || !city.media_url) return;
-
-    const embedUrl = toInstagramEmbedUrl(city.media_url);
-    if (!embedUrl || !embedContainerRef.current) return;
-
-    const iframe = document.createElement("iframe");
-    iframe.src = embedUrl;
-    iframe.className = "h-full w-full border-0";
-    iframe.loading = "lazy";
-    iframe.title = `${city.city_name} Instagram post`;
-    iframe.allow = "encrypted-media";
-    iframe.setAttribute("referrerPolicy", "no-referrer-when-downgrade");
-
-    embedContainerRef.current.innerHTML = "";
-    embedContainerRef.current.appendChild(iframe);
-
-    return () => {
-      if (embedContainerRef.current) {
-        embedContainerRef.current.innerHTML = "";
-      }
-    };
-  }, [city]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -97,10 +72,12 @@ export function CityPopup({ city, onClose }: CityPopupProps) {
         )}
 
         {city.media_type === "instagram" && city.media_url && (
-          <div
-            ref={embedContainerRef}
-            className="aspect-square w-full bg-slate-800"
-          />
+          <div className="bg-slate-800">
+            <InstagramEmbed
+              postUrl={city.media_url}
+              title={`${city.city_name} Instagram post`}
+            />
+          </div>
         )}
 
         {city.note && (

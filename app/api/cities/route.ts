@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateCityHubForPin } from "@/lib/cache/revalidate-city-hub";
 import { cityInputSchema } from "@/lib/validations/city";
+import { resolveCityMediaFields } from "@/lib/utils/city-media";
 import { geocodeCity } from "@/lib/utils/geocode";
 
 export async function POST(request: Request) {
@@ -49,6 +51,8 @@ export async function POST(request: Request) {
       ? { latitude: data.latitude, longitude: data.longitude }
       : await geocodeCity(data.city_name, code, data.country_name);
 
+  const media = await resolveCityMediaFields(data);
+
   const { data: city, error } = await supabase
     .from("visited_cities")
     .insert({
@@ -59,8 +63,9 @@ export async function POST(request: Request) {
       latitude: coords?.latitude ?? null,
       longitude: coords?.longitude ?? null,
       note: data.note ?? null,
-      media_type: data.media_type ?? null,
-      media_url: data.media_url ?? null,
+      media_type: media.media_type,
+      media_url: media.media_url,
+      media_preview_url: media.media_preview_url,
       visit_dates: data.visit_dates ?? [],
     })
     .select()
@@ -69,6 +74,8 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  revalidateCityHubForPin(city.country_code, city.city_name);
 
   return NextResponse.json(city);
 }

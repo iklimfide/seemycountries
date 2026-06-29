@@ -6,7 +6,8 @@ import { CityPageContent } from "@/components/city/CityPageContent";
 import { getCityHubContext } from "@/lib/data/city-hubs";
 import { listCityHubSlugs } from "@/lib/data/city-hubs";
 import { loadCityVisitorState } from "@/lib/supabase/city-visitor-state";
-import { getCachedRecentCountryTravelers } from "@/lib/supabase/country-travelers-cache";
+import { cityPinsWithContent, uniqueCityTravelers } from "@/lib/supabase/city-travelers";
+import { getCachedRecentCityPinsWithPreviews } from "@/lib/supabase/city-travelers-cache";
 import { getAuthUser } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { cityPath, cityUrl } from "@/lib/seo/site";
@@ -56,12 +57,15 @@ export default async function CityHubPage({ params }: PageProps) {
   const { hub, touristCity, countryHub, parks } = context;
   const loginHref = `/login?next=${encodeURIComponent(cityPath(slug))}`;
 
-  const [t, travelers, user, supabase] = await Promise.all([
+  const [t, cityPins, user, supabase] = await Promise.all([
     getTranslations("cityHub"),
-    getCachedRecentCountryTravelers(hub.countryCode),
+    getCachedRecentCityPinsWithPreviews(hub),
     getAuthUser(),
     createClient(),
   ]);
+
+  const memoryPins = cityPinsWithContent(cityPins);
+  const travelers = uniqueCityTravelers(cityPins);
 
   const visitorState = await loadCityVisitorState(supabase, user?.id, hub);
 
@@ -80,9 +84,14 @@ export default async function CityHubPage({ params }: PageProps) {
     visa: t("visa"),
     language: t("language"),
     parksInCity: t("parksInCity", { city: hub.name }),
-    recentTravelers: t("recentTravelers"),
-    noTravelersYet: t("noTravelersYet"),
-    pinCity: t("pinCity"),
+    travelerMemories: t("travelerMemories", { city: hub.name }),
+    viewTravelMap: t("viewTravelMap"),
+    viewPin: t("viewPin"),
+    close: t("closePin"),
+    instagramPost: t("instagramPost"),
+    recentTravelers: t("recentTravelers", { city: hub.name }),
+    noTravelersYet: t("noTravelersYet", { city: hub.name }),
+    pinCity: t("pinCity", { city: hub.name }),
   };
 
   return (
@@ -95,6 +104,7 @@ export default async function CityHubPage({ params }: PageProps) {
           countryHub={countryHub}
           parks={parks}
           travelers={travelers}
+          memoryPins={memoryPins}
           visitorState={visitorState}
           loginHref={loginHref}
           labels={labels}

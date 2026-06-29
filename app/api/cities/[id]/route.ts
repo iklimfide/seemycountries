@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateCityHubForPin } from "@/lib/cache/revalidate-city-hub";
 import { cityInputSchema } from "@/lib/validations/city";
+import { resolveCityMediaFields } from "@/lib/utils/city-media";
 import { geocodeCity } from "@/lib/utils/geocode";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -71,6 +73,8 @@ export async function PATCH(request: Request, context: RouteContext) {
     longitude = coords?.longitude ?? null;
   }
 
+  const media = await resolveCityMediaFields(data);
+
   const { data: city, error } = await supabase
     .from("visited_cities")
     .update({
@@ -80,8 +84,9 @@ export async function PATCH(request: Request, context: RouteContext) {
       latitude,
       longitude,
       note: data.note ?? null,
-      media_type: data.media_type ?? null,
-      media_url: data.media_url ?? null,
+      media_type: media.media_type,
+      media_url: media.media_url,
+      media_preview_url: media.media_preview_url,
       visit_dates: data.visit_dates ?? [],
     })
     .eq("id", id)
@@ -91,6 +96,14 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  revalidateCityHubForPin(city.country_code, city.city_name);
+  if (
+    existing.city_name !== city.city_name ||
+    existing.country_code.toUpperCase() !== city.country_code.toUpperCase()
+  ) {
+    revalidateCityHubForPin(existing.country_code, existing.city_name);
   }
 
   return NextResponse.json(city);
@@ -111,6 +124,17 @@ export async function DELETE(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { data: existing } = await supabase
+    .from("visited_cities")
+    .select("city_name, country_code")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!existing) {
+    return NextResponse.json({ error: "City not found" }, { status: 404 });
+  }
+
   const { error } = await supabase
     .from("visited_cities")
     .delete()
@@ -120,6 +144,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  revalidateCityHubForPin(existing.country_code, existing.city_name);
 
   return NextResponse.json({ success: true });
 }
