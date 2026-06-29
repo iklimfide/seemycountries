@@ -15,6 +15,8 @@ import { useToast } from "@/components/ui/ToastProvider";
 import type { VisitedCity, VisitedCountry } from "@/types/database";
 
 type MapPopularDestinationsProps = {
+  isLoggedIn?: boolean;
+  onRequireLogin?: () => void;
   visitedCities: VisitedCity[];
   visitedCountries: VisitedCountry[];
   onAdded?: (destination: PopularDestination) => void;
@@ -40,6 +42,8 @@ function destinationPayload(destination: PopularDestination) {
 }
 
 export function MapPopularDestinations({
+  isLoggedIn = false,
+  onRequireLogin,
   visitedCities,
   visitedCountries,
   onAdded,
@@ -110,6 +114,10 @@ export function MapPopularDestinations({
   async function handleAdd(destination: PopularDestination) {
     const id = destinationId(destination);
     if (addedIds.has(id) || busyId) return;
+    if (!isLoggedIn) {
+      onRequireLogin?.();
+      return;
+    }
 
     setBusyId(id);
     try {
@@ -140,6 +148,10 @@ export function MapPopularDestinations({
   async function handleRemove(destination: PopularDestination) {
     const id = destinationId(destination);
     if (!addedIds.has(id) || busyId) return;
+    if (!isLoggedIn) {
+      onRequireLogin?.();
+      return;
+    }
 
     setBusyId(id);
     try {

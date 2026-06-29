@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { addCitiesBatch } from "@/lib/client/city-actions";
-import { cityMessages, formatMessage, mapMessages } from "@/lib/i18n/client-messages";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { addCitiesBatch, addCity } from "@/lib/client/city-actions";
+import { cityMessages, commonMessages, formatMessage, mapMessages } from "@/lib/i18n/client-messages";
+import { formatCityDisplayName } from "@/lib/utils/city-name";
 import { useModal } from "@/components/ui/ModalProvider";
 import { useToast } from "@/components/ui/ToastProvider";
 
@@ -21,6 +22,7 @@ type CountryCityPickerProps = {
 };
 
 const MIN_FILTER_LENGTH = 2;
+const CUSTOM_CITY_TOAST_DELAY_MS = 500;
 
 function cityId(city: TouristCity): string {
   return `${city.countryCode}:${city.name}`;
@@ -40,6 +42,7 @@ export function CountryCityPicker({
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const lastPromptKeyRef = useRef<string | null>(null);
 
   const existingNames = useMemo(
     () => new Set(existingCityNames.map((name) => name.toLowerCase())),
@@ -50,6 +53,7 @@ export function CountryCityPicker({
     setSelectedIds(new Set());
     setFilter("");
     setLoading(true);
+    lastPromptKeyRef.current = null;
 
     fetch(`/api/cities/tourist?country=${encodeURIComponent(countryCode)}`)
       .then(async (res) => {
@@ -86,6 +90,97 @@ export function CountryCityPicker({
   const selectedCount = useMemo(() => {
     return selectableCities.filter((city) => selectedIds.has(cityId(city))).length;
   }, [selectableCities, selectedIds]);
+
+  const trimmedFilter = filter.trim();
+
+  const canAddCustomCity = useMemo(() => {
+    if (trimmedFilter.length < MIN_FILTER_LENGTH) return false;
+    if (existingNames.has(trimmedFilter.toLowerCase())) return false;
+    if (displayCities.length > 0) return false;
+
+    const normalized = trimmedFilter.toLocaleLowerCase("tr");
+    const exactInList = allCities.some(
+      (city) => city.name.toLocaleLowerCase("tr") === normalized
+    );
+
+    return !exactInList;
+  }, [allCities, displayCities.length, existingNames, trimmedFilter]);
+
+  const handleAddCustomCity = useCallback(async () => {
+    if (trimmedFilter.length < MIN_FILTER_LENGTH) return;
+    if (existingNames.has(trimmedFilter.toLowerCase())) return;
+
+    setSaving(true);
+
+    try {
+      const result = await addCity({
+        city_name: trimmedFilter,
+        country_code: countryCode,
+        country_name: countryName,
+      });
+
+      if (!result.ok) {
+        await modal.alert(result.error, { variant: "error" });
+        throw new Error(result.error);
+      }
+
+      toast.show(mapMessages.cityAdded);
+      lastPromptKeyRef.current = null;
+      setFilter("");
+      onAdded();
+    } finally {
+      setSaving(false);
+    }
+  }, [
+    countryCode,
+    countryName,
+    existingNames,
+    modal,
+    onAdded,
+    toast,
+    trimmedFilter,
+  ]);
+
+  useEffect(() => {
+    if (loading || saving || !canAddCustomCity || selectedCount > 0) {
+      return;
+    }
+
+    const promptKey = `${countryCode}:${trimmedFilter.toLowerCase()}`;
+    const timer = window.setTimeout(() => {
+      if (lastPromptKeyRef.current === promptKey) return;
+      lastPromptKeyRef.current = promptKey;
+
+      toast.showAction({
+        message: formatMessage(mapMessages.customCityNotFound, {
+          city: formatCityDisplayName(trimmedFilter),
+          country: countryName,
+        }),
+        actionLabel: mapMessages.customCityAdd,
+        dismissLabel: commonMessages.no,
+        onAction: handleAddCustomCity,
+      });
+    }, CUSTOM_CITY_TOAST_DELAY_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    canAddCustomCity,
+    countryCode,
+    countryName,
+    handleAddCustomCity,
+    loading,
+    saving,
+    selectedCount,
+    toast,
+    trimmedFilter,
+  ]);
+
+  useEffect(() => {
+    if (!canAddCustomCity) {
+      lastPromptKeyRef.current = null;
+      toast.dismiss();
+    }
+  }, [canAddCustomCity, toast]);
 
   function toggleCity(city: TouristCity) {
     const id = cityId(city);
@@ -124,7 +219,7 @@ export function CountryCityPicker({
 
       if (!result.ok) {
         await modal.alert(result.error, { variant: "error" });
-        return;
+        throw new Error(result.error);
       }
 
       if (result.added > 0) {
@@ -148,7 +243,10 @@ export function CountryCityPicker({
       <input
         type="search"
         value={filter}
-        onChange={(e) => setFilter(e.target.value)}
+        onChange={(e) => {
+          lastPromptKeyRef.current = null;
+          setFilter(e.target.value);
+        }}
         placeholder={mapMessages.filterCities}
         className="mb-3 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
         autoComplete="off"

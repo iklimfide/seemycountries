@@ -1,4 +1,8 @@
-import type { VisitedCity, VisitedCountry } from "@/types/database";
+import countriesLib from "i18n-iso-countries";
+import enLocale from "i18n-iso-countries/langs/en.json";
+import type { VisitedCity, VisitedCountry, VisitedPark } from "@/types/database";
+
+countriesLib.registerLocale(enLocale);
 
 export type TravelCountryItem = {
   code: string;
@@ -14,7 +18,9 @@ export type TravelCityItem = {
 
 export function buildVisitedCountryList(
   countries: VisitedCountry[],
-  cities: VisitedCity[]
+  cities: VisitedCity[],
+  extraCodes: string[] = [],
+  parks: VisitedPark[] = []
 ): TravelCountryItem[] {
   const map = new Map<string, TravelCountryItem>();
 
@@ -27,6 +33,23 @@ export function buildVisitedCountryList(
     const code = city.country_code.toUpperCase();
     if (!map.has(code)) {
       map.set(code, { code: city.country_code, name: city.country_name });
+    }
+  }
+
+  for (const park of parks) {
+    const code = park.country_code.toUpperCase();
+    if (!map.has(code)) {
+      map.set(code, { code: park.country_code, name: park.country_name });
+    }
+  }
+
+  for (const raw of extraCodes) {
+    const code = raw.toUpperCase();
+    if (!map.has(code)) {
+      map.set(code, {
+        code: raw,
+        name: countriesLib.getName(code, "en") ?? code,
+      });
     }
   }
 

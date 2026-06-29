@@ -21,6 +21,7 @@ export function HeaderProfileIdentity({
         displayName={displayName}
         username={username}
         size="sm"
+        className="ring-white/25"
       />
       <div className="flex min-w-0 flex-col gap-0.5">
         <h1 className="truncate text-base font-bold leading-tight text-header-fg sm:text-lg">

@@ -1,0 +1,55 @@
+[
+  { "parkType": "national_park", "label": "Yellowstone", "countryCode": "US", "lookup": "Yellowstone" },
+  { "parkType": "national_park", "label": "Grand Canyon", "countryCode": "US", "lookup": "Grand Canyon" },
+  { "parkType": "national_park", "label": "Yosemite", "countryCode": "US", "lookup": "Yosemite" },
+  { "parkType": "national_park", "label": "Banff", "countryCode": "CA", "lookup": "Banff" },
+  { "parkType": "national_park", "label": "Kruger", "countryCode": "ZA", "lookup": "Kruger" },
+  {
+    "parkType": "national_park",
+    "label": "Serengeti",
+    "countryCode": "TZ",
+    "parkName": "Serengeti National Park",
+    "latitude": -2.3333333,
+    "longitude": 34.8333333
+  },
+  { "parkType": "national_park", "label": "Swiss National Park", "countryCode": "CH", "lookup": "Swiss" },
+  { "parkType": "national_park", "label": "Black Forest", "countryCode": "DE", "lookup": "Black Forest" },
+  { "parkType": "national_park", "label": "Berchtesgaden", "countryCode": "DE", "lookup": "Berchtesgaden" },
+  { "parkType": "national_park", "label": "Pyrenees", "countryCode": "FR", "lookup": "Pyrénées" },
+  { "parkType": "national_park", "label": "Vanoise", "countryCode": "FR", "lookup": "Vanoise" },
+  { "parkType": "national_park", "label": "Teide", "countryCode": "ES", "lookup": "Teide" },
+  { "parkType": "national_park", "label": "Plitvice Lakes", "countryCode": "HR", "lookup": "Plitvice" },
+  { "parkType": "national_park", "label": "Lake District", "countryCode": "GB", "lookup": "Lake District" },
+  { "parkType": "national_park", "label": "Jotunheimen", "countryCode": "NO", "lookup": "Jotunheimen" },
+  { "parkType": "national_park", "label": "Göreme", "countryCode": "TR", "lookup": "Göreme" },
+  { "parkType": "national_park", "label": "Uludağ", "countryCode": "TR", "lookup": "Uludağ" },
+
+  { "parkType": "theme_park", "label": "Disneyland", "countryCode": "US", "lookup": "Disneyland" },
+  { "parkType": "theme_park", "label": "Walt Disney World", "countryCode": "US", "lookup": "Walt Disney World" },
+  { "parkType": "theme_park", "label": "Universal Studios", "countryCode": "US", "lookup": "Universal Studios" },
+  {
+    "parkType": "theme_park",
+    "label": "Efteling",
+    "countryCode": "NL",
+    "parkName": "Efteling",
+    "latitude": 51.650277777,
+    "longitude": 5.048055555
+  },
+  { "parkType": "theme_park", "label": "Europa-Park", "countryCode": "DE", "lookup": "Europa-Park" },
+  { "parkType": "theme_park", "label": "Phantasialand", "countryCode": "DE", "lookup": "Phantasialand" },
+  { "parkType": "theme_park", "label": "Disneyland Paris", "countryCode": "FR", "lookup": "Disneyland Paris" },
+  { "parkType": "theme_park", "label": "Parc Astérix", "countryCode": "FR", "lookup": "Parc Astérix" },
+  { "parkType": "theme_park", "label": "PortAventura", "countryCode": "ES", "lookup": "PortAventura Park" },
+  { "parkType": "theme_park", "label": "Gardaland", "countryCode": "IT", "lookup": "Gardaland" },
+  { "parkType": "theme_park", "label": "Alton Towers", "countryCode": "GB", "lookup": "Alton Towers" },
+  { "parkType": "theme_park", "label": "Liseberg", "countryCode": "SE", "lookup": "Liseberg" },
+  { "parkType": "theme_park", "label": "Legoland", "countryCode": "DK", "lookup": "Legoland" },
+  { "parkType": "theme_park", "label": "Plopsaland", "countryCode": "BE", "lookup": "Plopsaland Belgium" },
+  { "parkType": "theme_park", "label": "Tokyo Disneyland", "countryCode": "JP", "lookup": "Tokyo Disneyland" },
+  {
+    "parkType": "botanical_garden",
+    "label": "Nong Nooch",
+    "countryCode": "TH",
+    "lookup": "Nong Nooch"
+  }
+]

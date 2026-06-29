@@ -49,13 +49,6 @@ export async function POST(request: Request) {
       ? { latitude: data.latitude, longitude: data.longitude }
       : await geocodeCity(data.city_name, code, data.country_name);
 
-  if (!coords) {
-    return NextResponse.json(
-      { error: "Could not find this city on the map. Check the spelling and try again." },
-      { status: 400 }
-    );
-  }
-
   const { data: city, error } = await supabase
     .from("visited_cities")
     .insert({
@@ -63,8 +56,8 @@ export async function POST(request: Request) {
       city_name: data.city_name,
       country_code: code,
       country_name: data.country_name,
-      latitude: coords.latitude,
-      longitude: coords.longitude,
+      latitude: coords?.latitude ?? null,
+      longitude: coords?.longitude ?? null,
       note: data.note ?? null,
       media_type: data.media_type ?? null,
       media_url: data.media_url ?? null,

@@ -29,15 +29,28 @@ export async function DELETE(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Country not found" }, { status: 404 });
   }
 
-  const { count } = await supabase
+  const { count: cityCount } = await supabase
     .from("visited_cities")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id)
     .eq("country_code", country.country_code);
 
-  if (count && count > 0) {
+  if (cityCount && cityCount > 0) {
     return NextResponse.json(
-      { error: "Remove cities in this country first" },
+      { error: "Remove cities and parks in this country first" },
+      { status: 409 }
+    );
+  }
+
+  const { count: parkCount } = await supabase
+    .from("visited_parks")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("country_code", country.country_code);
+
+  if (parkCount && parkCount > 0) {
+    return NextResponse.json(
+      { error: "Remove cities and parks in this country first" },
       { status: 409 }
     );
   }

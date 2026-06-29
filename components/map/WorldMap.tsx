@@ -207,6 +207,7 @@ export function WorldMap({
 
     for (const city of userCities) {
       if (city.country_code.toUpperCase() !== code) continue;
+      if (city.latitude == null || city.longitude == null) continue;
       const point = projection([city.longitude, city.latitude]);
       if (!point) continue;
 
@@ -466,7 +467,7 @@ export function WorldMap({
                       ? BRAND.colors.wishlist
                       : MAP_CSS.oceanStroke
                 }
-                strokeWidth={isHovered ? 1.5 : isWishlist ? 1.5 : 0.5}
+                strokeWidth={isHovered ? 1.5 : isWishlist ? 1 : 0.5}
                 className={`transition-colors duration-200 ${
                   canClickCountry ? "cursor-pointer" : ""
                 }`}

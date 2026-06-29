@@ -1,0 +1,43 @@
+import type { TouristPark } from "./tourist-parks";
+import { TOURIST_PARKS } from "./tourist-parks";
+import { matchesParkTypeFilter } from "@/lib/utils/park-type";
+
+export type { ParkType, TouristPark } from "./tourist-parks";
+
+function compareNames(a: string, b: string): number {
+  return a.localeCompare(b, "tr", { sensitivity: "base" });
+}
+
+export function getTouristParksByCountry(
+  countryCode: string,
+  parkType?: TouristPark["parkType"]
+): TouristPark[] {
+  const code = countryCode.toUpperCase();
+  return TOURIST_PARKS.filter(
+    (park) => park.countryCode === code && matchesParkTypeFilter(park.parkType, parkType)
+  ).sort((a, b) => compareNames(a.name, b.name));
+}
+
+export function searchTouristParks(
+  countryCode: string,
+  query = "",
+  limit = 80,
+  parkType?: TouristPark["parkType"]
+): TouristPark[] {
+  const code = countryCode.toUpperCase();
+  const q = query.trim().toLocaleLowerCase("tr");
+
+  let results = TOURIST_PARKS.filter(
+    (park) =>
+      park.countryCode === code && matchesParkTypeFilter(park.parkType, parkType)
+  );
+
+  if (q.length >= 2) {
+    results = results.filter((park) => {
+      const name = park.name.toLocaleLowerCase("tr");
+      return name.includes(q) || name.split(/\s+/).some((word) => word.startsWith(q));
+    });
+  }
+
+  return results.sort((a, b) => compareNames(a.name, b.name)).slice(0, limit);
+}

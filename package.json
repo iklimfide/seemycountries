@@ -4,16 +4,21 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/copy-country-flags.mjs && next build",
     "build:tourist-cities": "node scripts/build-tourist-cities.mjs",
+    "build:tourist-parks": "node scripts/build-tourist-parks.mjs",
     "build:popular-destinations": "node scripts/build-popular-destinations.mjs",
+    "build:popular-parks": "node scripts/build-popular-parks.mjs",
     "build:map-supplements": "node scripts/build-map-supplements.mjs",
+    "build:flags": "node scripts/copy-country-flags.mjs",
+    "postinstall": "node scripts/copy-country-flags.mjs",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
+    "country-flag-icons": "^1.6.19",
     "d3-geo": "^3.1.1",
     "d3-selection": "^3.0.0",
     "d3-zoom": "^3.0.0",

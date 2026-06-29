@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { CountryCityPicker } from "@/components/map/CountryCityPicker";
+import { CountryParkPicker } from "@/components/map/CountryParkPicker";
 import { countryMessages, mapMessages } from "@/lib/i18n/client-messages";
 
 type CountryPopupProps = {
@@ -9,15 +10,18 @@ type CountryPopupProps = {
   countryCode: string;
   isVisited: boolean;
   isWishlist: boolean;
-  visitedViaCitiesOnly?: boolean;
+  visitedViaPlacesOnly?: boolean;
   busy?: boolean;
   showCityPicker?: boolean;
   existingCityNames?: string[];
+  existingParkKeys?: string[];
   onVisitedChange: (checked: boolean) => void;
   onWishlistChange: (checked: boolean) => void;
   onCitiesAdded: () => void;
+  onParksAdded?: () => void;
   onClose: () => void;
   cityPickerFirst?: boolean;
+  readOnly?: boolean;
 };
 
 export function CountryPopup({
@@ -25,15 +29,18 @@ export function CountryPopup({
   countryCode,
   isVisited,
   isWishlist,
-  visitedViaCitiesOnly = false,
+  visitedViaPlacesOnly = false,
   busy = false,
   showCityPicker = false,
   existingCityNames = [],
+  existingParkKeys = [],
   onVisitedChange,
   onWishlistChange,
   onCitiesAdded,
+  onParksAdded,
   onClose,
   cityPickerFirst = false,
+  readOnly = false,
 }: CountryPopupProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -75,12 +82,36 @@ export function CountryPopup({
         </div>
 
         {cityPickerFirst && showCityPicker ? (
-          <CountryCityPicker
-            countryCode={countryCode}
-            countryName={countryName}
-            existingCityNames={existingCityNames}
-            onAdded={onCitiesAdded}
-          />
+          <>
+            <CountryCityPicker
+              countryCode={countryCode}
+              countryName={countryName}
+              existingCityNames={existingCityNames}
+              onAdded={onCitiesAdded}
+            />
+            <CountryParkPicker
+              countryCode={countryCode}
+              countryName={countryName}
+              existingParkKeys={existingParkKeys}
+              onAdded={onParksAdded ?? onCitiesAdded}
+            />
+          </>
+        ) : readOnly ? (
+          <div className="flex flex-col gap-2 px-5 py-4">
+            {isVisited ? (
+              <p className="rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm font-medium text-blue-300">
+                {countryMessages.columnVisited}
+              </p>
+            ) : null}
+            {isWishlist && !isVisited ? (
+              <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-300">
+                {countryMessages.columnWant}
+              </p>
+            ) : null}
+            {!isVisited && !isWishlist ? (
+              <p className="text-sm text-slate-500">{mapMessages.countryEmpty}</p>
+            ) : null}
+          </div>
         ) : (
           <>
         <div className="flex flex-col gap-3 px-5 py-4">
@@ -92,8 +123,8 @@ export function CountryPopup({
             <input
               type="checkbox"
               checked={isVisited}
-              disabled={busy || (isVisited && visitedViaCitiesOnly)}
-              title={visitedViaCitiesOnly ? countryMessages.lockedViaCities : undefined}
+              disabled={busy || (isVisited && visitedViaPlacesOnly)}
+              title={visitedViaPlacesOnly ? countryMessages.lockedViaPlaces : undefined}
               onChange={(e) => onVisitedChange(e.target.checked)}
               className="h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500/40 disabled:opacity-60"
             />
@@ -117,12 +148,20 @@ export function CountryPopup({
         </div>
 
         {showCityPicker && (
-          <CountryCityPicker
-            countryCode={countryCode}
-            countryName={countryName}
-            existingCityNames={existingCityNames}
-            onAdded={onCitiesAdded}
-          />
+          <>
+            <CountryCityPicker
+              countryCode={countryCode}
+              countryName={countryName}
+              existingCityNames={existingCityNames}
+              onAdded={onCitiesAdded}
+            />
+            <CountryParkPicker
+              countryCode={countryCode}
+              countryName={countryName}
+              existingParkKeys={existingParkKeys}
+              onAdded={onParksAdded ?? onCitiesAdded}
+            />
+          </>
         )}
           </>
         )}

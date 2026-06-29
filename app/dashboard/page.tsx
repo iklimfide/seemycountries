@@ -6,16 +6,18 @@ import { Header } from "@/components/layout/Header";
 import { TravelStatsInteractive } from "@/components/stats/TravelStatsInteractive";
 import { TravelMapFocusShell } from "@/components/map/TravelMapFocusShell";
 import { TravelMapView } from "@/components/map/TravelMapView";
+import { ParkList } from "@/components/dashboard/ParkList";
 import { CityList } from "@/components/dashboard/CityList";
 import { CountryManager } from "@/components/dashboard/CountryManager";
 import { createClient } from "@/lib/supabase/server";
 import { BRAND } from "@/lib/constants";
+import { profilePath } from "@/lib/seo/site";
 import {
   computeTravelStats,
   getVisitedCountryCodes,
   getWishlistCountryCodes,
 } from "@/lib/utils/stats";
-import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
+import type { VisitedCity, VisitedCountry, VisitedPark, WishlistCountry } from "@/types/database";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -42,7 +44,7 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single();
 
-  const [{ data: countries, error: countriesError }, { data: cities, error: citiesError }, { data: wishlist, error: wishlistError }] =
+  const [{ data: countries, error: countriesError }, { data: cities, error: citiesError }, { data: parks, error: parksError }, { data: wishlist, error: wishlistError }] =
     await Promise.all([
       supabase
         .from("visited_countries")
@@ -55,6 +57,11 @@ export default async function DashboardPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
       supabase
+        .from("visited_parks")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
+      supabase
         .from("wishlist_countries")
         .select("*")
         .eq("user_id", user.id)
@@ -63,9 +70,10 @@ export default async function DashboardPage() {
 
   const visitedCountries = (countriesError ? [] : (countries ?? [])) as VisitedCountry[];
   const visitedCities = (citiesError ? [] : (cities ?? [])) as VisitedCity[];
+  const visitedParks = (parksError ? [] : (parks ?? [])) as VisitedPark[];
   const wishlistCountries = (wishlistError ? [] : (wishlist ?? [])) as WishlistCountry[];
-  const stats = computeTravelStats(visitedCountries, visitedCities);
-  const visitedCodes = getVisitedCountryCodes(visitedCountries, visitedCities);
+  const stats = computeTravelStats(visitedCountries, visitedCities, visitedParks);
+  const visitedCodes = getVisitedCountryCodes(visitedCountries, visitedCities, visitedParks);
   const wishlistCodes = getWishlistCountryCodes(wishlistCountries);
 
   return (
@@ -82,10 +90,11 @@ export default async function DashboardPage() {
             {profile?.username && (
               <div className="mt-1 flex flex-wrap items-center gap-3 text-sm">
                 <Link
-                  href={`/u/${profile.username}`}
+                  href={profilePath(profile.username)}
                   className="text-blue-400 hover:text-blue-300"
                 >
-                  {BRAND.domain}/u/{profile.username}
+                  {BRAND.domain}
+                  {profilePath(profile.username)}
                 </Link>
                 <Link
                   href="/dashboard/settings"
@@ -100,6 +109,8 @@ export default async function DashboardPage() {
             stats={stats}
             visitedCountries={visitedCountries}
             visitedCities={visitedCities}
+            visitedParks={visitedParks}
+            className="w-full sm:w-auto"
           />
         </div>
 
@@ -111,8 +122,12 @@ export default async function DashboardPage() {
             visitedCountries={visitedCountries}
             wishlistCountries={wishlistCountries}
             userCities={visitedCities}
+            userParks={visitedParks}
             citiesCountryCodes={[
               ...new Set(visitedCities.map((c) => c.country_code.toUpperCase())),
+            ]}
+            parksCountryCodes={[
+              ...new Set(visitedParks.map((p) => p.country_code.toUpperCase())),
             ]}
             isLoggedIn
             explorable
@@ -127,8 +142,10 @@ export default async function DashboardPage() {
             wishlistCountries={wishlistCountries}
             visitedCountryCodes={visitedCodes}
             visitedCities={visitedCities}
+            visitedParks={visitedParks}
           />
           <CityList cities={visitedCities} countries={visitedCountries} />
+          <ParkList parks={visitedParks} countries={visitedCountries} />
         </div>
         </div>
         </TravelMapFocusShell>

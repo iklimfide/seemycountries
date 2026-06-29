@@ -1,0 +1,214 @@
+{
+  "countries": {
+    "argentina": {
+      "slug": "argentina",
+      "code": "AR",
+      "name": "Argentina",
+      "currency": "Argentine peso (ARS)",
+      "plugType": "Type C, I",
+      "visaNote": "Many nationalities receive visa-free entry for tourism (typically up to 90 days). Check your passport rules before flying.",
+      "capital": "Buenos Aires",
+      "language": "Spanish"
+    },
+    "australia": {
+      "slug": "australia",
+      "code": "AU",
+      "name": "Australia",
+      "currency": "Australian dollar (AUD)",
+      "plugType": "Type I",
+      "visaNote": "Most visitors need an ETA or eVisitor before arrival. Apply online through official Australian immigration channels.",
+      "capital": "Canberra",
+      "language": "English"
+    },
+    "brazil": {
+      "slug": "brazil",
+      "code": "BR",
+      "name": "Brazil",
+      "currency": "Brazilian real (BRL)",
+      "plugType": "Type C, N",
+      "visaNote": "Visa policy varies by nationality. Some passports are visa-free; others need an e-visa. Confirm requirements for your passport.",
+      "capital": "Brasília",
+      "language": "Portuguese"
+    },
+    "egypt": {
+      "slug": "egypt",
+      "code": "EG",
+      "name": "Egypt",
+      "currency": "Egyptian pound (EGP)",
+      "plugType": "Type C, F",
+      "visaNote": "Many travelers can obtain a visa on arrival or an e-visa. Check the latest rules for your nationality.",
+      "capital": "Cairo",
+      "language": "Arabic"
+    },
+    "france": {
+      "slug": "france",
+      "code": "FR",
+      "name": "France",
+      "currency": "Euro (EUR)",
+      "plugType": "Type C, E",
+      "visaNote": "Schengen rules apply. EU/EEA citizens can travel freely; many other passports are visa-free for short stays.",
+      "capital": "Paris",
+      "language": "French"
+    },
+    "germany": {
+      "slug": "germany",
+      "code": "DE",
+      "name": "Germany",
+      "currency": "Euro (EUR)",
+      "plugType": "Type C, F",
+      "visaNote": "Schengen area — short-stay visa rules depend on your passport. Verify before booking.",
+      "capital": "Berlin",
+      "language": "German"
+    },
+    "greece": {
+      "slug": "greece",
+      "code": "GR",
+      "name": "Greece",
+      "currency": "Euro (EUR)",
+      "plugType": "Type C, F",
+      "visaNote": "Schengen member. Many passports enjoy visa-free tourism stays of up to 90 days in 180 days.",
+      "capital": "Athens",
+      "language": "Greek"
+    },
+    "india": {
+      "slug": "india",
+      "code": "IN",
+      "name": "India",
+      "currency": "Indian rupee (INR)",
+      "plugType": "Type C, D, M",
+      "visaNote": "Most foreign visitors need an e-Visa or regular visa issued before travel.",
+      "capital": "New Delhi",
+      "language": "Hindi, English"
+    },
+    "indonesia": {
+      "slug": "indonesia",
+      "code": "ID",
+      "name": "Indonesia",
+      "currency": "Indonesian rupiah (IDR)",
+      "plugType": "Type C, F",
+      "visaNote": "Visa on arrival and e-VOA are available for many nationalities. Check passport validity and entry rules.",
+      "capital": "Jakarta",
+      "language": "Indonesian"
+    },
+    "italy": {
+      "slug": "italy",
+      "code": "IT",
+      "name": "Italy",
+      "currency": "Euro (EUR)",
+      "plugType": "Type C, F, L",
+      "visaNote": "Schengen area — visa-free short stays for many passports. Always confirm with your embassy.",
+      "capital": "Rome",
+      "language": "Italian"
+    },
+    "japan": {
+      "slug": "japan",
+      "code": "JP",
+      "name": "Japan",
+      "currency": "Japanese yen (JPY)",
+      "plugType": "Type A, B",
+      "visaNote": "Many nationalities receive visa-free entry for tourism. Length of stay depends on your passport.",
+      "capital": "Tokyo",
+      "language": "Japanese"
+    },
+    "mexico": {
+      "slug": "mexico",
+      "code": "MX",
+      "name": "Mexico",
+      "currency": "Mexican peso (MXN)",
+      "plugType": "Type A, B",
+      "visaNote": "Many passports are visa-exempt for tourism. Others need a visa or electronic authorization.",
+      "capital": "Mexico City",
+      "language": "Spanish"
+    },
+    "morocco": {
+      "slug": "morocco",
+      "code": "MA",
+      "name": "Morocco",
+      "currency": "Moroccan dirham (MAD)",
+      "plugType": "Type C, E",
+      "visaNote": "Visa-free for many nationalities for up to 90 days. Confirm with official sources.",
+      "capital": "Rabat",
+      "language": "Arabic, Berber, French"
+    },
+    "portugal": {
+      "slug": "portugal",
+      "code": "PT",
+      "name": "Portugal",
+      "currency": "Euro (EUR)",
+      "plugType": "Type C, F",
+      "visaNote": "Schengen member. Short-stay tourism rules follow EU/Schengen visa policy.",
+      "capital": "Lisbon",
+      "language": "Portuguese"
+    },
+    "south-korea": {
+      "slug": "south-korea",
+      "code": "KR",
+      "name": "South Korea",
+      "currency": "South Korean won (KRW)",
+      "plugType": "Type C, F",
+      "visaNote": "K-ETA or visa may be required depending on nationality. Check Korea's official portal.",
+      "capital": "Seoul",
+      "language": "Korean"
+    },
+    "spain": {
+      "slug": "spain",
+      "code": "ES",
+      "name": "Spain",
+      "currency": "Euro (EUR)",
+      "plugType": "Type C, F",
+      "visaNote": "Schengen area. Many passports allow visa-free tourism up to 90 days in 180 days.",
+      "capital": "Madrid",
+      "language": "Spanish"
+    },
+    "thailand": {
+      "slug": "thailand",
+      "code": "TH",
+      "name": "Thailand",
+      "currency": "Thai baht (THB)",
+      "plugType": "Type A, B, C, O",
+      "visaNote": "Visa exemption, visa on arrival, or e-visa options depend on nationality and length of stay.",
+      "capital": "Bangkok",
+      "language": "Thai"
+    },
+    "turkey": {
+      "slug": "turkey",
+      "code": "TR",
+      "name": "Turkey",
+      "currency": "Turkish lira (TRY)",
+      "plugType": "Type C, F",
+      "visaNote": "Many travelers use the e-Visa system. Requirements vary by passport — apply only on official sites.",
+      "capital": "Ankara",
+      "language": "Turkish"
+    },
+    "united-kingdom": {
+      "slug": "united-kingdom",
+      "code": "GB",
+      "name": "United Kingdom",
+      "currency": "Pound sterling (GBP)",
+      "plugType": "Type G",
+      "visaNote": "Not in Schengen. Visa-free for some passports; others need a Standard Visitor visa.",
+      "capital": "London",
+      "language": "English"
+    },
+    "united-states": {
+      "slug": "united-states",
+      "code": "US",
+      "name": "United States",
+      "currency": "US dollar (USD)",
+      "plugType": "Type A, B",
+      "visaNote": "ESTA or a visa is required for most foreign visitors. Rules depend on citizenship.",
+      "capital": "Washington, D.C.",
+      "language": "English"
+    },
+    "vietnam": {
+      "slug": "vietnam",
+      "code": "VN",
+      "name": "Vietnam",
+      "currency": "Vietnamese dong (VND)",
+      "plugType": "Type A, C, F",
+      "visaNote": "E-visa and visa exemption programs apply to selected nationalities. Verify before departure.",
+      "capital": "Hanoi",
+      "language": "Vietnamese"
+    }
+  }
+}

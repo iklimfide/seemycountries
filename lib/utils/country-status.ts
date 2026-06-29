@@ -22,5 +22,13 @@ export async function isCountryVisited(
     .eq("user_id", userId)
     .eq("country_code", code);
 
-  return (cityCount ?? 0) > 0;
+  if (cityCount && cityCount > 0) return true;
+
+  const { count: parkCount } = await supabase
+    .from("visited_parks")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("country_code", code);
+
+  return (parkCount ?? 0) > 0;
 }

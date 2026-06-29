@@ -4,11 +4,16 @@ import type { WishlistCountry } from "@/types/database";
 
 countriesLib.registerLocale(enLocale);
 
+/** Jennifer's bucket-list countries (not in her visited set). */
 const DEMO_WISHLIST_CODES = [
-  "NO", "SE", "FI", "IS", "IE",
-  "PE", "CU",
-  "CN", "NP", "JO", "IL", "LK", "PH", "MY", "KH",
-  "TN", "NA", "BW", "GH", "ET",
+  "NO", // Norway
+  "IS", // Iceland
+  "PE", // Peru
+  "CN", // China
+  "NP", // Nepal
+  "PH", // Philippines
+  "TN", // Tunisia
+  "IE", // Ireland
 ] as const;
 
 function demoWishlistCountry(code: string): WishlistCountry {

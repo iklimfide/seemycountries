@@ -7,7 +7,7 @@ import { ProfileSettingsForm } from "@/components/dashboard/ProfileSettingsForm"
 import { createClient } from "@/lib/supabase/server";
 import { computeTravelStats } from "@/lib/utils/stats";
 import { PROFILE_SELECT } from "@/lib/validations/profile";
-import type { VisitedCity, VisitedCountry } from "@/types/database";
+import type { VisitedCity, VisitedCountry, VisitedPark } from "@/types/database";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -39,14 +39,16 @@ export default async function ProfileSettingsPage() {
     redirect("/login");
   }
 
-  const [{ data: countries }, { data: cities }] = await Promise.all([
+  const [{ data: countries }, { data: cities }, { data: parks }] = await Promise.all([
     supabase.from("visited_countries").select("*").eq("user_id", user.id),
     supabase.from("visited_cities").select("*").eq("user_id", user.id),
+    supabase.from("visited_parks").select("*").eq("user_id", user.id),
   ]);
 
   const stats = computeTravelStats(
     (countries ?? []) as VisitedCountry[],
-    (cities ?? []) as VisitedCity[]
+    (cities ?? []) as VisitedCity[],
+    (parks ?? []) as VisitedPark[]
   );
 
   return (

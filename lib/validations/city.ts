@@ -1,9 +1,14 @@
 import { z } from "zod";
 import { LIMITS } from "@/lib/constants";
+import { formatCityDisplayName } from "@/lib/utils/city-name";
 import { isValidInstagramUrl } from "@/lib/utils/instagram";
 
 const cityFields = {
-  city_name: z.string().min(1, "City name is required").max(100),
+  city_name: z
+    .string()
+    .min(1, "City name is required")
+    .max(100)
+    .transform(formatCityDisplayName),
   country_code: z.string().length(2, "Invalid country code"),
   country_name: z.string().min(1, "Country name is required"),
   latitude: z.number().min(-90).max(90).optional(),

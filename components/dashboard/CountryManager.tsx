@@ -6,13 +6,14 @@ import { useTranslations } from "next-intl";
 import { useModal } from "@/components/ui/ModalProvider";
 import { CountryCityPickerSheet } from "@/components/map/CountryCityPickerSheet";
 import { COUNTRY_LIST, getCountryName } from "@/lib/data/countries";
-import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
+import type { VisitedCity, VisitedCountry, VisitedPark, WishlistCountry } from "@/types/database";
 
 type CountryManagerProps = {
   visitedCountries: VisitedCountry[];
   wishlistCountries: WishlistCountry[];
   visitedCountryCodes: string[];
   visitedCities: VisitedCity[];
+  visitedParks?: VisitedPark[];
 };
 
 type CountryRow = {
@@ -21,7 +22,7 @@ type CountryRow = {
   visitedId?: string;
   wishlistId?: string;
   isVisited: boolean;
-  visitedViaCitiesOnly: boolean;
+  visitedViaPlacesOnly: boolean;
   isWishlist: boolean;
 };
 
@@ -30,6 +31,7 @@ export function CountryManager({
   wishlistCountries,
   visitedCountryCodes,
   visitedCities,
+  visitedParks = [],
 }: CountryManagerProps) {
   const t = useTranslations("country");
   const tWishlist = useTranslations("wishlist");
@@ -92,7 +94,7 @@ export function CountryManager({
         visitedId: visited?.id,
         wishlistId: wishlist?.id,
         isVisited,
-        visitedViaCitiesOnly: isVisited && !visited,
+        visitedViaPlacesOnly: isVisited && !visited,
         isWishlist: wishlistByCode.has(c.code),
       };
     });
@@ -117,8 +119,8 @@ export function CountryManager({
   }
 
   async function removeVisited(row: CountryRow) {
-    if (row.visitedViaCitiesOnly) {
-      await modal.alert(t("removeCitiesFirst"), { variant: "info" });
+    if (row.visitedViaPlacesOnly) {
+      await modal.alert(t("removePlacesFirst"), { variant: "info" });
       return false;
     }
     if (!row.visitedId) return false;
@@ -245,8 +247,8 @@ export function CountryManager({
                     <input
                       type="checkbox"
                       checked={row.isVisited}
-                      disabled={loading || (row.isVisited && row.visitedViaCitiesOnly)}
-                      title={row.visitedViaCitiesOnly ? t("lockedViaCities") : undefined}
+                      disabled={loading || (row.isVisited && row.visitedViaPlacesOnly)}
+                      title={row.visitedViaPlacesOnly ? t("lockedViaPlaces") : undefined}
                       onChange={(e) => handleVisitedToggle(row, e.target.checked)}
                       className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500/40 disabled:opacity-60"
                       aria-label={`${t("columnVisited")}: ${row.name}`}

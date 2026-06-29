@@ -4,8 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LIMITS } from "@/lib/constants";
+import { addCity } from "@/lib/client/city-actions";
+import { formatCityDisplayName } from "@/lib/utils/city-name";
 import { isValidInstagramUrl } from "@/lib/utils/instagram";
 import { useModal } from "@/components/ui/ModalProvider";
+import { useToast } from "@/components/ui/ToastProvider";
 import type { VisitedCity, VisitedCountry } from "@/types/database";
 
 type SearchCity = {
@@ -20,6 +23,7 @@ type SearchCity = {
 
 const SEARCH_DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 2;
+const CUSTOM_CITY_TOAST_DELAY_MS = 500;
 const ALL_COUNTRIES = "ALL";
 
 type CityFormProps = {
@@ -48,7 +52,9 @@ export function CityForm({
   const tCommon = useTranslations("common");
   const router = useRouter();
   const modal = useModal();
+  const toast = useToast();
   const abortRef = useRef<AbortController | null>(null);
+  const lastPromptKeyRef = useRef<string | null>(null);
 
   const [countryCode, setCountryCode] = useState(
     city?.country_code ?? visitedCountries[0]?.country_code ?? ""
@@ -56,9 +62,14 @@ export function CityForm({
   const [searchCountryFilter, setSearchCountryFilter] = useState(ALL_COUNTRIES);
   const [cityName, setCityName] = useState(city?.city_name ?? "");
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(
-    city ? { latitude: city.latitude, longitude: city.longitude } : null
+    city && city.latitude != null && city.longitude != null
+      ? { latitude: city.latitude, longitude: city.longitude }
+      : null
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const [customCountryCode, setCustomCountryCode] = useState(
+    city?.country_code ?? visitedCountries[0]?.country_code ?? ""
+  );
   const [searchResults, setSearchResults] = useState<SearchCity[]>([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [note, setNote] = useState(city?.note ?? "");
@@ -89,6 +100,34 @@ export function CityForm({
       ),
     [existingCities]
   );
+
+  const trimmedQuery = searchQuery.trim();
+
+  const customTargetCountryCode =
+    searchCountryFilter !== ALL_COUNTRIES ? searchCountryFilter : customCountryCode;
+
+  const customTargetCountry = visitedCountries.find(
+    (c) => c.country_code === customTargetCountryCode
+  );
+
+  const canAddCustomCity = useMemo(() => {
+    if (isEdit || trimmedQuery.length < MIN_QUERY_LENGTH) return false;
+    if (!customTargetCountryCode) return false;
+    if (loadingSearch) return false;
+    if (searchResults.length > 0) return false;
+
+    const key = `${customTargetCountryCode.toUpperCase()}:${trimmedQuery.toLowerCase()}`;
+    if (existingKeys.has(key)) return false;
+
+    return true;
+  }, [
+    customTargetCountryCode,
+    existingKeys,
+    isEdit,
+    loadingSearch,
+    searchResults.length,
+    trimmedQuery,
+  ]);
 
   const runSearch = useCallback(
     async (q: string, countries: VisitedCountry[]) => {
@@ -163,7 +202,91 @@ export function CityForm({
     setCoords(null);
     setSearchQuery("");
     setSearchResults([]);
+    lastPromptKeyRef.current = null;
   }
+
+  const handleAddCustomCity = useCallback(async () => {
+    if (!canAddCustomCity || !customTargetCountry) return;
+
+    setLoading(true);
+
+    try {
+      const result = await addCity({
+        city_name: trimmedQuery,
+        country_code: customTargetCountryCode,
+        country_name: customTargetCountry.country_name,
+      });
+
+      if (!result.ok) {
+        await modal.alert(result.error, { variant: "error" });
+        throw new Error(result.error);
+      }
+
+      toast.show(t("cityAdded"));
+      lastPromptKeyRef.current = null;
+      setSearchQuery("");
+      setCityName("");
+      setCoords(null);
+      setSearchResults([]);
+      onSuccess?.();
+      router.refresh();
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    canAddCustomCity,
+    customTargetCountry,
+    customTargetCountryCode,
+    modal,
+    onSuccess,
+    router,
+    t,
+    toast,
+    trimmedQuery,
+  ]);
+
+  useEffect(() => {
+    if (isEdit || loadingSearch || loading || !canAddCustomCity || !customTargetCountry) {
+      return;
+    }
+
+    const promptKey = `${customTargetCountryCode}:${trimmedQuery.toLowerCase()}`;
+    const timer = window.setTimeout(() => {
+      if (lastPromptKeyRef.current === promptKey) return;
+      lastPromptKeyRef.current = promptKey;
+
+      toast.showAction({
+        message: t("customCityNotFound", {
+          city: formatCityDisplayName(trimmedQuery),
+          country: customTargetCountry.country_name,
+        }),
+        actionLabel: t("customCityAdd"),
+        dismissLabel: tCommon("no"),
+        onAction: handleAddCustomCity,
+      });
+    }, CUSTOM_CITY_TOAST_DELAY_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    canAddCustomCity,
+    customTargetCountry,
+    customTargetCountryCode,
+    handleAddCustomCity,
+    isEdit,
+    loading,
+    loadingSearch,
+    t,
+    tCommon,
+    toast,
+    trimmedQuery,
+  ]);
+
+  useEffect(() => {
+    if (!canAddCustomCity) {
+      lastPromptKeyRef.current = null;
+      toast.dismiss();
+    }
+  }, [canAddCustomCity, toast]);
 
   function pickSearchResult(result: SearchCity) {
     setCityName(result.name);
@@ -181,9 +304,13 @@ export function CityForm({
       return;
     }
 
+    const resolvedCityName = cityName.trim();
+    const resolvedCountryCode = countryCode;
+    const resolvedCoords = coords;
+
     const countryName =
-      selectedCountry?.country_name ??
-      visitedCountries.find((c) => c.country_code === countryCode)?.country_name;
+      visitedCountries.find((c) => c.country_code === resolvedCountryCode)?.country_name ??
+      selectedCountry?.country_name;
 
     if (!countryName) {
       await modal.alert(t("addCountryFirst"), { variant: "error" });
@@ -191,7 +318,7 @@ export function CityForm({
     }
 
     if (!isEdit) {
-      const key = `${countryCode.toUpperCase()}:${cityName.toLowerCase()}`;
+      const key = `${resolvedCountryCode.toUpperCase()}:${resolvedCityName.toLowerCase()}`;
       if (existingKeys.has(key)) {
         await modal.alert(t("alreadyOnMap"), { variant: "info" });
         return;
@@ -232,11 +359,11 @@ export function CityForm({
       }
 
       const payload = {
-        city_name: cityName.trim(),
-        country_code: countryCode,
+        city_name: resolvedCityName,
+        country_code: resolvedCountryCode,
         country_name: countryName,
-        ...(coords && !isEdit
-          ? { latitude: coords.latitude, longitude: coords.longitude }
+        ...(resolvedCoords && !isEdit
+          ? { latitude: resolvedCoords.latitude, longitude: resolvedCoords.longitude }
           : {}),
         note: note || null,
         media_type: finalMediaType,
@@ -302,8 +429,10 @@ export function CityForm({
               type="search"
               value={searchQuery}
               onChange={(e) => {
+                lastPromptKeyRef.current = null;
                 setSearchQuery(e.target.value);
                 if (e.target.value !== cityName) {
+                  setCityName("");
                   setCoords(null);
                 }
               }}
@@ -314,50 +443,89 @@ export function CityForm({
             />
           </div>
 
-          {(loadingSearch || searchResults.length > 0) && (
-            <ul className="max-h-48 overflow-y-auto rounded-lg border border-slate-700 bg-slate-950 scrollbar-thin">
-              {loadingSearch ? (
-                <li className="px-3 py-4 text-center text-sm text-slate-500">
-                  {tCommon("loading")}
-                </li>
-              ) : (
-                searchResults.map((result) => {
-                  const alreadyAdded = existingKeys.has(
-                    `${result.country_code.toUpperCase()}:${result.name.toLowerCase()}`
-                  );
+          {searchCountryFilter === ALL_COUNTRIES && trimmedQuery.length >= MIN_QUERY_LENGTH && (
+            <div>
+              <label className="mb-2 block text-sm text-slate-400">{t("country")}</label>
+              <select
+                value={customCountryCode}
+                onChange={(e) => {
+                  setCustomCountryCode(e.target.value);
+                  if (cityName && cityName === trimmedQuery) {
+                    setCityName("");
+                  }
+                }}
+                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
+              >
+                {visitedCountries.map((c) => (
+                  <option key={c.country_code} value={c.country_code}>
+                    {c.country_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
-                  return (
-                    <li key={result.id}>
-                      <button
-                        type="button"
-                        disabled={alreadyAdded}
-                        onClick={() => pickSearchResult(result)}
-                        className={`flex w-full flex-col px-3 py-2.5 text-left ${
-                          alreadyAdded
-                            ? "cursor-not-allowed opacity-50"
-                            : "hover:bg-slate-800/80"
-                        }`}
-                      >
-                        <span className="text-sm text-slate-200">{result.name}</span>
-                        {result.subtitle && (
-                          <span className="truncate text-xs text-slate-500">
-                            {result.subtitle}
-                          </span>
-                        )}
-                        {alreadyAdded && (
-                          <span className="text-xs text-slate-600">{t("alreadyOnMap")}</span>
-                        )}
-                      </button>
+          {trimmedQuery.length >= MIN_QUERY_LENGTH && (
+            <>
+              {(loadingSearch || searchResults.length > 0) && (
+                <ul className="max-h-48 overflow-y-auto rounded-lg border border-slate-700 bg-slate-950 scrollbar-thin">
+                  {loadingSearch ? (
+                    <li className="px-3 py-4 text-center text-sm text-slate-500">
+                      {tCommon("loading")}
                     </li>
-                  );
-                })
+                  ) : (
+                    searchResults.map((result) => {
+                      const alreadyAdded = existingKeys.has(
+                        `${result.country_code.toUpperCase()}:${result.name.toLowerCase()}`
+                      );
+
+                      return (
+                        <li key={result.id}>
+                          <button
+                            type="button"
+                            disabled={alreadyAdded}
+                            onClick={() => pickSearchResult(result)}
+                            className={`flex w-full flex-col px-3 py-2.5 text-left ${
+                              alreadyAdded
+                                ? "cursor-not-allowed opacity-50"
+                                : "hover:bg-slate-800/80"
+                            }`}
+                          >
+                            <span className="text-sm text-slate-200">{result.name}</span>
+                            {result.subtitle && (
+                              <span className="truncate text-xs text-slate-500">
+                                {result.subtitle}
+                              </span>
+                            )}
+                            {alreadyAdded && (
+                              <span className="text-xs text-slate-600">{t("alreadyOnMap")}</span>
+                            )}
+                          </button>
+                        </li>
+                      );
+                    })
+                  )}
+                </ul>
               )}
-            </ul>
+
+              {!loadingSearch && searchResults.length === 0 && !canAddCustomCity && (
+                <p className="text-sm text-slate-500">{t("noCityResults")}</p>
+              )}
+            </>
+          )}
+
+          {trimmedQuery.length > 0 && trimmedQuery.length < MIN_QUERY_LENGTH && (
+            <p className="text-sm text-slate-500">{t("searchMinChars")}</p>
           )}
 
           {cityName && (
             <p className="text-sm text-blue-400">
-              {t("selectedCity", { city: cityName, country: selectedCountry?.country_name ?? "" })}
+              {t("selectedCity", {
+                city: cityName,
+                country:
+                  visitedCountries.find((c) => c.country_code === countryCode)?.country_name ??
+                  "",
+              })}
             </p>
           )}
         </>

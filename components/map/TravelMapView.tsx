@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { WorldMap } from "@/components/map/WorldMap";
 import { CountryPopup } from "@/components/map/CountryPopup";
@@ -8,7 +8,9 @@ import { CityPopup } from "@/components/map/CityPopup";
 import { MapContinentControl } from "@/components/map/MapContinentControl";
 import { MapCountrySearch } from "@/components/map/MapCountrySearch";
 import { MapPopularDestinations } from "@/components/map/MapPopularDestinations";
+import { MapPopularParks } from "@/components/map/MapPopularParks";
 import { MapLegend } from "@/components/map/MapLegend";
+import { VisitedCountryFlags } from "@/components/map/VisitedCountryFlags";
 import { useOptionalMapFocus, type MapFocusTarget } from "@/components/map/MapFocusContext";
 import { useModal } from "@/components/ui/ModalProvider";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -21,7 +23,8 @@ import {
 import { countryMessages, mapMessages } from "@/lib/i18n/client-messages";
 import { getCountryContinent, DEFAULT_MAP_CONTINENT, type ContinentId } from "@/lib/map/continents";
 import type { PopularDestination } from "@/lib/data/popular-destinations";
-import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
+import type { PopularPark } from "@/lib/data/popular-parks";
+import type { VisitedCity, VisitedCountry, VisitedPark, WishlistCountry } from "@/types/database";
 
 type CountrySelection = {
   code: string;
@@ -34,11 +37,18 @@ type TravelMapViewProps = {
   visitedCountries?: VisitedCountry[];
   wishlistCountries?: WishlistCountry[];
   userCities?: VisitedCity[];
+  userParks?: VisitedPark[];
   citiesCountryCodes?: string[];
+  parksCountryCodes?: string[];
   isLoggedIn?: boolean;
+  /** When false, map is view-only (e.g. visitors on a shared profile). Defaults to isLoggedIn. */
+  canEditMap?: boolean;
   interactive?: boolean;
   explorable?: boolean;
   showContinentFilter?: boolean;
+  /** Landing page: card shell, filters below hero, light controls. */
+  homeLayout?: boolean;
+  profileHeader?: ReactNode;
 };
 
 export function TravelMapView({
@@ -47,19 +57,27 @@ export function TravelMapView({
   visitedCountries = [],
   wishlistCountries = [],
   userCities = [],
+  userParks = [],
   citiesCountryCodes = [],
+  parksCountryCodes = [],
   isLoggedIn = false,
+  canEditMap,
   interactive = true,
   explorable = false,
   showContinentFilter = false,
+  homeLayout = false,
+  profileHeader,
 }: TravelMapViewProps) {
   const router = useRouter();
+  const editable = canEditMap ?? isLoggedIn;
   const modal = useModal();
   const toast = useToast();
   const mapFocus = useOptionalMapFocus();
   const [selectedCountry, setSelectedCountry] = useState<CountrySelection | null>(null);
   const [selectedCity, setSelectedCity] = useState<VisitedCity | null>(null);
-  const [continent, setContinent] = useState<ContinentId>(DEFAULT_MAP_CONTINENT);
+  const [continent, setContinent] = useState<ContinentId>(
+    homeLayout ? "world" : DEFAULT_MAP_CONTINENT
+  );
   const [focusRequest, setFocusRequest] = useState<{ code: string; nonce: number } | null>(
     null
   );
@@ -84,10 +102,13 @@ export function TravelMapView({
     [wishlistCountryCodes]
   );
 
-  const citiesCodeSet = useMemo(
-    () => new Set(citiesCountryCodes.map((c) => c.toUpperCase())),
-    [citiesCountryCodes]
-  );
+  const placesCodeSet = useMemo(() => {
+    const codes = new Set([
+      ...citiesCountryCodes.map((c) => c.toUpperCase()),
+      ...parksCountryCodes.map((c) => c.toUpperCase()),
+    ]);
+    return codes;
+  }, [citiesCountryCodes, parksCountryCodes]);
 
   const visitedByCode = useMemo(() => {
     const map = new Map<string, VisitedCountry>();
@@ -115,8 +136,8 @@ export function TravelMapView({
     const isUserVisited =
       Boolean(visitedRecord) ||
       optimisticVisitedCodes.has(code) ||
-      (isVisitedOnMap && citiesCodeSet.has(code));
-    const visitedViaCitiesOnly = isVisitedOnMap && !visitedRecord && citiesCodeSet.has(code);
+      (isVisitedOnMap && placesCodeSet.has(code));
+    const visitedViaPlacesOnly = isVisitedOnMap && !visitedRecord && placesCodeSet.has(code);
     const isUserWishlist = wishlistCodeSet.has(code) && !isUserVisited;
 
     return {
@@ -126,8 +147,8 @@ export function TravelMapView({
       isUserWishlist,
       visitedId: visitedRecord?.id,
       wishlistId: wishlistRecord?.id,
-      visitedViaCitiesOnly,
-      canPickCities: isLoggedIn && isUserVisited,
+      visitedViaPlacesOnly,
+      canPickCities: editable && isUserVisited,
     };
   }, [
     selectedCountry,
@@ -135,9 +156,9 @@ export function TravelMapView({
     wishlistByCode,
     visitedCodeSet,
     wishlistCodeSet,
-    citiesCodeSet,
+    placesCodeSet,
     optimisticVisitedCodes,
-    isLoggedIn,
+    editable,
   ]);
 
   const existingCityNamesForSelected = useMemo(() => {
@@ -146,6 +167,13 @@ export function TravelMapView({
       .filter((city) => city.country_code.toUpperCase() === selectedStatus.code)
       .map((city) => city.city_name);
   }, [selectedStatus, userCities]);
+
+  const existingParkKeysForSelected = useMemo(() => {
+    if (!selectedStatus) return [];
+    return userParks
+      .filter((park) => park.country_code.toUpperCase() === selectedStatus.code)
+      .map((park) => `${park.park_type}:${park.park_name}`);
+  }, [selectedStatus, userParks]);
 
   const requireLogin = () => {
     toast.show(mapMessages.loginToMark);
@@ -159,6 +187,7 @@ export function TravelMapView({
 
   const handleVisitedChange = async (checked: boolean) => {
     if (!selectedStatus || !selectedCountry) return;
+    if (!editable) return;
     if (!isLoggedIn) {
       requireLogin();
       return;
@@ -177,8 +206,8 @@ export function TravelMapView({
         setOptimisticVisitedCodes((prev) => new Set(prev).add(selectedStatus.code));
         setCityPickerFirst(true);
       } else {
-        if (selectedStatus.visitedViaCitiesOnly) {
-          await modal.alert(countryMessages.removeCitiesFirst, { variant: "info" });
+        if (selectedStatus.visitedViaPlacesOnly) {
+          await modal.alert(countryMessages.removePlacesFirst, { variant: "info" });
           return;
         }
         if (!selectedStatus.visitedId) return;
@@ -203,6 +232,7 @@ export function TravelMapView({
 
   const handleWishlistChange = async (checked: boolean) => {
     if (!selectedStatus) return;
+    if (!editable) return;
     if (!isLoggedIn) {
       requireLogin();
       return;
@@ -235,6 +265,13 @@ export function TravelMapView({
   };
 
   const handleCitiesAdded = () => {
+    router.refresh();
+    setSelectedCountry(null);
+    setPinnedCountryCode(null);
+    setCityPickerFirst(false);
+  };
+
+  const handleParksAdded = () => {
     router.refresh();
     setSelectedCountry(null);
     setPinnedCountryCode(null);
@@ -291,78 +328,140 @@ export function TravelMapView({
     []
   );
 
+  const handleParkAdded = useCallback((park: PopularPark) => {
+    const code = park.countryCode.toUpperCase();
+    const countryContinent = getCountryContinent(code);
+    setOptimisticVisitedCodes((prev) => new Set(prev).add(code));
+    setPinnedCountryCode(code);
+    if (countryContinent) {
+      setContinent(countryContinent);
+    }
+    setFocusRequest({ code, nonce: Date.now() });
+  }, []);
+
+  const handleParkRemoved = useCallback((park: PopularPark, countryRemoved: boolean) => {
+    const code = park.countryCode.toUpperCase();
+    if (countryRemoved) {
+      setOptimisticVisitedCodes((prev) => {
+        const next = new Set(prev);
+        next.delete(code);
+        return next;
+      });
+      setPinnedCountryCode(null);
+    }
+  }, []);
+
   useEffect(() => {
     if (!mapFocus) return;
     mapFocus.registerFocusHandler(focusCountryOnMap);
     return () => mapFocus.registerFocusHandler(null);
   }, [focusCountryOnMap, mapFocus]);
 
-  return (
-    <>
-      {showContinentFilter && (
-        <div className="mb-2 grid grid-cols-1 gap-2 sm:mb-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="w-full sm:min-w-0">
-            <MapContinentControl
-              continent={continent}
-              onChange={(next) => {
-                setContinent(next);
-                setPinnedCountryCode(null);
-              }}
-            />
-          </div>
-          <div className="w-full sm:min-w-0">
-            <MapCountrySearch onSelect={handleCountrySearch} />
-          </div>
-          {isLoggedIn ? (
-            <div className="w-full sm:col-span-2 sm:min-w-0 lg:col-span-1">
-              <MapPopularDestinations
-                visitedCities={userCities}
-                visitedCountries={visitedCountries}
-                onAdded={handleDestinationAdded}
-                onRemoved={handleDestinationRemoved}
-              />
-            </div>
-          ) : null}
-        </div>
-      )}
-      <div id="travel-map" className="relative w-full scroll-mt-24">
-        <WorldMap
-          visitedCountryCodes={[...visitedCodeSet]}
-          wishlistCountryCodes={wishlistCountryCodes}
-          userCities={userCities}
-          onCountryClick={explorable ? handleCountryClick : undefined}
-          onCityClick={userCities.length > 0 ? (city) => setSelectedCity(city) : undefined}
-          interactive={interactive}
-          explorable={explorable}
+  const filterGrid = showContinentFilter ? (
+    <div
+      className={
+        homeLayout
+          ? "col-span-full grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 [&_input]:h-[50px] [&_input]:rounded-[14px] [&_input]:border-[#d8e1ef] [&_input]:bg-white [&_input]:px-[15px] [&_input]:text-[#111827] [&_input]:shadow-[0_5px_14px_rgba(15,23,42,0.05)] [&_input]:placeholder:text-[#94a3b8] [&_input]:focus:border-[#93c5fd] [&_input]:focus:ring-4 [&_input]:focus:ring-[rgba(37,99,235,0.10)] [&_select]:h-[50px] [&_select]:rounded-[14px] [&_select]:border-[#d8e1ef] [&_select]:bg-white [&_select]:px-[15px] [&_select]:text-[#111827] [&_select]:shadow-[0_5px_14px_rgba(15,23,42,0.05)] [&_select]:focus:border-[#93c5fd] [&_select]:focus:ring-4 [&_select]:focus:ring-[rgba(37,99,235,0.10)]"
+          : "mb-2 grid grid-cols-1 gap-2 sm:mb-3 sm:grid-cols-2 xl:grid-cols-4"
+      }
+    >
+      <div className="w-full sm:min-w-0">
+        <MapContinentControl
           continent={continent}
-          focusRequest={focusRequest}
-          onFocusComplete={() => setFocusRequest(null)}
-          pinnedCountryCode={pinnedCountryCode}
+          onChange={(next) => {
+            setContinent(next);
+            setPinnedCountryCode(null);
+          }}
         />
       </div>
-      {explorable && (
-        <p className="mt-1 hidden text-center text-xs text-slate-500 sm:mt-2 sm:block">
-          {showContinentFilter ? mapMessages.demoExploreHint : mapMessages.exploreHint}
-        </p>
-      )}
-      <MapLegend showWishlist={showWishlist} />
+      <div className="w-full sm:min-w-0">
+        <MapCountrySearch onSelect={handleCountrySearch} />
+      </div>
+      <div className="w-full sm:min-w-0">
+        <MapPopularDestinations
+          isLoggedIn={isLoggedIn}
+          onRequireLogin={requireLogin}
+          visitedCities={userCities}
+          visitedCountries={visitedCountries}
+          onAdded={handleDestinationAdded}
+          onRemoved={handleDestinationRemoved}
+        />
+      </div>
+      <div className="w-full sm:min-w-0">
+        <MapPopularParks
+          isLoggedIn={isLoggedIn}
+          onRequireLogin={requireLogin}
+          visitedParks={userParks}
+          onAdded={handleParkAdded}
+          onRemoved={handleParkRemoved}
+        />
+      </div>
+    </div>
+  ) : null;
+
+  const mapBlock = (
+    <div
+      id={homeLayout ? "sample-map" : "travel-map"}
+      className={`relative w-full scroll-mt-24 ${homeLayout ? "min-h-[320px] sm:min-h-[430px]" : ""}`}
+    >
+      {homeLayout ? (
+        <div className="pointer-events-none absolute left-[18px] top-4 z-10 rounded-full border border-slate-300/35 bg-white/86 px-3 py-2 text-[13px] font-bold text-[#475569] backdrop-blur-sm">
+          {mapMessages.demoExploreHint}
+        </div>
+      ) : null}
+      <WorldMap
+        visitedCountryCodes={[...visitedCodeSet]}
+        wishlistCountryCodes={wishlistCountryCodes}
+        userCities={userCities}
+        onCountryClick={explorable ? handleCountryClick : undefined}
+        onCityClick={userCities.length > 0 ? (city) => setSelectedCity(city) : undefined}
+        interactive={interactive}
+        explorable={explorable}
+        continent={continent}
+        focusRequest={focusRequest}
+        onFocusComplete={() => setFocusRequest(null)}
+        pinnedCountryCode={pinnedCountryCode}
+      />
+    </div>
+  );
+
+  const flagsBlock = (
+    <VisitedCountryFlags
+      visitedCountries={visitedCountries}
+      userCities={userCities}
+      userParks={userParks}
+      countryCodes={visitedCountryCodes}
+      onCountryClick={explorable ? focusCountryOnMap : undefined}
+      variant={homeLayout ? "landing" : "default"}
+    />
+  );
+
+  const popups = (
+    <>
       {selectedCountry && selectedStatus && (
         <CountryPopup
           countryName={selectedCountry.name}
           countryCode={selectedCountry.code}
-          isVisited={isLoggedIn ? selectedStatus.isUserVisited : selectedStatus.isVisitedOnMap}
+          isVisited={
+            editable && isLoggedIn
+              ? selectedStatus.isUserVisited
+              : selectedStatus.isVisitedOnMap
+          }
           isWishlist={
-            isLoggedIn
+            editable && isLoggedIn
               ? selectedStatus.isUserWishlist
               : wishlistCodeSet.has(selectedStatus.code) && !selectedStatus.isVisitedOnMap
           }
-          visitedViaCitiesOnly={selectedStatus.visitedViaCitiesOnly}
+          visitedViaPlacesOnly={selectedStatus.visitedViaPlacesOnly}
           busy={busyCode === selectedStatus.code}
           showCityPicker={selectedStatus.canPickCities}
           existingCityNames={existingCityNamesForSelected}
+          existingParkKeys={existingParkKeysForSelected}
+          readOnly={!editable}
           onVisitedChange={handleVisitedChange}
           onWishlistChange={handleWishlistChange}
           onCitiesAdded={handleCitiesAdded}
+          onParksAdded={handleParksAdded}
           cityPickerFirst={cityPickerFirst}
           onClose={() => {
             setSelectedCountry(null);
@@ -374,6 +473,37 @@ export function TravelMapView({
       {selectedCity && (
         <CityPopup city={selectedCity} onClose={() => setSelectedCity(null)} />
       )}
+    </>
+  );
+
+  if (homeLayout) {
+    return (
+      <div className="contents">
+        <aside className="overflow-hidden rounded-[30px] border border-[#d8e1ef] bg-white shadow-[0_18px_45px_rgba(15,23,42,0.10)]">
+          {profileHeader}
+          <div className="relative overflow-hidden bg-[radial-gradient(circle_at_28%_22%,rgba(37,99,235,0.14),transparent_30%),radial-gradient(circle_at_75%_65%,rgba(16,185,129,0.10),transparent_28%),linear-gradient(180deg,#dbeafe_0%,#eff6ff_100%)] px-6 py-6">
+            {mapBlock}
+          </div>
+          {flagsBlock}
+        </aside>
+        {filterGrid}
+        {popups}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {filterGrid}
+      {mapBlock}
+      {flagsBlock}
+      {explorable && !homeLayout && (
+        <p className="mt-1 hidden text-center text-xs text-slate-500 sm:mt-2 sm:block">
+          {showContinentFilter ? mapMessages.demoExploreHint : mapMessages.exploreHint}
+        </p>
+      )}
+      <MapLegend showWishlist={showWishlist} />
+      {popups}
     </>
   );
 }

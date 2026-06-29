@@ -20,7 +20,7 @@ export function MapLegend({ showWishlist = false }: MapLegendProps) {
       {showWishlist && (
         <span className="inline-flex items-center gap-2">
           <span
-            className="h-3 w-5 rounded-sm border-2"
+            className="h-3 w-5 rounded-sm border"
             style={{
               backgroundColor: BRAND.colors.wishlistFill,
               borderColor: BRAND.colors.wishlist,

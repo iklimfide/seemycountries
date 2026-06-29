@@ -1,16 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { CityForm } from "@/components/dashboard/CityForm";
 import { useModal } from "@/components/ui/ModalProvider";
 import type { VisitedCity, VisitedCountry } from "@/types/database";
 
+const ALL_COUNTRIES = "ALL";
+
 type CityListProps = {
   cities: VisitedCity[];
   countries: VisitedCountry[];
 };
+
+function sortCities(cities: VisitedCity[], countryFilter: string): VisitedCity[] {
+  return [...cities].sort((a, b) => {
+    if (countryFilter === ALL_COUNTRIES) {
+      const byCountry = a.country_name.localeCompare(b.country_name, undefined, {
+        sensitivity: "base",
+      });
+      if (byCountry !== 0) return byCountry;
+    }
+    return a.city_name.localeCompare(b.city_name, undefined, { sensitivity: "base" });
+  });
+}
 
 export function CityList({ cities, countries }: CityListProps) {
   const t = useTranslations("city");
@@ -20,8 +34,31 @@ export function CityList({ cities, countries }: CityListProps) {
   const modal = useModal();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [countryFilter, setCountryFilter] = useState(ALL_COUNTRIES);
 
   const canAddCity = countries.length > 0;
+
+  const countryOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const city of cities) {
+      const code = city.country_code.toUpperCase();
+      if (!map.has(code)) {
+        map.set(code, city.country_name);
+      }
+    }
+    return [...map.entries()]
+      .map(([code, name]) => ({ code, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  }, [cities]);
+
+  const filteredCities = useMemo(() => {
+    const list =
+      countryFilter === ALL_COUNTRIES
+        ? cities
+        : cities.filter((city) => city.country_code.toUpperCase() === countryFilter);
+
+    return sortCities(list, countryFilter);
+  }, [cities, countryFilter]);
 
   async function handleDelete(id: string) {
     const confirmed = await modal.confirm(tModal("deleteCityMessage"), {
@@ -64,7 +101,7 @@ export function CityList({ cities, countries }: CityListProps) {
 
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-white">
           {t("title")}
           <span className="ml-2 text-sm font-normal text-slate-500">
@@ -87,39 +124,69 @@ export function CityList({ cities, countries }: CityListProps) {
       ) : cities.length === 0 ? (
         <p className="text-sm text-slate-500">{t("empty")}</p>
       ) : (
-        <ul className="divide-y divide-slate-800 rounded-xl border border-slate-700">
-          {cities.map((city) => (
-            <li
-              key={city.id}
-              className="flex items-center justify-between px-4 py-3"
-            >
-              <div>
-                <p className="font-medium text-white">
-                  {city.city_name}, {city.country_name}
-                </p>
-                {city.media_type && (
-                  <p className="text-xs text-slate-500 capitalize">{city.media_type}</p>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditingId(city.id)}
-                  className="text-sm text-blue-400 hover:text-blue-300"
+        <>
+          {countryOptions.length > 1 && (
+            <div className="max-w-xs">
+              <label htmlFor="city-list-country-filter" className="mb-1.5 block text-sm text-slate-400">
+                {t("filterByCountry")}
+              </label>
+              <select
+                id="city-list-country-filter"
+                value={countryFilter}
+                onChange={(e) => setCountryFilter(e.target.value)}
+                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
+              >
+                <option value={ALL_COUNTRIES}>{t("allCountries")}</option>
+                {countryOptions.map((country) => (
+                  <option key={country.code} value={country.code}>
+                    {country.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {filteredCities.length === 0 ? (
+            <p className="text-sm text-slate-500">{t("noCitiesInCountry")}</p>
+          ) : (
+            <ul className="max-h-[min(28rem,60vh)] divide-y divide-slate-800 overflow-y-auto rounded-xl border border-slate-700 scrollbar-thin">
+              {filteredCities.map((city) => (
+                <li
+                  key={city.id}
+                  className="flex items-center justify-between gap-3 px-4 py-3"
                 >
-                  {tCommon("edit")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(city.id)}
-                  className="text-sm text-red-400 hover:text-red-300"
-                >
-                  {tCommon("delete")}
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-white">
+                      {city.city_name}
+                      {countryFilter === ALL_COUNTRIES ? (
+                        <span className="font-normal text-slate-400">, {city.country_name}</span>
+                      ) : null}
+                    </p>
+                    {city.media_type && (
+                      <p className="text-xs text-slate-500 capitalize">{city.media_type}</p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(city.id)}
+                      className="text-sm text-blue-400 hover:text-blue-300"
+                    >
+                      {tCommon("edit")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(city.id)}
+                      className="text-sm text-red-400 hover:text-red-300"
+                    >
+                      {tCommon("delete")}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </section>
   );

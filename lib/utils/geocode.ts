@@ -287,12 +287,55 @@ async function fetchPhoton(query: string, limit: number): Promise<PhotonFeature[
   return data.features ?? [];
 }
 
+async function fetchPhotonLive(query: string, limit: number): Promise<PhotonFeature[]> {
+  const params = new URLSearchParams({
+    q: query,
+    limit: String(limit),
+    lang: "en",
+  });
+
+  const response = await fetch(`${PHOTON_BASE}/?${params}`, {
+    headers: { "User-Agent": USER_AGENT },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const data = (await response.json()) as { features?: PhotonFeature[] };
+  return data.features ?? [];
+}
+
 type RawNominatimItem = Omit<NominatimItem, "placeClass"> & { class: string };
 
 async function fetchNominatim(params: URLSearchParams): Promise<NominatimItem[]> {
   const response = await fetch(`${NOMINATIM_BASE}?${params}`, {
     headers: nominatimHeaders(),
     next: { revalidate: 3600 },
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const raw = (await response.json()) as RawNominatimItem[];
+  return raw.map((item) => ({
+    place_id: item.place_id,
+    lat: item.lat,
+    lon: item.lon,
+    display_name: item.display_name,
+    name: item.name,
+    type: item.type,
+    placeClass: item.class,
+    address: item.address,
+  }));
+}
+
+async function fetchNominatimLive(params: URLSearchParams): Promise<NominatimItem[]> {
+  const response = await fetch(`${NOMINATIM_BASE}?${params}`, {
+    headers: nominatimHeaders(),
+    cache: "no-store",
   });
 
   if (!response.ok) {
@@ -380,66 +423,187 @@ export async function searchCities(
   return searchCitiesInCountries(query, [{ code: countryCode, name: countryName }], limit);
 }
 
-export async function geocodeCity(
-  cityName: string,
-  countryCode: string,
-  countryName: string
-): Promise<GeocodeResult | null> {
-  const photonResults = await searchCities(cityName, countryCode, countryName, 5);
-  const target = normalizeCityName(cityName).toLowerCase();
+function isGeocodableNominatim(item: NominatimItem, target: string): boolean {
+  const name = pickNominatimName(item).toLowerCase();
+  const nameMatches =
+    name === target || name.startsWith(target) || name.split(/\s+/).some((word) => word.startsWith(target));
 
-  const photonMatch =
-    photonResults.find((item) => item.name.toLowerCase() === target) ?? photonResults[0];
-
-  if (photonMatch) {
-    return {
-      latitude: photonMatch.latitude,
-      longitude: photonMatch.longitude,
-    };
+  if (item.placeClass === "place") {
+    if (SEARCH_PLACE_TYPES.has(item.type)) {
+      return true;
+    }
+    return nameMatches;
   }
 
-  const params = new URLSearchParams({
-    q: `${cityName}, ${countryName}`,
-    countrycodes: countryCode.toLowerCase(),
-    format: "json",
-    addressdetails: "1",
-    limit: "5",
-  });
+  if (item.placeClass === "boundary" && item.type === "administrative") {
+    if (/province|region|district|county|department$/i.test(name)) {
+      return false;
+    }
+    return nameMatches;
+  }
 
-  const results = await fetchNominatim(params);
-  const match = results
-    .filter(isRelevantNominatim)
+  return false;
+}
+
+function nominatimGeocodeScore(item: NominatimItem, target: string): number {
+  const name = pickNominatimName(item).toLowerCase();
+  let score = 0;
+
+  if (item.type === "country" || /^(country|state)$/i.test(item.type)) {
+    return 10_000;
+  }
+
+  if (isRelevantNominatim(item)) {
+    score -= 100;
+  } else if (item.placeClass === "boundary" && item.type === "administrative") {
+    if (/province|region|district|county|department$/i.test(name)) {
+      score += 80;
+    } else {
+      score -= 40;
+    }
+  } else if (item.placeClass === "place") {
+    score -= 20;
+  } else {
+    score += 50;
+  }
+
+  if (name === target) {
+    score -= 50;
+  } else if (name.startsWith(target)) {
+    score -= 30;
+  } else if (name.includes(target) || target.includes(name)) {
+    score -= 10;
+  } else {
+    score += 40;
+  }
+
+  return score;
+}
+
+function pickNominatimGeocode(items: NominatimItem[], query: string): GeocodeResult | null {
+  const target = normalizeCityName(query).toLowerCase();
+  if (!target) return null;
+
+  const candidates = items
+    .filter((item) => isGeocodableNominatim(item, target))
     .map((item) => {
       const latitude = Number.parseFloat(item.lat);
       const longitude = Number.parseFloat(item.lon);
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
         return null;
       }
-      return {
-        name: pickNominatimName(item),
-        latitude,
-        longitude,
-      };
+      return { item, latitude, longitude, score: nominatimGeocodeScore(item, target) };
     })
-    .filter(
-      (item): item is { name: string; latitude: number; longitude: number } => item !== null
-    )
-    .sort((a, b) => {
-      if (a.name.toLowerCase() === target && b.name.toLowerCase() !== target) {
-        return -1;
-      }
-      if (b.name.toLowerCase() === target && a.name.toLowerCase() !== target) {
-        return 1;
-      }
-      return 0;
-    })[0];
+    .filter((item): item is NonNullable<typeof item> => item !== null)
+    .sort((a, b) => a.score - b.score);
 
-  if (!match) {
+  const best = candidates[0];
+  if (!best || best.score >= 200) {
     return null;
   }
 
   return {
-    latitude: match.latitude,
-    longitude: match.longitude,
+    latitude: best.latitude,
+    longitude: best.longitude,
   };
+}
+
+async function geocodeViaPhoton(
+  cityName: string,
+  countryCode: string,
+  countryName: string
+): Promise<GeocodeResult | null> {
+  const trimmed = cityName.trim();
+  const code = countryCode.toUpperCase();
+  const target = normalizeCityName(trimmed).toLowerCase();
+  const queries = [`${trimmed}, ${countryName}`, trimmed];
+
+  for (const query of queries) {
+    try {
+      const features = await fetchPhotonLive(query, 20);
+      const inCountry = features.filter(
+        (feature) =>
+          feature.properties.countrycode?.toUpperCase() === code && feature.properties.name
+      );
+
+      const ranked = [...inCountry].sort(
+        (a, b) => photonRank(a, trimmed) - photonRank(b, trimmed)
+      );
+
+      const pick =
+        ranked.find(
+          (feature) =>
+            isRelevantPhoton(feature) &&
+            normalizeCityName(feature.properties.name).toLowerCase() === target
+        ) ??
+        ranked.find(
+          (feature) =>
+            isRelevantPhoton(feature) && nameMatchesPrefix(feature.properties.name, trimmed)
+        );
+
+      if (!pick) continue;
+
+      const [longitude, latitude] = pick.geometry.coordinates;
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue;
+
+      return { latitude, longitude };
+    } catch {
+      // Try the next query variant.
+    }
+  }
+
+  return null;
+}
+
+async function geocodeViaNominatim(
+  cityName: string,
+  countryCode: string,
+  countryName: string
+): Promise<GeocodeResult | null> {
+  const trimmed = cityName.trim();
+  const queries = [`${trimmed}, ${countryName}`, trimmed];
+
+  for (const query of queries) {
+    const params = new URLSearchParams({
+      q: query,
+      countrycodes: countryCode.toLowerCase(),
+      format: "json",
+      addressdetails: "1",
+      limit: "10",
+    });
+
+    const results = await fetchNominatimLive(params);
+    const match = pickNominatimGeocode(results, trimmed);
+    if (match) return match;
+  }
+
+  return null;
+}
+
+export async function geocodeCity(
+  cityName: string,
+  countryCode: string,
+  countryName: string
+): Promise<GeocodeResult | null> {
+  const trimmed = cityName.trim();
+  if (!trimmed) return null;
+
+  const target = normalizeCityName(trimmed).toLowerCase();
+  const searchResults = await searchCities(trimmed, countryCode, countryName, 8);
+  const searchMatch =
+    searchResults.find((item) => item.name.toLowerCase() === target) ?? searchResults[0];
+
+  if (searchMatch) {
+    return {
+      latitude: searchMatch.latitude,
+      longitude: searchMatch.longitude,
+    };
+  }
+
+  const photonMatch = await geocodeViaPhoton(trimmed, countryCode, countryName);
+  if (photonMatch) {
+    return photonMatch;
+  }
+
+  return geocodeViaNominatim(trimmed, countryCode, countryName);
 }

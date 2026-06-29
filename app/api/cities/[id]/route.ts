@@ -67,14 +67,8 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if (locationChanged) {
     const coords = await geocodeCity(data.city_name, code, data.country_name);
-    if (!coords) {
-      return NextResponse.json(
-        { error: "Could not find this city on the map. Check the spelling and try again." },
-        { status: 400 }
-      );
-    }
-    latitude = coords.latitude;
-    longitude = coords.longitude;
+    latitude = coords?.latitude ?? null;
+    longitude = coords?.longitude ?? null;
   }
 
   const { data: city, error } = await supabase

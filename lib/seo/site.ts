@@ -16,7 +16,7 @@ export function getSiteUrl(): string {
 }
 
 export function profilePath(username: string): string {
-  return `/u/${username.toLowerCase()}`;
+  return `/${username.toLowerCase()}`;
 }
 
 export function profileUrl(username: string): string {
@@ -28,6 +28,14 @@ export function profileShareUrl(username: string): string {
   const url = new URL(profilePath(username), `${getSiteUrl()}/`);
   url.searchParams.set("share", "1");
   return url.toString();
+}
+
+export function countryPath(slug: string): string {
+  return `/country/${slug.toLowerCase()}`;
+}
+
+export function countryUrl(slug: string): string {
+  return `${getSiteUrl()}${countryPath(slug)}`;
 }
 
 export const DEFAULT_DESCRIPTION =

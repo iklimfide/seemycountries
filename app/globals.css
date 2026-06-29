@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
+  --background: #f7faff;
   --foreground: #0f172a;
   --header-bg: #0f172a;
   --header-border: #334155;
@@ -32,7 +32,7 @@ html.dark {
 
 html.light {
   color-scheme: light;
-  --background: #f8fafc;
+  --background: #f7faff;
   --foreground: #0f172a;
   --header-bg: #0f172a;
   --header-border: #1e293b;
@@ -253,6 +253,27 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb {
   }
 
   html.light header .text-white,
+  html.light header .hover\:text-white:hover {
+    color: var(--header-fg) !important;
+  }
+
+  /* Dark panels on the light theme (e.g. landing final CTA) */
+  html.light .on-dark-surface {
+    color: #f8fafc !important;
+  }
+
+  html.light .on-dark-surface h1,
+  html.light .on-dark-surface h2,
+  html.light .on-dark-surface h3,
+  html.light .on-dark-surface p,
+  html.light .on-dark-surface span {
+    color: inherit;
+  }
+
+  html.light .on-dark-surface .text-muted-on-dark {
+    color: #cbd5e1 !important;
+  }
+
   html.light h1.text-white,
   html.light h2.text-white,
   html.light h3.text-white {

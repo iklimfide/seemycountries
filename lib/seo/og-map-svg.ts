@@ -76,6 +76,7 @@ export function buildOgMapSvg(
   const pinCities = cities.slice(0, MAX_PINS);
   const pins = pinCities
     .map((city) => {
+      if (city.latitude == null || city.longitude == null) return "";
       const point = projection([city.longitude, city.latitude]);
       if (!point) return "";
       const [x, y] = point;

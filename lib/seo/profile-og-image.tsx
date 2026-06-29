@@ -13,7 +13,7 @@ import {
   getVisitedCountryCodes,
   getWishlistCountryCodes,
 } from "@/lib/utils/stats";
-import type { VisitedCity, VisitedCountry } from "@/types/database";
+import type { VisitedCity, VisitedCountry, VisitedPark } from "@/types/database";
 
 export const runtime = "edge";
 
@@ -29,25 +29,35 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
   const profile = await fetchPublicProfile(supabase, username);
   if (!profile) notFound();
 
-  const [{ data: countries }, { data: cities }, wishlistCountries] = await Promise.all([
-    supabase.from("visited_countries").select("*").eq("user_id", profile.id),
-    supabase.from("visited_cities").select("*").eq("user_id", profile.id),
-    fetchPublicWishlistCountries(supabase, profile.id, profile.wishlist_public),
-  ]);
+  const [{ data: countries }, { data: cities }, { data: parks }, wishlistCountries] =
+    await Promise.all([
+      supabase.from("visited_countries").select("*").eq("user_id", profile.id),
+      supabase.from("visited_cities").select("*").eq("user_id", profile.id),
+      supabase.from("visited_parks").select("*").eq("user_id", profile.id),
+      fetchPublicWishlistCountries(supabase, profile.id, profile.wishlist_public),
+    ]);
 
   const visitedCountries = (countries ?? []) as VisitedCountry[];
   const visitedCities = (cities ?? []) as VisitedCity[];
-  const stats = computeTravelStats(visitedCountries, visitedCities);
-  const visitedCodes = getVisitedCountryCodes(visitedCountries, visitedCities);
+  const visitedParks = (parks ?? []) as VisitedPark[];
+  const stats = computeTravelStats(visitedCountries, visitedCities, visitedParks);
+  const visitedCodes = getVisitedCountryCodes(
+    visitedCountries,
+    visitedCities,
+    visitedParks
+  );
   const wishlistCodes = profile.wishlist_public
     ? getWishlistCountryCodes(wishlistCountries)
     : [];
 
   const name = profile.display_name ?? profile.username;
+  const statsParts: string[] = [];
+  if (stats.countries > 0) statsParts.push(`${stats.countries} Countries`);
+  if (stats.cities > 0) statsParts.push(`${stats.cities} Cities`);
+  if (stats.nationalParks > 0) statsParts.push(`${stats.nationalParks} Nat. parks`);
+  if (stats.themeParks > 0) statsParts.push(`${stats.themeParks} Theme parks`);
   const statsLine =
-    stats.countries > 0 || stats.cities > 0
-      ? `${stats.countries} Countries · ${stats.cities} Cities`
-      : "Start your travel map";
+    statsParts.length > 0 ? statsParts.join(" · ") : "Start your travel map";
 
   const mapSrc = ogMapDataUrl(visitedCodes, visitedCities, wishlistCodes);
 

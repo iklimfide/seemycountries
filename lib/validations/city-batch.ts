@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { formatCityDisplayName } from "@/lib/utils/city-name";
 
 export const cityBatchSchema = z.object({
   country_code: z.string().length(2),
@@ -6,7 +7,7 @@ export const cityBatchSchema = z.object({
   cities: z
     .array(
       z.object({
-        city_name: z.string().min(1).max(100),
+        city_name: z.string().min(1).max(100).transform(formatCityDisplayName),
         latitude: z.number().min(-90).max(90),
         longitude: z.number().min(-180).max(180),
       })

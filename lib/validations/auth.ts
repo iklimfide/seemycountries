@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { LIMITS } from "@/lib/constants";
+import { usernameSchema } from "@/lib/validations/username";
 
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -7,11 +8,7 @@ export const loginSchema = z.object({
 });
 
 export const registerSchema = z.object({
-  username: z
-    .string()
-    .min(LIMITS.usernameMin, `Username must be at least ${LIMITS.usernameMin} characters`)
-    .max(LIMITS.usernameMax, `Username must be at most ${LIMITS.usernameMax} characters`)
-    .regex(/^[a-z0-9_]+$/, "Only lowercase letters, numbers, and underscores"),
+  username: usernameSchema,
   email: z.string().email("Invalid email address"),
   password: z.string().min(LIMITS.passwordMin, `Password must be at least ${LIMITS.passwordMin} characters`),
 });

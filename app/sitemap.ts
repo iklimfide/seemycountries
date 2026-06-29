@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { getSiteUrl, profilePath } from "@/lib/seo/site";
+import { getSiteUrl, profilePath, countryPath } from "@/lib/seo/site";
+import { listCountryHubSlugs } from "@/lib/data/country-hubs";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
@@ -14,6 +15,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
   ];
+
+  for (const slug of listCountryHubSlugs()) {
+    entries.push({
+      url: `${siteUrl}${countryPath(slug)}`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    });
+  }
 
   const supabase = await createClient();
   if (supabase) {
