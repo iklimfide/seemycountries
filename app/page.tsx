@@ -200,6 +200,9 @@ export default async function HomePage() {
                   visitedCountries={dbCountries}
                   visitedCities={dbCities}
                   visitedParks={dbParks}
+                  wishlistCountries={user ? wishlistCountries : []}
+                  displayName={!isDemo ? (displayName ?? undefined) : undefined}
+                  username={!isDemo ? (username ?? undefined) : undefined}
                   className="w-full sm:w-auto lg:shrink-0"
                 />
               </div>

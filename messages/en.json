@@ -428,7 +428,7 @@
     "settingsTitle": "Wishlist visibility",
     "settingsHint": "Control what visitors see on your public profile.",
     "publicLabel": "Show wishlist on my public profile",
-    "publicHint": "When enabled, visitors see visited and wishlist countries on your map. When off, only countries you've visited are shown.",
+    "publicHint": "When enabled, visitors see wishlist countries on your map. When off, only visited countries appear on the map. Your repeat-visit summary on your profile is always shown.",
     "publicTitle": "Want to visit",
     "columnWant": "Want",
     "legendVisited": "Visited",

@@ -324,15 +324,21 @@ export function TravelStatsInteractive({
           />
         </div>
 
-        {repeatVisitSummary && displayName && username ? (
+        {repeatVisitSummary ? (
           <p className="w-full text-center text-sm leading-relaxed text-slate-400 lg:text-right">
-            <Link
-              href={profilePath(username)}
-              className="font-medium text-blue-400 hover:text-blue-300"
-            >
-              {displayName}
-            </Link>{" "}
-            {repeatVisitSummary}
+            {displayName && username ? (
+              <>
+                <Link
+                  href={profilePath(username)}
+                  className="font-medium text-blue-400 hover:text-blue-300"
+                >
+                  {displayName}
+                </Link>{" "}
+                {repeatVisitSummary}
+              </>
+            ) : (
+              repeatVisitSummary
+            )}
           </p>
         ) : null}
 

@@ -39,15 +39,25 @@ export function computeTravelStats(
   parks: VisitedPark[] = []
 ): TravelStats {
   const countryTotals = countryVisitTotals(countries, cities, parks);
-  const totalCountryVisits = [...countryTotals.values()].reduce((sum, count) => sum + count, 0);
-  const totalCityVisits = cities.reduce((sum, city) => sum + cityVisitCount(city), 0);
 
   return {
-    countries: totalCountryVisits,
-    cities: totalCityVisits,
+    countries: countryTotals.size,
+    cities: cities.length,
     nationalParks: parks.filter((p) => p.park_type === "national_park").length,
     themeParks: parks.filter((p) => isThemeParkType(p.park_type)).length,
   };
+}
+
+/** Sum of country/city visits including repeat dates (for share copy or analytics). */
+export function computeTotalVisitCounts(
+  countries: VisitedCountry[],
+  cities: VisitedCity[],
+  parks: VisitedPark[] = []
+): { countryVisits: number; cityVisits: number } {
+  const countryTotals = countryVisitTotals(countries, cities, parks);
+  const countryVisits = [...countryTotals.values()].reduce((sum, count) => sum + count, 0);
+  const cityVisits = cities.reduce((sum, city) => sum + cityVisitCount(city), 0);
+  return { countryVisits, cityVisits };
 }
 
 export function getVisitedCountryCodes(
@@ -68,18 +78,21 @@ export function getWishlistCountryCodes(wishlist: WishlistCountry[]): string[] {
 }
 
 export function computeRepeatVisitSummary(
-  countries: VisitedCountry[],
+  _countries: VisitedCountry[],
   cities: VisitedCity[],
-  parks: VisitedPark[] = []
+  _parks: VisitedPark[] = []
 ): { countriesVisitedMoreThanOnce: number; citiesVisitedMoreThanOnce: number } {
-  const countryTotals = countryVisitTotals(countries, cities, parks);
-
-  let countriesVisitedMoreThanOnce = 0;
-  for (const total of countryTotals.values()) {
-    if (total > 1) countriesVisitedMoreThanOnce++;
-  }
-
   const citiesVisitedMoreThanOnce = cities.filter((city) => cityVisitCount(city) > 1).length;
 
-  return { countriesVisitedMoreThanOnce, citiesVisitedMoreThanOnce };
+  const countriesWithRepeatCityVisits = new Set<string>();
+  for (const city of cities) {
+    if (cityVisitCount(city) > 1) {
+      countriesWithRepeatCityVisits.add(city.country_code.toUpperCase());
+    }
+  }
+
+  return {
+    countriesVisitedMoreThanOnce: countriesWithRepeatCityVisits.size,
+    citiesVisitedMoreThanOnce,
+  };
 }
