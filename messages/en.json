@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "SeeMyCountries",
+    "appName": "TravelerPin",
     "tagline": "Your travel story, one pin at a time",
     "countries": "Countries",
     "cities": "Cities",
@@ -58,7 +58,7 @@
     "email": "Email",
     "password": "Password",
     "username": "Username",
-    "usernameHint": "Your public link: seemycountries.com/u/{username}",
+    "usernameHint": "Your public link: travelerpin.com/u/{username}",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "registerTitle": "Create your traveler profile",

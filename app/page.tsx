@@ -24,7 +24,7 @@ import {
 import type { VisitedCity, VisitedCountry, WishlistCountry } from "@/types/database";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const ogTitle = "SeeMyCountries — What's your travel status?";
+  const ogTitle = `${BRAND.name} — What's your travel status?`;
   const ogDescription =
     "Don't just list your trips, claim your title. Pin your visited cities, map your ultimate bucket list, and unlock exclusive traveler badges.";
 

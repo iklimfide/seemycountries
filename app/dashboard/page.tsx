@@ -9,6 +9,7 @@ import { TravelMapView } from "@/components/map/TravelMapView";
 import { CityList } from "@/components/dashboard/CityList";
 import { CountryManager } from "@/components/dashboard/CountryManager";
 import { createClient } from "@/lib/supabase/server";
+import { BRAND } from "@/lib/constants";
 import {
   computeTravelStats,
   getVisitedCountryCodes,
@@ -84,7 +85,7 @@ export default async function DashboardPage() {
                   href={`/u/${profile.username}`}
                   className="text-blue-400 hover:text-blue-300"
                 >
-                  seemycountries.com/u/{profile.username}
+                  {BRAND.domain}/u/{profile.username}
                 </Link>
                 <Link
                   href="/dashboard/settings"

@@ -1,6 +1,6 @@
 const NOMINATIM_BASE = "https://nominatim.openstreetmap.org/search";
 const PHOTON_BASE = "https://photon.komoot.io/api";
-const USER_AGENT = "SeeMyCountries/1.0 (https://seemycountries.com)";
+const USER_AGENT = "TravelerPin/1.0 (https://travelerpin.com)";
 
 const SEARCH_PLACE_TYPES = new Set(["city", "town", "municipality"]);
 

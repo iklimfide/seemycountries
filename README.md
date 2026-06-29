@@ -1,6 +1,6 @@
-# SeeMyCountries — MVP
+# TravelerPin — MVP
 
-Minimalist travel map platform. Mark countries and cities, attach one photo or Instagram post per city, share your public profile.
+Minimalist travel map platform at [travelerpin.com](https://travelerpin.com). Mark countries and cities, attach one photo or Instagram post per city, share your public profile. Legacy domain `seemycountries.com` redirects here.
 
 ## Stack
 

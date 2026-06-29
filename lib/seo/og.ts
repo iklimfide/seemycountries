@@ -1,4 +1,5 @@
 import type { TravelStats } from "@/types/database";
+import { BRAND } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/seo/site";
 
 export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
@@ -22,5 +23,5 @@ export function profileOgImageUrl(username: string, version?: string): string {
 }
 
 export function profileOgImageAlt(displayName: string): string {
-  return `${displayName}'s travel map on SeeMyCountries`;
+  return `${displayName}'s travel map on ${BRAND.name}`;
 }

@@ -1,4 +1,5 @@
 import type { TravelStats } from "@/types/database";
+import { BRAND } from "@/lib/constants";
 import { profileShareUrl } from "@/lib/seo/site";
 import { getTravelerBadgeTier, type TravelerBadgeTier } from "@/lib/utils/traveler-badge";
 
@@ -34,7 +35,7 @@ export function buildProfileDescription(
   stats: TravelStats
 ): string {
   if (stats.countries === 0 && stats.cities === 0) {
-    return `${displayName}'s travel map on SeeMyCountries — explore countries and cities around the world.`;
+    return `${displayName}'s travel map on ${BRAND.name} — explore countries and cities around the world.`;
   }
 
   const parts: string[] = [];
@@ -47,7 +48,7 @@ export function buildProfileDescription(
     parts.push(`${stats.cities} ${stats.cities === 1 ? "city" : "cities"}`);
   }
 
-  return `${displayName} has visited ${parts.join(" and ")}. Explore the interactive travel map on SeeMyCountries.`;
+  return `${displayName} has visited ${parts.join(" and ")}. Explore the interactive travel map on ${BRAND.name}.`;
 }
 
 export function buildShareText(
@@ -61,8 +62,8 @@ export function buildShareText(
 
   if (stats.countries === 0 && stats.cities === 0) {
     return isOwnProfile
-      ? `Follow my travel journey on SeeMyCountries: ${url}`
-      : `Follow ${displayName}'s travel journey on SeeMyCountries: ${url}`;
+      ? `Follow my travel journey on ${BRAND.name}: ${url}`
+      : `Follow ${displayName}'s travel journey on ${BRAND.name}: ${url}`;
   }
 
   const parts: string[] = [];
@@ -77,6 +78,6 @@ export function buildShareText(
 
   const statsPhrase = parts.join(" and ");
   return isOwnProfile
-    ? `I've visited ${statsPhrase}! See my travel map on SeeMyCountries: ${url}`
-    : `${displayName} has visited ${statsPhrase}! See their travel map on SeeMyCountries: ${url}`;
+    ? `I've visited ${statsPhrase}! See my travel map on ${BRAND.name}: ${url}`
+    : `${displayName} has visited ${statsPhrase}! See their travel map on ${BRAND.name}: ${url}`;
 }

@@ -1,6 +1,6 @@
 export const BRAND = {
-  name: "SeeMyCountries",
-  domain: "seemycountries.com",
+  name: "TravelerPin",
+  domain: "travelerpin.com",
   colors: {
     primary: "#2563eb",
     visited: "#2563eb",
