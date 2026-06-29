@@ -2,9 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { CityForm } from "@/components/dashboard/CityForm";
 import { useModal } from "@/components/ui/ModalProvider";
+import {
+  cityMessages,
+  commonMessages,
+  modalMessages,
+  translateCity,
+} from "@/lib/i18n/client-messages";
+import { formatVisitDatesSummary } from "@/lib/utils/visit-date";
+import { getIntlLocale } from "@/lib/i18n/config";
 import type { VisitedCity, VisitedCountry } from "@/types/database";
 
 const ALL_COUNTRIES = "ALL";
@@ -27,9 +34,6 @@ function sortCities(cities: VisitedCity[], countryFilter: string): VisitedCity[]
 }
 
 export function CityList({ cities, countries }: CityListProps) {
-  const t = useTranslations("city");
-  const tModal = useTranslations("modal");
-  const tCommon = useTranslations("common");
   const router = useRouter();
   const modal = useModal();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -61,8 +65,8 @@ export function CityList({ cities, countries }: CityListProps) {
   }, [cities, countryFilter]);
 
   async function handleDelete(id: string) {
-    const confirmed = await modal.confirm(tModal("deleteCityMessage"), {
-      title: tModal("deleteCityTitle"),
+    const confirmed = await modal.confirm(modalMessages.deleteCityMessage, {
+      title: modalMessages.deleteCityTitle,
       destructive: true,
     });
     if (!confirmed) return;
@@ -83,6 +87,10 @@ export function CityList({ cities, countries }: CityListProps) {
         existingCities={cities}
         onSuccess={() => setAdding(false)}
         onCancel={() => setAdding(false)}
+        onEditExisting={(id) => {
+          setAdding(false);
+          setEditingId(id);
+        }}
       />
     );
   }
@@ -100,35 +108,35 @@ export function CityList({ cities, countries }: CityListProps) {
   }
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-white">
-          {t("title")}
+    <section className="flex min-w-0 max-w-full flex-col gap-4">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+        <h2 className="min-w-0 dashboard-section-title-city">
+          {cityMessages.title}
           <span className="ml-2 text-sm font-normal text-slate-500">
-            · {t("visitedOnly")}
+            · {cityMessages.visitedOnly}
           </span>
         </h2>
         {canAddCity && (
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:border-slate-500 hover:text-white"
+            className="dashboard-btn-add-city"
           >
-            + {t("add")}
+            + {cityMessages.add}
           </button>
         )}
       </div>
 
       {!canAddCity ? (
-        <p className="text-sm text-slate-500">{t("addCountryFirst")}</p>
+        <p className="text-sm text-slate-500">{cityMessages.addCountryFirst}</p>
       ) : cities.length === 0 ? (
-        <p className="text-sm text-slate-500">{t("empty")}</p>
+        <p className="text-sm text-slate-500">{cityMessages.empty}</p>
       ) : (
         <>
           {countryOptions.length > 1 && (
             <div className="max-w-xs">
               <label htmlFor="city-list-country-filter" className="mb-1.5 block text-sm text-slate-400">
-                {t("filterByCountry")}
+                {cityMessages.filterByCountry}
               </label>
               <select
                 id="city-list-country-filter"
@@ -136,7 +144,7 @@ export function CityList({ cities, countries }: CityListProps) {
                 onChange={(e) => setCountryFilter(e.target.value)}
                 className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
               >
-                <option value={ALL_COUNTRIES}>{t("allCountries")}</option>
+                <option value={ALL_COUNTRIES}>{cityMessages.allCountries}</option>
                 {countryOptions.map((country) => (
                   <option key={country.code} value={country.code}>
                     {country.name}
@@ -147,10 +155,17 @@ export function CityList({ cities, countries }: CityListProps) {
           )}
 
           {filteredCities.length === 0 ? (
-            <p className="text-sm text-slate-500">{t("noCitiesInCountry")}</p>
+            <p className="text-sm text-slate-500">{cityMessages.noCitiesInCountry}</p>
           ) : (
             <ul className="max-h-[min(28rem,60vh)] divide-y divide-slate-800 overflow-y-auto rounded-xl border border-slate-700 scrollbar-thin">
-              {filteredCities.map((city) => (
+              {filteredCities.map((city) => {
+                const visitSummary = formatVisitDatesSummary(
+                  city.visit_dates ?? [],
+                  (count) => translateCity("visitCount", { count }),
+                  getIntlLocale()
+                );
+
+                return (
                 <li
                   key={city.id}
                   className="flex items-center justify-between gap-3 px-4 py-3"
@@ -162,9 +177,11 @@ export function CityList({ cities, countries }: CityListProps) {
                         <span className="font-normal text-slate-400">, {city.country_name}</span>
                       ) : null}
                     </p>
-                    {city.media_type && (
+                    {visitSummary ? (
+                      <p className="text-xs text-slate-500">{visitSummary}</p>
+                    ) : city.media_type ? (
                       <p className="text-xs text-slate-500 capitalize">{city.media_type}</p>
-                    )}
+                    ) : null}
                   </div>
                   <div className="flex shrink-0 gap-2">
                     <button
@@ -172,18 +189,19 @@ export function CityList({ cities, countries }: CityListProps) {
                       onClick={() => setEditingId(city.id)}
                       className="text-sm text-blue-400 hover:text-blue-300"
                     >
-                      {tCommon("edit")}
+                      {commonMessages.edit}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(city.id)}
                       className="text-sm text-red-400 hover:text-red-300"
                     >
-                      {tCommon("delete")}
+                      {commonMessages.delete}
                     </button>
                   </div>
                 </li>
-              ))}
+              );
+              })}
             </ul>
           )}
         </>

@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { useModal } from "@/components/ui/ModalProvider";
+import { countryMessages, wishlistMessages } from "@/lib/i18n/client-messages";
 import { CountryCityPickerSheet } from "@/components/map/CountryCityPickerSheet";
 import { COUNTRY_LIST, getCountryName } from "@/lib/data/countries";
 import type { VisitedCity, VisitedCountry, VisitedPark, WishlistCountry } from "@/types/database";
@@ -33,8 +33,6 @@ export function CountryManager({
   visitedCities,
   visitedParks = [],
 }: CountryManagerProps) {
-  const t = useTranslations("country");
-  const tWishlist = useTranslations("wishlist");
   const router = useRouter();
   const modal = useModal();
   const [query, setQuery] = useState("");
@@ -120,7 +118,7 @@ export function CountryManager({
 
   async function removeVisited(row: CountryRow) {
     if (row.visitedViaPlacesOnly) {
-      await modal.alert(t("removePlacesFirst"), { variant: "info" });
+      await modal.alert(countryMessages.removePlacesFirst, { variant: "info" });
       return false;
     }
     if (!row.visitedId) return false;
@@ -198,36 +196,36 @@ export function CountryManager({
   const showIdle = query.trim().length === 0 && rows.length === 0;
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-slate-700 bg-slate-900 p-5">
+    <section className="flex min-w-0 max-w-full flex-col gap-4 rounded-xl border border-slate-700 bg-slate-900 p-4 sm:p-5">
       <div>
-        <h2 className="text-lg font-semibold text-white">{t("title")}</h2>
-        <p className="mt-1 text-xs text-slate-500">{t("toggleHint")}</p>
+        <h2 className="text-lg font-semibold text-white">{countryMessages.title}</h2>
+        <p className="mt-1 text-xs text-slate-500">{countryMessages.toggleHint}</p>
       </div>
 
       <input
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder={t("searchPlaceholder")}
+        placeholder={countryMessages.searchPlaceholder}
         className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
         autoComplete="off"
       />
 
       <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-950">
-        <div className="grid grid-cols-[1fr_5rem_5rem] gap-2 border-b border-slate-800 px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-500">
-          <span>{t("name")}</span>
-          <span className="text-center text-blue-400">{t("columnVisited")}</span>
-          <span className="text-center text-amber-400">{t("columnWant")}</span>
+        <div className="grid grid-cols-[minmax(0,1fr)_3.25rem_3.25rem] gap-2 border-b border-slate-800 px-2 py-2 text-xs font-medium uppercase tracking-wide text-slate-500 sm:grid-cols-[minmax(0,1fr)_5rem_5rem] sm:px-3">
+          <span>{countryMessages.name}</span>
+          <span className="text-center text-blue-400">{countryMessages.columnVisited}</span>
+          <span className="text-center text-amber-400">{countryMessages.columnWant}</span>
         </div>
 
         <ul className="max-h-72 overflow-y-auto scrollbar-thin">
           {showIdle ? (
             <li className="px-3 py-6 text-center text-sm text-slate-500">
-              {t("searchIdle")}
+              {countryMessages.searchIdle}
             </li>
           ) : rows.length === 0 ? (
             <li className="px-3 py-6 text-center text-sm text-slate-500">
-              {t("noResults")}
+              {countryMessages.noResults}
             </li>
           ) : (
             rows.map((row) => {
@@ -236,7 +234,7 @@ export function CountryManager({
               return (
                 <li
                   key={row.code}
-                  className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 border-b border-slate-800/80 px-3 py-2.5 last:border-b-0"
+                  className="grid grid-cols-[minmax(0,1fr)_3.25rem_3.25rem] items-center gap-2 border-b border-slate-800/80 px-2 py-2.5 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_5rem_5rem] sm:px-3"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm text-slate-200">{row.name}</p>
@@ -248,10 +246,10 @@ export function CountryManager({
                       type="checkbox"
                       checked={row.isVisited}
                       disabled={loading || (row.isVisited && row.visitedViaPlacesOnly)}
-                      title={row.visitedViaPlacesOnly ? t("lockedViaPlaces") : undefined}
+                      title={row.visitedViaPlacesOnly ? countryMessages.lockedViaPlaces : undefined}
                       onChange={(e) => handleVisitedToggle(row, e.target.checked)}
                       className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500/40 disabled:opacity-60"
-                      aria-label={`${t("columnVisited")}: ${row.name}`}
+                      aria-label={`${countryMessages.columnVisited}: ${row.name}`}
                     />
                   </div>
 
@@ -262,7 +260,7 @@ export function CountryManager({
                       disabled={loading || row.isVisited}
                       onChange={(e) => handleWishlistToggle(row, e.target.checked)}
                       className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-amber-500 focus:ring-amber-500/40 disabled:opacity-40"
-                      aria-label={`${tWishlist("columnWant")}: ${row.name}`}
+                      aria-label={`${wishlistMessages.columnWant}: ${row.name}`}
                     />
                   </div>
                 </li>

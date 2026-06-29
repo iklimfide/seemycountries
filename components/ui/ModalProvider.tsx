@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useTranslations } from "next-intl";
+import { commonMessages, modalMessages } from "@/lib/i18n/client-messages";
 
 export type ModalVariant = "error" | "success" | "info";
 
@@ -40,12 +40,19 @@ type ModalContextValue = {
 
 const ModalContext = createContext<ModalContextValue | null>(null);
 
+const FALLBACK_MODAL: ModalContextValue = {
+  alert: async (message) => {
+    if (typeof window !== "undefined") window.alert(message);
+  },
+  confirm: async (message) => {
+    if (typeof window !== "undefined") return window.confirm(message);
+    return false;
+  },
+};
+
 export function useModal(): ModalContextValue {
   const ctx = useContext(ModalContext);
-  if (!ctx) {
-    throw new Error("useModal must be used within ModalProvider");
-  }
-  return ctx;
+  return ctx ?? FALLBACK_MODAL;
 }
 
 const variantBorder: Record<ModalVariant, string> = {
@@ -61,8 +68,6 @@ const variantTitle: Record<ModalVariant, string> = {
 };
 
 export function ModalProvider({ children }: { children: ReactNode }) {
-  const t = useTranslations("modal");
-  const tCommon = useTranslations("common");
   const [modal, setModal] = useState<ActiveModal | null>(null);
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
 
@@ -120,10 +125,10 @@ export function ModalProvider({ children }: { children: ReactNode }) {
 
   const defaultTitle =
     modal?.variant === "error"
-      ? t("errorTitle")
+      ? modalMessages.errorTitle
       : modal?.variant === "success"
-        ? t("successTitle")
-        : t("infoTitle");
+        ? modalMessages.successTitle
+        : modalMessages.infoTitle;
 
   return (
     <ModalContext.Provider value={{ alert, confirm }}>
@@ -136,7 +141,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         >
           <button
             type="button"
-            aria-label={tCommon("cancel")}
+            aria-label={commonMessages.cancel}
             className="absolute inset-0 bg-slate-950/75 backdrop-blur-sm"
             onClick={() => close(modal.mode === "confirm" ? false : true)}
           />
@@ -161,7 +166,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                   onClick={() => close(false)}
                   className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-500 hover:text-white"
                 >
-                  {modal.cancelLabel ?? tCommon("cancel")}
+                  {modal.cancelLabel ?? commonMessages.cancel}
                 </button>
               )}
               <button
@@ -177,9 +182,9 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 {modal.confirmLabel ??
                   (modal.mode === "confirm"
                     ? modal.destructive
-                      ? tCommon("delete")
-                      : t("confirm")
-                    : t("ok"))}
+                      ? commonMessages.delete
+                      : modalMessages.confirm
+                    : modalMessages.ok)}
               </button>
             </div>
           </div>

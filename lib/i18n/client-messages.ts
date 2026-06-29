@@ -12,6 +12,9 @@ export const shareMessages = enMessages.share;
 export const destinationMessages = enMessages.destinations;
 export const parkMessages = enMessages.park;
 export const profileMessages = enMessages.profile;
+export const modalMessages = enMessages.modal;
+export const authMessages = enMessages.auth;
+export const settingsMessages = enMessages.settings;
 
 export function formatMessage(
   template: string,
@@ -21,3 +24,24 @@ export function formatMessage(
     key in values ? String(values[key]) : `{${key}}`
   );
 }
+
+type MessageNamespace = Record<string, unknown>;
+
+export function createMessageTranslator<T extends MessageNamespace>(messages: T) {
+  return function translate<K extends keyof T>(
+    key: K,
+    values?: Record<string, string | number>
+  ): string {
+    const value = messages[key];
+    if (typeof value !== "string") return String(key);
+    return values ? formatMessage(value, values) : value;
+  };
+}
+
+export const translateCommon = createMessageTranslator(commonMessages);
+export const translateCountry = createMessageTranslator(countryMessages);
+export const translateCity = createMessageTranslator(cityMessages);
+export const translatePark = createMessageTranslator(parkMessages);
+export const translateWishlist = createMessageTranslator(wishlistMessages);
+export const translateAuth = createMessageTranslator(authMessages);
+export const translateSettings = createMessageTranslator(settingsMessages);

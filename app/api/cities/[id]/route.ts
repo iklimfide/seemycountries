@@ -82,6 +82,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       note: data.note ?? null,
       media_type: data.media_type ?? null,
       media_url: data.media_url ?? null,
+      visit_dates: data.visit_dates ?? [],
     })
     .eq("id", id)
     .eq("user_id", user.id)

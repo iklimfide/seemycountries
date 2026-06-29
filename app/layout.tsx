@@ -9,6 +9,7 @@ import enMessages from "@/messages/en.json";
 import { ModalProvider } from "@/components/ui/ModalProvider";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { ClearPwaArtifacts } from "@/components/dev/ClearPwaArtifacts";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -79,9 +80,10 @@ export default async function RootLayout({
       className={`${geistSans.variable} light h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col overflow-x-clip bg-background text-foreground">
+      <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden bg-background text-foreground">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider>
+            <ClearPwaArtifacts />
             <ModalProvider>
               <ToastProvider>{children}</ToastProvider>
             </ModalProvider>

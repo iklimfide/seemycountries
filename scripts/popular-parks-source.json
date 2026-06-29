@@ -23,6 +23,22 @@
   { "parkType": "national_park", "label": "Jotunheimen", "countryCode": "NO", "lookup": "Jotunheimen" },
   { "parkType": "national_park", "label": "Göreme", "countryCode": "TR", "lookup": "Göreme" },
   { "parkType": "national_park", "label": "Uludağ", "countryCode": "TR", "lookup": "Uludağ" },
+  {
+    "parkType": "national_park",
+    "label": "James Bond Island",
+    "countryCode": "TH",
+    "parkName": "James Bond Island (Ko Tapu)",
+    "latitude": 8.274444,
+    "longitude": 98.501667
+  },
+  {
+    "parkType": "national_park",
+    "label": "Phi Phi Islands",
+    "countryCode": "TH",
+    "parkName": "Phi Phi Islands",
+    "latitude": 7.7407,
+    "longitude": 98.7784
+  },
 
   { "parkType": "theme_park", "label": "Disneyland", "countryCode": "US", "lookup": "Disneyland" },
   { "parkType": "theme_park", "label": "Walt Disney World", "countryCode": "US", "lookup": "Walt Disney World" },

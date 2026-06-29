@@ -25,4 +25,5 @@ export const LIMITS = {
   usernameMax: 30,
   passwordMin: 6,
   minCityPopulation: 100_000,
+  maxCityVisitDates: 24,
 } as const;

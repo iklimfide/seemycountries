@@ -38,6 +38,14 @@ export function countryUrl(slug: string): string {
   return `${getSiteUrl()}${countryPath(slug)}`;
 }
 
+export function cityPath(slug: string): string {
+  return `/city/${slug.toLowerCase()}`;
+}
+
+export function cityUrl(slug: string): string {
+  return `${getSiteUrl()}${cityPath(slug)}`;
+}
+
 export const DEFAULT_DESCRIPTION =
   "Mark the countries and cities you've visited. One photo and memory per city — share your travel map with one link.";
 

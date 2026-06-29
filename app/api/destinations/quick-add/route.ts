@@ -116,6 +116,7 @@ export async function POST(request: Request) {
       note: null,
       media_type: null,
       media_url: null,
+      visit_dates: [],
     })
     .select()
     .single();

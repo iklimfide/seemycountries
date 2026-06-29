@@ -7,10 +7,8 @@ import { TravelMapFocusShell } from "@/components/map/TravelMapFocusShell";
 import { TravelMapView } from "@/components/map/TravelMapView";
 import { TravelStatsInteractive } from "@/components/stats/TravelStatsInteractive";
 import { HomeFeatures } from "@/components/home/HomeFeatures";
-import { DemoTravelerStory } from "@/components/home/DemoTravelerSummary";
-import { ShareProfile } from "@/components/share/ShareProfile";
+import { ShareProfileButton } from "@/components/share/ShareProfileButton";
 import { BRAND } from "@/lib/constants";
-import { formatMessage, homeMessages } from "@/lib/i18n/client-messages";
 import {
   buildProfileDescription,
   buildProfileOgDescription,
@@ -26,6 +24,7 @@ import {
 } from "@/lib/seo/og";
 import { profilePath, profileUrl as buildProfileUrl, getSiteUrl } from "@/lib/seo/site";
 import { loadPublicProfilePage } from "@/lib/supabase/profile-page-data";
+import { getVisitedCountryCodes } from "@/lib/utils/stats";
 
 type PageProps = {
   params: Promise<{ username: string }>;
@@ -150,47 +149,78 @@ export default async function PublicProfilePage({ params }: PageProps) {
           avatarUrl: profile.avatar_url,
           displayName,
           username: profile.username,
-          countryCount: stats.countries,
+          countryCount: getVisitedCountryCodes(
+            visitedCountries,
+            visitedCities,
+            visitedParks
+          ).length,
         }}
       />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-3 sm:py-8">
+      <main className="mx-auto flex w-full min-w-0 max-w-5xl flex-1 flex-col overflow-x-hidden px-4 py-3 sm:py-8">
         <TravelMapFocusShell>
-          <div className="flex flex-col gap-4 sm:gap-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:text-left">
-              <div className="flex items-start justify-between gap-3 text-left">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-blue-400">
-                    {formatMessage(homeMessages.demoLabel, { name: displayName })}
+          <div className="flex min-w-0 flex-col gap-4 sm:gap-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-sm font-medium text-blue-400">
+                  {isOwnProfile
+                    ? t("yourJourney")
+                    : t("journeyLabel", { name: displayName })}
+                </p>
+                {isOwnProfile ? (
+                  <>
+                    <h1 className="mt-1 text-xl font-bold tracking-tight text-white sm:text-3xl">
+                      {displayName}
+                    </h1>
+                    <p className="mt-2 max-w-xl text-sm text-slate-400 sm:text-base">
+                      {profile.bio ?? profileDescription}
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
+                    {t("visitorIntro", { name: displayName })}
                   </p>
-                  <h1 className="mt-1 text-xl font-bold tracking-tight text-white sm:text-3xl">
-                    {tHome("hero")}
-                  </h1>
-                  {profile.bio ? (
-                    <p className="mt-2 hidden max-w-xl text-sm text-slate-400 sm:block sm:text-base">
-                      {profile.bio}
-                    </p>
-                  ) : (
-                    <p className="mt-2 hidden max-w-xl text-sm text-slate-400 sm:block sm:text-base">
-                      {profileDescription}
-                    </p>
-                  )}
-                </div>
+                )}
+                {!isOwnProfile ? (
+                  <div className="mt-4">
+                    {isGuest ? (
+                      <Link
+                        href="/register"
+                        className="inline-flex rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
+                      >
+                        {t("createYourMap")}
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/dashboard"
+                        className="inline-flex rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
+                      >
+                        {tHome("editMap")}
+                      </Link>
+                    )}
+                  </div>
+                ) : null}
               </div>
-              <TravelStatsInteractive
-                stats={stats}
-                visitedCountries={visitedCountries}
-                visitedCities={visitedCities}
-                visitedParks={visitedParks}
-                wishlistCountries={wishlistPublic ? wishlistCountries : []}
-                className="w-full sm:w-auto"
-              />
+              <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:max-w-sm sm:items-stretch lg:max-w-none lg:items-end">
+                {isOwnProfile ? (
+                  <ShareProfileButton
+                    username={profile.username}
+                    displayName={displayName}
+                    stats={stats}
+                    isOwnProfile
+                  />
+                ) : null}
+                <TravelStatsInteractive
+                  stats={stats}
+                  visitedCountries={visitedCountries}
+                  visitedCities={visitedCities}
+                  visitedParks={visitedParks}
+                  wishlistCountries={wishlistPublic ? wishlistCountries : []}
+                  displayName={displayName}
+                  username={profile.username}
+                  className="w-full"
+                />
+              </div>
             </div>
-
-            {isGuest ? (
-              <div className="sm:hidden">
-                <DemoTravelerStory name={displayName} stats={stats} />
-              </div>
-            ) : null}
 
             <div>
               {hasMapContent ? (
@@ -218,65 +248,51 @@ export default async function PublicProfilePage({ params }: PageProps) {
               )}
             </div>
 
-            {hasMapContent && (
+            {hasMapContent && !isOwnProfile ? (
               <div>
+                <HomeFeatures />
+              </div>
+            ) : null}
+
+            {isOwnProfile || isGuest ? (
+              <div className="mt-2 flex flex-col items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/50 px-6 py-5 text-center sm:mt-8 sm:flex-row sm:justify-between sm:text-left">
+                <div>
+                  <p className="font-medium text-white">{tHome("ctaTitle")}</p>
+                  <p className="mt-1 text-sm text-slate-500">{tHome("ctaHint")}</p>
+                </div>
                 {isOwnProfile ? (
-                  <ShareProfile
-                    username={profile.username}
-                    displayName={displayName}
-                    stats={stats}
-                    isOwnProfile
-                  />
+                  <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                    <Link
+                      href="/dashboard"
+                      className="inline-flex w-full items-center justify-center rounded-full bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-500 sm:w-auto"
+                    >
+                      {tHome("editMap")}
+                    </Link>
+                    <Link
+                      href="/dashboard/settings"
+                      className="inline-flex w-full items-center justify-center rounded-full border border-slate-700 px-6 py-2.5 text-sm font-medium text-slate-300 hover:border-slate-500 hover:text-white sm:w-auto"
+                    >
+                      {t("editProfile")}
+                    </Link>
+                  </div>
                 ) : (
-                  <HomeFeatures />
+                  <div className="flex shrink-0 gap-3">
+                    <Link
+                      href="/register"
+                      className="rounded-full bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
+                    >
+                      {t("createYourMap")}
+                    </Link>
+                    <Link
+                      href="/login"
+                      className="rounded-full border border-slate-700 px-6 py-2.5 text-sm font-medium text-slate-300 hover:border-slate-500 hover:text-white"
+                    >
+                      {tHome("login")}
+                    </Link>
+                  </div>
                 )}
               </div>
-            )}
-
-            <div className="mt-2 flex flex-col items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/50 px-6 py-5 text-center sm:mt-8 sm:flex-row sm:justify-between sm:text-left">
-              <div>
-                <p className="font-medium text-white">{tHome("ctaTitle")}</p>
-                <p className="mt-1 text-sm text-slate-500">{tHome("ctaHint")}</p>
-              </div>
-              {isOwnProfile ? (
-                <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
-                  <Link
-                    href="/dashboard"
-                    className="rounded-full bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
-                  >
-                    {tHome("editMap")}
-                  </Link>
-                  <Link
-                    href="/dashboard/settings"
-                    className="rounded-full border border-slate-700 px-6 py-2.5 text-sm font-medium text-slate-300 hover:border-slate-500 hover:text-white"
-                  >
-                    {t("editProfile")}
-                  </Link>
-                </div>
-              ) : isLoggedIn ? (
-                <Link
-                  href="/dashboard"
-                  className="shrink-0 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
-                >
-                  {tHome("editMap")}
-                </Link>
-              ) : (
-                <div className="flex shrink-0 gap-3">
-                  <Link
-                    href="/register"
-                    className="rounded-full bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
-                  >
-                    {tHome("cta")}
-                  </Link>
-                  <Link
-                    href="/login"
-                    className="rounded-full border border-slate-700 px-6 py-2.5 text-sm font-medium text-slate-300 hover:border-slate-500 hover:text-white"
-                  >
-                    {tHome("login")}
-                  </Link>
-                </div>
-              )}
-            </div>
+            ) : null}
           </div>
         </TravelMapFocusShell>
       </main>

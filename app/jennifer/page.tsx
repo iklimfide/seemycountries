@@ -133,6 +133,8 @@ export default async function JenniferDemoPage() {
                 visitedCities={visitedCities}
                 visitedParks={visitedParks}
                 wishlistCountries={wishlistCountries}
+                displayName={displayName}
+                username={profile.username}
                 className="w-full sm:w-auto lg:shrink-0"
               />
             </div>

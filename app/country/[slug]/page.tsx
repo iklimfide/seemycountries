@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
-import { CountryHubContent } from "@/components/country/CountryHubContent";
+import { CountryPageContent } from "@/components/country/CountryPageContent";
 import { getCountryHubBySlug, listCountryHubSlugs } from "@/lib/data/country-hubs";
 import { getCachedRecentCountryTravelers } from "@/lib/supabase/country-travelers-cache";
+import { loadCountryVisitorState } from "@/lib/supabase/country-visitor-state";
+import { getAuthUser } from "@/lib/supabase/auth";
+import { createClient } from "@/lib/supabase/server";
 import { countryPath, countryUrl } from "@/lib/seo/site";
 import { sanitizeCountrySlug } from "@/lib/utils/sanitize-country-slug";
+import "../../city/city-page.css";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -49,10 +53,16 @@ export default async function CountryHubPage({ params }: PageProps) {
   const hub = getCountryHubBySlug(slug);
   if (!hub) notFound();
 
-  const [t, travelers] = await Promise.all([
+  const loginHref = `/login?next=${encodeURIComponent(countryPath(slug))}`;
+
+  const [t, travelers, user, supabase] = await Promise.all([
     getTranslations("countryHub"),
     getCachedRecentCountryTravelers(hub.code),
+    getAuthUser(),
+    createClient(),
   ]);
+
+  const visitorState = await loadCountryVisitorState(supabase, user?.id, hub);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -63,16 +73,22 @@ export default async function CountryHubPage({ params }: PageProps) {
   };
 
   const labels = {
-    quickFacts: t("quickFacts"),
+    home: t("home"),
+    visited: t("visited"),
+    wantToVisit: t("wantToVisit"),
+    countryAdded: t("countryAdded"),
+    countryRemoved: t("countryRemoved"),
+    wishlistAdded: t("wishlistAdded"),
+    wishlistRemoved: t("wishlistRemoved"),
+    removePlacesFirst: t("removePlacesFirst"),
+    capital: t("capital"),
     currency: t("currency"),
     plugType: t("plugType"),
     visa: t("visa"),
-    capital: t("capital"),
     language: t("language"),
     recentTravelers: t("recentTravelers"),
     noTravelersYet: t("noTravelersYet"),
     pinCountry: t("pinCountry"),
-    addToMap: t("addToMap"),
   };
 
   return (
@@ -82,8 +98,14 @@ export default async function CountryHubPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Header />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:py-10">
-        <CountryHubContent hub={hub} travelers={travelers} labels={labels} />
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
+        <CountryPageContent
+          hub={hub}
+          travelers={travelers}
+          visitorState={visitorState}
+          loginHref={loginHref}
+          labels={labels}
+        />
       </main>
     </>
   );

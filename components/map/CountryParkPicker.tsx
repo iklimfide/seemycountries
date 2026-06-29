@@ -168,12 +168,13 @@ export function CountryParkPicker({
       lastPromptKeyRef.current = promptKey;
 
       toast.showAction({
-        message: formatMessage(mapMessages.customParkNotFound, {
+        message: formatMessage(mapMessages.customParkNotFoundInCountry, {
           park: formatCityDisplayName(trimmedFilter),
           country: countryName,
         }),
         actionLabel: mapMessages.customParkAdd,
         dismissLabel: commonMessages.no,
+        accent: "emerald",
         onAction: handleAddCustomPark,
       });
     }, CUSTOM_PARK_TOAST_DELAY_MS);

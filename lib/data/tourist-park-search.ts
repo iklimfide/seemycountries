@@ -41,3 +41,23 @@ export function searchTouristParks(
 
   return results.sort((a, b) => compareNames(a.name, b.name)).slice(0, limit);
 }
+
+export function searchTouristParksInCountries(
+  countryCodes: string[],
+  query: string,
+  limit = 80
+): TouristPark[] {
+  const allowed = new Set(countryCodes.map((code) => code.toUpperCase()));
+  const q = query.trim().toLocaleLowerCase("tr");
+  if (q.length < 2 || allowed.size === 0) {
+    return [];
+  }
+
+  const results = TOURIST_PARKS.filter((park) => {
+    if (!allowed.has(park.countryCode)) return false;
+    const name = park.name.toLocaleLowerCase("tr");
+    return name.includes(q) || name.split(/\s+/).some((word) => word.startsWith(q));
+  });
+
+  return results.sort((a, b) => compareNames(a.name, b.name)).slice(0, limit);
+}

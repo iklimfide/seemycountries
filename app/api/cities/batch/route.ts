@@ -74,6 +74,7 @@ export async function POST(request: Request) {
     note: null,
     media_type: null,
     media_url: null,
+    visit_dates: [],
   }));
 
   const { data: inserted, error } = await supabase

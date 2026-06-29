@@ -167,6 +167,24 @@ export const POPULAR_PARKS: PopularPark[] = [
     "longitude": 29.22138889
   },
   {
+    "parkType": "national_park",
+    "countryCode": "TH",
+    "parkName": "James Bond Island (Ko Tapu)",
+    "label": "James Bond Island",
+    "countryName": "Thailand",
+    "latitude": 8.274444,
+    "longitude": 98.501667
+  },
+  {
+    "parkType": "national_park",
+    "countryCode": "TH",
+    "parkName": "Phi Phi Islands",
+    "label": "Phi Phi Islands",
+    "countryName": "Thailand",
+    "latitude": 7.7407,
+    "longitude": 98.7784
+  },
+  {
     "parkType": "theme_park",
     "countryCode": "US",
     "parkName": "Disneyland",

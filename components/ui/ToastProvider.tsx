@@ -10,13 +10,23 @@ import {
   type ReactNode,
 } from "react";
 
+export type ToastSelectField = {
+  type: "select";
+  id: string;
+  label?: string;
+  options: { value: string; label: string }[];
+  defaultValue: string;
+};
+
 export type ToastActionOptions = {
   message: string;
   actionLabel: string;
   dismissLabel?: string;
-  onAction: () => void | Promise<void>;
+  fields?: ToastSelectField[];
+  onAction: (fieldValues?: Record<string, string>) => void | Promise<void>;
   onDismiss?: () => void;
   durationMs?: number;
+  accent?: "blue" | "emerald";
 };
 
 type ToastContextValue = {
@@ -29,6 +39,12 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 const DEFAULT_TOAST_DURATION_MS = 4000;
 
+const FALLBACK_TOAST: ToastContextValue = {
+  show: () => {},
+  showAction: () => {},
+  dismiss: () => {},
+};
+
 type ToastState =
   | { kind: "message"; message: string }
   | {
@@ -36,17 +52,17 @@ type ToastState =
       message: string;
       actionLabel: string;
       dismissLabel: string;
-      onAction: () => void | Promise<void>;
+      fields?: ToastSelectField[];
+      fieldValues: Record<string, string>;
+      onAction: (fieldValues?: Record<string, string>) => void | Promise<void>;
       onDismiss?: () => void;
+      accent: "blue" | "emerald";
     }
   | null;
 
 export function useToast(): ToastContextValue {
   const ctx = useContext(ToastContext);
-  if (!ctx) {
-    throw new Error("useToast must be used within ToastProvider");
-  }
-  return ctx;
+  return ctx ?? FALLBACK_TOAST;
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -75,13 +91,22 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const showAction = useCallback(
     (options: ToastActionOptions) => {
       dismiss();
+      const fieldValues: Record<string, string> = {};
+      for (const field of options.fields ?? []) {
+        if (field.type === "select") {
+          fieldValues[field.id] = field.defaultValue;
+        }
+      }
       setToast({
         kind: "action",
         message: options.message,
         actionLabel: options.actionLabel,
         dismissLabel: options.dismissLabel ?? "No",
+        fields: options.fields,
+        fieldValues,
         onAction: options.onAction,
         onDismiss: options.onDismiss,
+        accent: options.accent ?? "blue",
       });
       if (options.durationMs != null) {
         timerRef.current = setTimeout(dismiss, options.durationMs);
@@ -103,11 +128,23 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
     setActionLoading(true);
     try {
-      await toast.onAction();
+      const fieldValues =
+        toast.fields && toast.fields.length > 0 ? toast.fieldValues : undefined;
+      await toast.onAction(fieldValues);
       dismiss();
     } catch {
       setActionLoading(false);
     }
+  }
+
+  function updateFieldValue(id: string, value: string) {
+    setToast((current) => {
+      if (!current || current.kind !== "action") return current;
+      return {
+        ...current,
+        fieldValues: { ...current.fieldValues, [id]: value },
+      };
+    });
   }
 
   return (
@@ -117,9 +154,47 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <div
           role={toast.kind === "action" ? "alertdialog" : "status"}
           aria-live="polite"
-          className="pointer-events-auto fixed top-1/2 left-1/2 z-[110] w-[min(100vw-2rem,20rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-slate-600 bg-slate-900/95 px-4 py-3 text-center text-sm text-slate-100 shadow-2xl backdrop-blur-sm"
+          className={`pointer-events-auto fixed top-1/2 left-1/2 z-[110] -translate-x-1/2 -translate-y-1/2 rounded-xl px-4 py-3 text-center text-sm shadow-2xl backdrop-blur-sm ${
+            toast.kind === "action"
+              ? `toast-action toast-action--${toast.accent} ${
+                  toast.fields?.length ? "w-[min(100vw-2rem,24rem)]" : "w-[min(100vw-2rem,20rem)]"
+                }`
+              : "w-[min(100vw-2rem,20rem)] border border-slate-600 bg-slate-900/95 text-slate-100"
+          }`}
         >
           <p>{toast.message}</p>
+          {toast.kind === "action" && toast.fields && toast.fields.length > 0 && (
+            <div className="mt-3 space-y-3 text-left">
+              {toast.fields.map((field) => {
+                if (field.type !== "select") return null;
+                return (
+                  <div key={field.id}>
+                    {field.label && (
+                      <label
+                        htmlFor={`toast-field-${field.id}`}
+                        className="toast-action__label"
+                      >
+                        {field.label}
+                      </label>
+                    )}
+                    <select
+                      id={`toast-field-${field.id}`}
+                      value={toast.fieldValues[field.id] ?? field.defaultValue}
+                      onChange={(e) => updateFieldValue(field.id, e.target.value)}
+                      disabled={actionLoading}
+                      className="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-blue-500 disabled:opacity-60"
+                    >
+                      {field.options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           {toast.kind === "action" && (
             <div className="mt-3 flex gap-2">
               <button
@@ -134,7 +209,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={handleActionClick}
                 disabled={actionLoading}
-                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="toast-action__btn-primary flex-1 rounded-lg px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {actionLoading ? "…" : toast.actionLabel}
               </button>

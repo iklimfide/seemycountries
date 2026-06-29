@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useMapFocus } from "@/components/map/MapFocusContext";
-import { commonMessages, parkMessages, profileMessages } from "@/lib/i18n/client-messages";
+import { commonMessages, formatMessage, parkMessages, profileMessages } from "@/lib/i18n/client-messages";
+import { profilePath } from "@/lib/seo/site";
+import { computeRepeatVisitSummary } from "@/lib/utils/stats";
 import {
   buildVisitedCityList,
   buildVisitedCountryList,
@@ -23,6 +26,8 @@ type TravelStatsInteractiveProps = {
   visitedCities: VisitedCity[];
   visitedParks?: VisitedPark[];
   wishlistCountries?: WishlistCountry[];
+  displayName?: string;
+  username?: string;
   className?: string;
 };
 
@@ -94,6 +99,8 @@ export function TravelStatsInteractive({
   visitedCities,
   visitedParks = [],
   wishlistCountries = [],
+  displayName,
+  username,
   className = "",
 }: TravelStatsInteractiveProps) {
   const t = commonMessages;
@@ -130,6 +137,32 @@ export function TravelStatsInteractive({
         .sort((a, b) => a.name.localeCompare(b.name)),
     [wishlistCountries]
   );
+
+  const repeatVisitSummary = useMemo(() => {
+    const { countriesVisitedMoreThanOnce, citiesVisitedMoreThanOnce } =
+      computeRepeatVisitSummary(visitedCountries, visitedCities, visitedParks);
+
+    if (countriesVisitedMoreThanOnce === 0 && citiesVisitedMoreThanOnce === 0) {
+      return null;
+    }
+
+    if (countriesVisitedMoreThanOnce > 0 && citiesVisitedMoreThanOnce > 0) {
+      return formatMessage(profileMessages.repeatVisitsBoth, {
+        countries: countriesVisitedMoreThanOnce,
+        cities: citiesVisitedMoreThanOnce,
+      });
+    }
+
+    if (countriesVisitedMoreThanOnce > 0) {
+      return formatMessage(profileMessages.repeatVisitsCountriesOnly, {
+        countries: countriesVisitedMoreThanOnce,
+      });
+    }
+
+    return formatMessage(profileMessages.repeatVisitsCitiesOnly, {
+      cities: citiesVisitedMoreThanOnce,
+    });
+  }, [visitedCountries, visitedCities, visitedParks]);
 
   useEffect(() => {
     if (!openPanel) return;
@@ -210,7 +243,7 @@ export function TravelStatsInteractive({
   return (
     <div
       ref={rootRef}
-      className={`relative mx-auto w-full max-w-sm sm:mx-0 sm:max-w-none ${className}`}
+      className={`relative w-full min-w-0 max-w-none sm:max-w-none ${className}`}
     >
       <div className="flex flex-col items-stretch gap-2 sm:items-center">
         {/* Mobile + tablet — unchanged */}
@@ -291,20 +324,32 @@ export function TravelStatsInteractive({
           />
         </div>
 
+        {repeatVisitSummary && displayName && username ? (
+          <p className="w-full text-center text-sm leading-relaxed text-slate-400 lg:text-right">
+            <Link
+              href={profilePath(username)}
+              className="font-medium text-blue-400 hover:text-blue-300"
+            >
+              {displayName}
+            </Link>{" "}
+            {repeatVisitSummary}
+          </p>
+        ) : null}
+
         {wishlist.length > 0 && (
-          <div className="flex justify-center sm:inline-flex">
-            <div className="inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-2xl border border-amber-500/35 bg-amber-500/10 px-4 py-2.5 sm:w-auto sm:rounded-full sm:px-5 sm:py-3">
+          <div className="flex justify-center lg:justify-end">
+            <div className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1">
               <button
                 type="button"
                 onClick={() => togglePanel("wishlist")}
-                className={`inline-flex items-center gap-2 ${wishlistSegmentClass}`}
+                className={`inline-flex items-center gap-1.5 ${wishlistSegmentClass}`}
                 aria-expanded={openPanel === "wishlist"}
               >
-                <span className="text-xl font-bold text-foreground sm:text-2xl">
+                <span className="text-sm font-bold leading-none text-foreground">
                   {wishlist.length}
                 </span>
-                <span className="text-xs font-medium text-amber-800 dark:text-amber-200 sm:text-sm">
-                  {t.countries}
+                <span className="text-[10px] font-medium leading-none text-amber-800 dark:text-amber-200 sm:text-xs">
+                  {p.wishlistCountries}
                 </span>
               </button>
             </div>
@@ -313,7 +358,7 @@ export function TravelStatsInteractive({
       </div>
 
       {openPanel && (
-        <div className="absolute left-1/2 top-full z-30 mt-2 w-[min(100vw-2rem,20rem)] -translate-x-1/2 overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-xl">
+        <div className="absolute left-0 right-0 top-full z-30 mx-auto mt-2 w-full max-w-xs overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-xl sm:left-1/2 sm:right-auto sm:w-[min(100%,20rem)] sm:-translate-x-1/2">
           <div className="border-b border-slate-800 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
             {panelTitle}
           </div>

@@ -152,12 +152,13 @@ export function CountryCityPicker({
       lastPromptKeyRef.current = promptKey;
 
       toast.showAction({
-        message: formatMessage(mapMessages.customCityNotFound, {
+        message: formatMessage(mapMessages.customCityNotFoundInCountry, {
           city: formatCityDisplayName(trimmedFilter),
           country: countryName,
         }),
         actionLabel: mapMessages.customCityAdd,
         dismissLabel: commonMessages.no,
+        accent: "blue",
         onAction: handleAddCustomCity,
       });
     }, CUSTOM_CITY_TOAST_DELAY_MS);

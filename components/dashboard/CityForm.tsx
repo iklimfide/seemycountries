@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { LIMITS } from "@/lib/constants";
+import { translateCity, translateCommon } from "@/lib/i18n/client-messages";
 import { addCity } from "@/lib/client/city-actions";
 import { formatCityDisplayName } from "@/lib/utils/city-name";
 import { isValidInstagramUrl } from "@/lib/utils/instagram";
 import { useModal } from "@/components/ui/ModalProvider";
 import { useToast } from "@/components/ui/ToastProvider";
+import { CityVisitDatesEditor } from "@/components/dashboard/CityVisitDatesEditor";
 import type { VisitedCity, VisitedCountry } from "@/types/database";
 
 type SearchCity = {
@@ -32,6 +33,7 @@ type CityFormProps = {
   existingCities?: VisitedCity[];
   onSuccess?: () => void;
   onCancel?: () => void;
+  onEditExisting?: (cityId: string) => void;
 };
 
 function encodeCountries(countries: VisitedCountry[]): string {
@@ -46,10 +48,11 @@ export function CityForm({
   existingCities = [],
   onSuccess,
   onCancel,
+  onEditExisting,
 }: CityFormProps) {
   const isEdit = Boolean(city);
-  const t = useTranslations("city");
-  const tCommon = useTranslations("common");
+  const t = translateCity;
+  const tCommon = translateCommon;
   const router = useRouter();
   const modal = useModal();
   const toast = useToast();
@@ -73,6 +76,7 @@ export function CityForm({
   const [searchResults, setSearchResults] = useState<SearchCity[]>([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [note, setNote] = useState(city?.note ?? "");
+  const [visitDates, setVisitDates] = useState<string[]>(city?.visit_dates ?? []);
   const [mediaType, setMediaType] = useState<"photo" | "instagram" | "">(
     city?.media_type ?? ""
   );
@@ -110,24 +114,83 @@ export function CityForm({
     (c) => c.country_code === customTargetCountryCode
   );
 
-  const canAddCustomCity = useMemo(() => {
+  const needsCountryPicker = searchCountryFilter === ALL_COUNTRIES;
+
+  const canPromptCustomCity = useMemo(() => {
     if (isEdit || trimmedQuery.length < MIN_QUERY_LENGTH) return false;
-    if (!customTargetCountryCode) return false;
     if (loadingSearch) return false;
     if (searchResults.length > 0) return false;
+    if (needsCountryPicker) return visitedCountries.length > 0;
+    if (!customTargetCountryCode) return false;
 
     const key = `${customTargetCountryCode.toUpperCase()}:${trimmedQuery.toLowerCase()}`;
-    if (existingKeys.has(key)) return false;
-
-    return true;
+    return !existingKeys.has(key);
   }, [
     customTargetCountryCode,
     existingKeys,
     isEdit,
     loadingSearch,
+    needsCountryPicker,
     searchResults.length,
     trimmedQuery,
+    visitedCountries.length,
   ]);
+
+  const handleAddCustomCity = useCallback(
+    async (fieldValues?: Record<string, string>) => {
+      const resolvedCountryCode = needsCountryPicker
+        ? (fieldValues?.country ?? customCountryCode)
+        : customTargetCountryCode;
+      const country = visitedCountries.find((c) => c.country_code === resolvedCountryCode);
+
+      if (!country || trimmedQuery.length < MIN_QUERY_LENGTH) return;
+
+      const key = `${resolvedCountryCode.toUpperCase()}:${trimmedQuery.toLowerCase()}`;
+      if (existingKeys.has(key)) {
+        await modal.alert(t("alreadyOnMap"), { variant: "info" });
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const result = await addCity({
+          city_name: trimmedQuery,
+          country_code: resolvedCountryCode,
+          country_name: country.country_name,
+        });
+
+        if (!result.ok) {
+          await modal.alert(result.error, { variant: "error" });
+          throw new Error(result.error);
+        }
+
+        toast.show(t("cityAdded"));
+        lastPromptKeyRef.current = null;
+        setSearchQuery("");
+        setCityName("");
+        setCoords(null);
+        setSearchResults([]);
+        onSuccess?.();
+        router.refresh();
+      } finally {
+        setLoading(false);
+      }
+    },
+    [
+      customCountryCode,
+      customTargetCountryCode,
+      existingKeys,
+      modal,
+      needsCountryPicker,
+      onSuccess,
+      router,
+      t,
+      toast,
+      trimmedQuery,
+      visitedCountries,
+    ]
+  );
 
   const runSearch = useCallback(
     async (q: string, countries: VisitedCountry[]) => {
@@ -205,88 +268,79 @@ export function CityForm({
     lastPromptKeyRef.current = null;
   }
 
-  const handleAddCustomCity = useCallback(async () => {
-    if (!canAddCustomCity || !customTargetCountry) return;
-
-    setLoading(true);
-
-    try {
-      const result = await addCity({
-        city_name: trimmedQuery,
-        country_code: customTargetCountryCode,
-        country_name: customTargetCountry.country_name,
-      });
-
-      if (!result.ok) {
-        await modal.alert(result.error, { variant: "error" });
-        throw new Error(result.error);
-      }
-
-      toast.show(t("cityAdded"));
-      lastPromptKeyRef.current = null;
-      setSearchQuery("");
-      setCityName("");
-      setCoords(null);
-      setSearchResults([]);
-      onSuccess?.();
-      router.refresh();
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    canAddCustomCity,
-    customTargetCountry,
-    customTargetCountryCode,
-    modal,
-    onSuccess,
-    router,
-    t,
-    toast,
-    trimmedQuery,
-  ]);
-
   useEffect(() => {
-    if (isEdit || loadingSearch || loading || !canAddCustomCity || !customTargetCountry) {
+    if (isEdit || loadingSearch || loading || !canPromptCustomCity) {
       return;
     }
 
-    const promptKey = `${customTargetCountryCode}:${trimmedQuery.toLowerCase()}`;
+    const promptKey = needsCountryPicker
+      ? trimmedQuery.toLowerCase()
+      : `${customTargetCountryCode}:${trimmedQuery.toLowerCase()}`;
     const timer = window.setTimeout(() => {
       if (lastPromptKeyRef.current === promptKey) return;
       lastPromptKeyRef.current = promptKey;
 
+      if (needsCountryPicker) {
+        toast.showAction({
+          message: t("customCityNotFound", {
+            city: formatCityDisplayName(trimmedQuery),
+          }),
+          fields: [
+            {
+              type: "select",
+              id: "country",
+              label: t("country"),
+              options: visitedCountries.map((c) => ({
+                value: c.country_code,
+                label: c.country_name,
+              })),
+              defaultValue: customCountryCode,
+            },
+          ],
+          actionLabel: t("customCityAdd"),
+          dismissLabel: tCommon("no"),
+          accent: "blue",
+          onAction: handleAddCustomCity,
+        });
+        return;
+      }
+
       toast.showAction({
-        message: t("customCityNotFound", {
+        message: t("customCityNotFoundInCountry", {
           city: formatCityDisplayName(trimmedQuery),
-          country: customTargetCountry.country_name,
+          country: customTargetCountry!.country_name,
         }),
         actionLabel: t("customCityAdd"),
         dismissLabel: tCommon("no"),
+        accent: "blue",
         onAction: handleAddCustomCity,
       });
     }, CUSTOM_CITY_TOAST_DELAY_MS);
 
     return () => window.clearTimeout(timer);
   }, [
-    canAddCustomCity,
+    canPromptCustomCity,
+    customCountryCode,
     customTargetCountry,
     customTargetCountryCode,
     handleAddCustomCity,
     isEdit,
     loading,
     loadingSearch,
+    needsCountryPicker,
     t,
     tCommon,
     toast,
     trimmedQuery,
+    visitedCountries,
   ]);
 
   useEffect(() => {
-    if (!canAddCustomCity) {
+    if (!canPromptCustomCity) {
       lastPromptKeyRef.current = null;
       toast.dismiss();
     }
-  }, [canAddCustomCity, toast]);
+  }, [canPromptCustomCity, toast]);
 
   function pickSearchResult(result: SearchCity) {
     setCityName(result.name);
@@ -294,6 +348,24 @@ export function CityForm({
     setCoords({ latitude: result.latitude, longitude: result.longitude });
     setSearchQuery(result.name);
     setSearchResults([]);
+    setVisitDates([]);
+  }
+
+  function handleSearchResultClick(result: SearchCity) {
+    const key = `${result.country_code.toUpperCase()}:${result.name.toLowerCase()}`;
+    if (existingKeys.has(key)) {
+      const existing = existingCities.find(
+        (c) =>
+          `${c.country_code.toUpperCase()}:${c.city_name.toLowerCase()}` === key
+      );
+      if (existing && onEditExisting) {
+        onEditExisting(existing.id);
+        return;
+      }
+      void modal.alert(t("alreadyOnMapEditHint"), { variant: "info" });
+      return;
+    }
+    pickSearchResult(result);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -368,6 +440,7 @@ export function CityForm({
         note: note || null,
         media_type: finalMediaType,
         media_url: mediaUrl,
+        visit_dates: visitDates,
       };
 
       const url = city ? `/api/cities/${city.id}` : "/api/cities";
@@ -393,20 +466,19 @@ export function CityForm({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-4 rounded-xl border border-slate-700 bg-slate-900 p-5"
-    >
-      <h3 className="text-lg font-semibold text-white">
-        {isEdit ? t("edit") : t("add")}
-      </h3>
+    <form onSubmit={handleSubmit} className="dashboard-form-city">
+      <div className="dashboard-form-city__header">
+        <h3 className="dashboard-form-city__title">
+          {isEdit ? t("edit") : t("add")}
+        </h3>
+      </div>
 
       {!isEdit && (
         <>
-          <p className="text-xs text-slate-500">{t("searchHint")}</p>
+          <p className="dashboard-form-city__hint">{t("searchHint")}</p>
 
           <div>
-            <label className="mb-2 block text-sm text-slate-400">{t("searchIn")}</label>
+            <label className="dashboard-form-city__label">{t("searchIn")}</label>
             <select
               value={searchCountryFilter}
               onChange={(e) => handleSearchCountryFilterChange(e.target.value)}
@@ -422,7 +494,7 @@ export function CityForm({
           </div>
 
           <div>
-            <label className="mb-2 block text-sm text-slate-400">
+            <label className="dashboard-form-city__label">
               {t("searchCities")}
             </label>
             <input
@@ -443,28 +515,6 @@ export function CityForm({
             />
           </div>
 
-          {searchCountryFilter === ALL_COUNTRIES && trimmedQuery.length >= MIN_QUERY_LENGTH && (
-            <div>
-              <label className="mb-2 block text-sm text-slate-400">{t("country")}</label>
-              <select
-                value={customCountryCode}
-                onChange={(e) => {
-                  setCustomCountryCode(e.target.value);
-                  if (cityName && cityName === trimmedQuery) {
-                    setCityName("");
-                  }
-                }}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
-              >
-                {visitedCountries.map((c) => (
-                  <option key={c.country_code} value={c.country_code}>
-                    {c.country_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
           {trimmedQuery.length >= MIN_QUERY_LENGTH && (
             <>
               {(loadingSearch || searchResults.length > 0) && (
@@ -483,12 +533,9 @@ export function CityForm({
                         <li key={result.id}>
                           <button
                             type="button"
-                            disabled={alreadyAdded}
-                            onClick={() => pickSearchResult(result)}
-                            className={`flex w-full flex-col px-3 py-2.5 text-left ${
-                              alreadyAdded
-                                ? "cursor-not-allowed opacity-50"
-                                : "hover:bg-slate-800/80"
+                            onClick={() => handleSearchResultClick(result)}
+                            className={`flex w-full flex-col px-3 py-2.5 text-left hover:bg-slate-800/80 ${
+                              alreadyAdded ? "border-l-2 border-blue-500/70" : ""
                             }`}
                           >
                             <span className="text-sm text-slate-200">{result.name}</span>
@@ -497,9 +544,9 @@ export function CityForm({
                                 {result.subtitle}
                               </span>
                             )}
-                            {alreadyAdded && (
-                              <span className="text-xs text-slate-600">{t("alreadyOnMap")}</span>
-                            )}
+                            {alreadyAdded ? (
+                              <span className="text-xs text-blue-400">{t("alreadyOnMapEdit")}</span>
+                            ) : null}
                           </button>
                         </li>
                       );
@@ -508,7 +555,7 @@ export function CityForm({
                 </ul>
               )}
 
-              {!loadingSearch && searchResults.length === 0 && !canAddCustomCity && (
+              {!loadingSearch && searchResults.length === 0 && !canPromptCustomCity && (
                 <p className="text-sm text-slate-500">{t("noCityResults")}</p>
               )}
             </>
@@ -528,13 +575,23 @@ export function CityForm({
               })}
             </p>
           )}
+
+          {cityName ? (
+            <CityVisitDatesEditor
+              key={cityName}
+              value={visitDates}
+              onChange={setVisitDates}
+            />
+          ) : (
+            <p className="text-xs text-slate-500">{t("visitDatesPickCityFirst")}</p>
+          )}
         </>
       )}
 
       {isEdit && (
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm text-slate-400">{t("cityName")}</label>
+            <label className="dashboard-form-city__label">{t("cityName")}</label>
             <input
               value={cityName}
               onChange={(e) => setCityName(e.target.value)}
@@ -543,7 +600,7 @@ export function CityForm({
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-slate-400">{t("country")}</label>
+            <label className="dashboard-form-city__label">{t("country")}</label>
             <select
               value={countryCode}
               onChange={(e) => setCountryCode(e.target.value)}
@@ -560,6 +617,14 @@ export function CityForm({
       )}
 
       {isEdit && <p className="text-xs text-slate-500">{t("locationHint")}</p>}
+
+      {isEdit && (
+        <CityVisitDatesEditor
+          key={city?.id}
+          value={visitDates}
+          onChange={setVisitDates}
+        />
+      )}
 
       <p className="text-xs text-slate-500">{t("mediaHint")}</p>
 
@@ -616,7 +681,7 @@ export function CityForm({
       )}
 
       <div>
-        <label className="mb-1 block text-sm text-slate-400">{t("note")}</label>
+        <label className="dashboard-form-city__label">{t("note")}</label>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value.slice(0, LIMITS.noteMaxLength))}
@@ -629,11 +694,11 @@ export function CityForm({
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="dashboard-form-city__footer">
         <button
           type="submit"
           disabled={loading || (!isEdit && !cityName.trim())}
-          className="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-500 disabled:opacity-50"
+          className="dashboard-form-city__btn-primary"
         >
           {loading ? tCommon("loading") : tCommon("save")}
         </button>
@@ -641,7 +706,7 @@ export function CityForm({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-slate-700 px-5 py-2 text-slate-300 hover:border-slate-500"
+            className="dashboard-form-city__btn-secondary"
           >
             {tCommon("cancel")}
           </button>

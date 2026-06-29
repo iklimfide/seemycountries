@@ -362,10 +362,10 @@ export function TravelMapView({
       className={
         homeLayout
           ? "col-span-full grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 [&_input]:h-[50px] [&_input]:rounded-[14px] [&_input]:border-[#d8e1ef] [&_input]:bg-white [&_input]:px-[15px] [&_input]:text-[#111827] [&_input]:shadow-[0_5px_14px_rgba(15,23,42,0.05)] [&_input]:placeholder:text-[#94a3b8] [&_input]:focus:border-[#93c5fd] [&_input]:focus:ring-4 [&_input]:focus:ring-[rgba(37,99,235,0.10)] [&_select]:h-[50px] [&_select]:rounded-[14px] [&_select]:border-[#d8e1ef] [&_select]:bg-white [&_select]:px-[15px] [&_select]:text-[#111827] [&_select]:shadow-[0_5px_14px_rgba(15,23,42,0.05)] [&_select]:focus:border-[#93c5fd] [&_select]:focus:ring-4 [&_select]:focus:ring-[rgba(37,99,235,0.10)]"
-          : "mb-2 grid grid-cols-1 gap-2 sm:mb-3 sm:grid-cols-2 xl:grid-cols-4"
+          : "mb-2 grid min-w-0 max-w-full grid-cols-1 gap-2 overflow-x-hidden sm:mb-3 sm:grid-cols-2 xl:grid-cols-4"
       }
     >
-      <div className="w-full sm:min-w-0">
+      <div className="w-full min-w-0">
         <MapContinentControl
           continent={continent}
           onChange={(next) => {
@@ -374,10 +374,10 @@ export function TravelMapView({
           }}
         />
       </div>
-      <div className="w-full sm:min-w-0">
+      <div className="w-full min-w-0">
         <MapCountrySearch onSelect={handleCountrySearch} />
       </div>
-      <div className="w-full sm:min-w-0">
+      <div className="w-full min-w-0">
         <MapPopularDestinations
           isLoggedIn={isLoggedIn}
           onRequireLogin={requireLogin}
@@ -387,7 +387,7 @@ export function TravelMapView({
           onRemoved={handleDestinationRemoved}
         />
       </div>
-      <div className="w-full sm:min-w-0">
+      <div className="w-full min-w-0">
         <MapPopularParks
           isLoggedIn={isLoggedIn}
           onRequireLogin={requireLogin}
@@ -402,7 +402,7 @@ export function TravelMapView({
   const mapBlock = (
     <div
       id={homeLayout ? "sample-map" : "travel-map"}
-      className={`relative w-full scroll-mt-24 ${homeLayout ? "min-h-[320px] sm:min-h-[430px]" : ""}`}
+      className={`relative w-full min-w-0 max-w-full overflow-hidden scroll-mt-24 ${homeLayout ? "min-h-[320px] sm:min-h-[430px]" : ""}`}
     >
       {homeLayout ? (
         <div className="pointer-events-none absolute left-[18px] top-4 z-10 rounded-full border border-slate-300/35 bg-white/86 px-3 py-2 text-[13px] font-bold text-[#475569] backdrop-blur-sm">
@@ -493,7 +493,7 @@ export function TravelMapView({
   }
 
   return (
-    <>
+    <div className="min-w-0 max-w-full overflow-x-clip">
       {filterGrid}
       {mapBlock}
       {flagsBlock}
@@ -504,6 +504,6 @@ export function TravelMapView({
       )}
       <MapLegend showWishlist={showWishlist} />
       {popups}
-    </>
+    </div>
   );
 }

@@ -9,6 +9,16 @@ function getSupabaseEnv() {
   return { url, key };
 }
 
+function isRecoverableAuthError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("refresh token") ||
+    lower.includes("invalid jwt") ||
+    lower.includes("session") ||
+    lower.includes("token is expired")
+  );
+}
+
 export async function updateSession(request: NextRequest) {
   const env = getSupabaseEnv();
   if (!env) {
@@ -18,25 +28,31 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(env.url, env.key, {
-      global: { fetch: fetchWithTimeout },
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
+    global: { fetch: fetchWithTimeout },
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
       },
-    }
-  );
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value)
+        );
+        supabaseResponse = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (!user && error && isRecoverableAuthError(error.message)) {
+    await supabase.auth.signOut();
+  }
 
   return supabaseResponse;
 }

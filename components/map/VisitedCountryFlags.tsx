@@ -90,12 +90,12 @@ export function VisitedCountryFlags({
     <div
       className={
         variant === "landing"
-          ? "overflow-x-auto border-t border-[#d8e1ef] bg-white px-[18px] py-3.5 scrollbar-thin"
-          : "mt-2 overflow-x-auto scrollbar-thin sm:mt-3"
+          ? "max-w-full min-w-0 overflow-x-auto border-t border-[#d8e1ef] bg-white px-[18px] py-3.5 scrollbar-thin"
+          : "mt-2 max-w-full min-w-0 overflow-x-auto overscroll-x-contain scrollbar-thin sm:mt-3"
       }
     >
       <div
-        className={`flex w-max min-w-full items-center ${
+        className={`flex w-max items-center ${
           variant === "landing" ? "gap-2.5" : "gap-1.5 px-0.5 py-1 sm:gap-2"
         }`}
         role="list"

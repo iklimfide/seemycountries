@@ -1,12 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { ShareSheetModal } from "@/components/share/ShareSheetModal";
-import { buildShareText } from "@/lib/seo/profile";
-import { profileShareUrl } from "@/lib/seo/site";
 import { shareMessages } from "@/lib/i18n/client-messages";
-import { useToast } from "@/components/ui/ToastProvider";
 import type { TravelStats } from "@/types/database";
+import { useShareProfile } from "@/components/share/ShareProfileButton";
 
 type ShareProfileProps = {
   username: string;
@@ -15,41 +12,18 @@ type ShareProfileProps = {
   isOwnProfile?: boolean;
 };
 
-function encode(text: string): string {
-  return encodeURIComponent(text);
-}
-
 export function ShareProfile({
   username,
   displayName,
   stats,
   isOwnProfile = false,
 }: ShareProfileProps) {
-  const toast = useToast();
-  const [open, setOpen] = useState(false);
-
-  const shareUrl = profileShareUrl(username);
-  const shareText = buildShareText(displayName, stats, username, {
-    url: shareUrl,
+  const { open, setOpen, shareLinks, handleCopy } = useShareProfile({
+    username,
+    displayName,
+    stats,
     isOwnProfile,
   });
-  const captionText = shareText.replace(shareUrl, "").trim();
-
-  const shareLinks = {
-    whatsapp: `https://wa.me/?text=${encode(shareText)}`,
-    telegram: `https://t.me/share/url?url=${encode(shareUrl)}&text=${encode(captionText)}`,
-    x: `https://x.com/intent/post?text=${encode(shareText)}`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encode(shareUrl)}`,
-  };
-
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(shareText);
-      toast.show(shareMessages.copied, 1000);
-    } catch {
-      toast.show(shareMessages.copyFailed, 2000);
-    }
-  }
 
   return (
     <>
@@ -66,7 +40,7 @@ export function ShareProfile({
           onClick={() => setOpen(true)}
           className="rounded-full bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
         >
-          {shareMessages.native}
+          {shareMessages.shareMyTravels}
         </button>
       </section>
 

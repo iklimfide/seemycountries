@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { LIMITS } from "@/lib/constants";
+import { translateAuth, translateCommon } from "@/lib/i18n/client-messages";
 import { createClient } from "@/lib/supabase/client";
 import { useModal } from "@/components/ui/ModalProvider";
 import {
@@ -22,9 +21,8 @@ type UsernameStatus = "idle" | "checking" | "available" | "taken" | "reserved" |
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
 
 export function AuthForm({ mode }: AuthFormProps) {
-  const t = useTranslations("auth");
-  const tCommon = useTranslations("common");
-  const router = useRouter();
+  const t = translateAuth;
+  const tCommon = translateCommon;
   const supabase = createClient();
   const modal = useModal();
   const abortRef = useRef<AbortController | null>(null);
@@ -155,8 +153,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           return;
         }
 
-        router.push("/dashboard");
-        router.refresh();
+        window.location.assign("/dashboard");
       } else {
         const parsed = loginSchema.safeParse(form);
         if (!parsed.success) {
@@ -176,8 +173,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           return;
         }
 
-        router.push("/dashboard");
-        router.refresh();
+        window.location.assign("/dashboard");
       }
     } finally {
       setLoading(false);

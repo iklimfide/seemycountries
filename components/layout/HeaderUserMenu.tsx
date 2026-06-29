@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { commonMessages } from "@/lib/i18n/client-messages";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
@@ -21,7 +21,6 @@ export function HeaderUserMenu({
   showInlineIdentity = false,
   badge = null,
 }: HeaderUserMenuProps) {
-  const t = useTranslations("common");
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -60,7 +59,7 @@ export function HeaderUserMenu({
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-haspopup="menu"
-          aria-label={t("openMenu")}
+          aria-label={commonMessages.openMenu}
           className="rounded-full outline-none ring-offset-2 ring-offset-header-bg focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           <ProfileAvatar
@@ -92,7 +91,7 @@ export function HeaderUserMenu({
               className={itemClass}
               onClick={() => setOpen(false)}
             >
-              {t("dashboard")}
+              {commonMessages.dashboard}
             </Link>
             <Link
               href="/dashboard/settings"
@@ -100,7 +99,7 @@ export function HeaderUserMenu({
               className={itemClass}
               onClick={() => setOpen(false)}
             >
-              {t("profile")}
+              {commonMessages.profile}
             </Link>
 
             <ThemeToggle variant="menu" onToggled={() => setOpen(false)} />
@@ -109,7 +108,7 @@ export function HeaderUserMenu({
 
             <form action="/auth/signout" method="post" role="none">
               <button type="submit" role="menuitem" className={itemClass}>
-                {t("logout")}
+                {commonMessages.logout}
               </button>
             </form>
           </div>

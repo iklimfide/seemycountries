@@ -2,6 +2,14 @@ import { z } from "zod";
 import { LIMITS } from "@/lib/constants";
 import { formatCityDisplayName } from "@/lib/utils/city-name";
 import { isValidInstagramUrl } from "@/lib/utils/instagram";
+import { isValidVisitYearMonth, normalizeVisitDates } from "@/lib/utils/visit-date";
+
+const visitDatesField = z
+  .array(z.string())
+  .max(LIMITS.maxCityVisitDates)
+  .optional()
+  .nullable()
+  .transform((value) => normalizeVisitDates(value ?? []));
 
 const cityFields = {
   city_name: z
@@ -20,6 +28,7 @@ const cityFields = {
     .nullable(),
   media_type: z.enum(["photo", "instagram"]).optional().nullable(),
   media_url: z.string().optional().nullable(),
+  visit_dates: visitDatesField,
 };
 
 const mediaRefine = {
@@ -43,6 +52,10 @@ const mediaRefine = {
 /** Client payload — coordinates optional when picked from search. */
 export const cityInputSchema = z
   .object(cityFields)
+  .refine(
+    (data) => (data.visit_dates ?? []).every(isValidVisitYearMonth),
+    { message: "Invalid visit date format" }
+  )
   .refine(mediaRefine.check, { message: mediaRefine.message })
   .refine(
     (data) => {

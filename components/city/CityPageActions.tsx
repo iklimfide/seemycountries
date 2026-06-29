@@ -1,0 +1,160 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { addCity } from "@/lib/client/city-actions";
+import { addWishlistCountry, removeWishlistCountry } from "@/lib/client/country-actions";
+import { useModal } from "@/components/ui/ModalProvider";
+import { useToast } from "@/components/ui/ToastProvider";
+import type { CityVisitorState } from "@/lib/data/city-visitor-state";
+
+type CityPageActionsProps = {
+  cityName: string;
+  countryCode: string;
+  countryName: string;
+  latitude: number | null;
+  longitude: number | null;
+  visitorState: CityVisitorState;
+  loginHref: string;
+  labels: {
+    visited: string;
+    wantToVisit: string;
+    cityAdded: string;
+    cityRemoved: string;
+    wishlistAdded: string;
+    wishlistRemoved: string;
+    alreadyOnMap: string;
+  };
+};
+
+export function CityPageActions({
+  cityName,
+  countryCode,
+  countryName,
+  latitude,
+  longitude,
+  visitorState: initialState,
+  loginHref,
+  labels,
+}: CityPageActionsProps) {
+  const router = useRouter();
+  const modal = useModal();
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  const [state, setState] = useState(initialState);
+
+  useEffect(() => {
+    setState(initialState);
+  }, [initialState]);
+
+  const cityOnMap = Boolean(state.cityId);
+  const onWishlist = Boolean(state.countryWishlistId);
+  const wishlistDisabled = state.countryVisited || cityOnMap;
+
+  async function handleBeenHere() {
+    if (!state.isLoggedIn) {
+      router.push(loginHref);
+      return;
+    }
+    if (busy) return;
+
+    setBusy(true);
+    try {
+      if (cityOnMap && state.cityId) {
+        const res = await fetch(`/api/cities/${state.cityId}`, { method: "DELETE" });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          await modal.alert((data.error as string) ?? "Failed to remove city", { variant: "error" });
+          return;
+        }
+        setState((current) => ({ ...current, cityId: null }));
+        toast.show(labels.cityRemoved);
+      } else {
+        const result = await addCity({
+          city_name: cityName,
+          country_code: countryCode,
+          country_name: countryName,
+          ...(latitude != null && longitude != null
+            ? { latitude, longitude }
+            : {}),
+        });
+
+        if (!result.ok) {
+          if (result.error.toLowerCase().includes("already")) {
+            await modal.alert(labels.alreadyOnMap, { variant: "info" });
+          } else {
+            await modal.alert(result.error, { variant: "error" });
+          }
+          return;
+        }
+
+        const city = result.city as { id?: string };
+        setState((current) => ({
+          ...current,
+          cityId: city.id ?? current.cityId,
+          countryVisited: true,
+          countryWishlistId: null,
+        }));
+        toast.show(labels.cityAdded);
+      }
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleWantToVisit() {
+    if (!state.isLoggedIn) {
+      router.push(loginHref);
+      return;
+    }
+    if (busy || wishlistDisabled) return;
+
+    setBusy(true);
+    try {
+      if (onWishlist && state.countryWishlistId) {
+        const result = await removeWishlistCountry(state.countryWishlistId);
+        if (!result.ok) {
+          await modal.alert(result.error, { variant: "error" });
+          return;
+        }
+        toast.show(labels.wishlistRemoved);
+      } else {
+        const result = await addWishlistCountry(countryCode);
+        if (!result.ok) {
+          await modal.alert(result.error, { variant: "error" });
+          return;
+        }
+        toast.show(labels.wishlistAdded);
+      }
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="city-page__actions">
+      <button
+        type="button"
+        onClick={handleBeenHere}
+        disabled={busy}
+        aria-pressed={cityOnMap}
+        className={`city-page__btn city-page__btn--visited ${cityOnMap ? "city-page__btn--active" : ""}`}
+      >
+        <span aria-hidden>✓</span>
+        {labels.visited}
+      </button>
+      <button
+        type="button"
+        onClick={handleWantToVisit}
+        disabled={busy || wishlistDisabled}
+        aria-pressed={onWishlist}
+        className={`city-page__btn city-page__btn--wish ${onWishlist ? "city-page__btn--active" : ""}`}
+      >
+        <span aria-hidden>🔖</span>
+        {labels.wantToVisit}
+      </button>
+    </div>
+  );
+}

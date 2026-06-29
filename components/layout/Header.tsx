@@ -163,16 +163,16 @@ export async function Header({
           </nav>
         </div>
       ) : (
-      <div className="mx-auto max-w-5xl px-4 py-3 sm:py-4">
+      <div className="mx-auto w-full min-w-0 max-w-5xl overflow-x-clip px-4 py-3 sm:py-4">
         {profileLead ? (
           <>
-            <div className="flex items-center justify-between gap-2 sm:hidden">
+            <div className="flex min-w-0 items-center justify-between gap-2 sm:hidden">
               {brandLink}
               <nav className="flex shrink-0 items-center gap-2 text-sm">{navItems}</nav>
             </div>
             <div className="mt-3 border-t border-slate-700 pt-3 sm:hidden">{profileBlock}</div>
 
-            <div className="hidden items-center justify-between gap-4 sm:flex">
+            <div className="hidden min-w-0 items-center justify-between gap-4 sm:flex">
               <div className="flex min-w-0 items-center gap-4">
                 {brandLink}
                 <span className="h-5 w-px shrink-0 bg-slate-600" aria-hidden />
@@ -182,7 +182,7 @@ export async function Header({
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center justify-between gap-4">
             {brandLink}
             <nav className="flex shrink-0 items-center gap-3 text-sm">{navItems}</nav>
           </div>

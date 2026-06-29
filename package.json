@@ -6,14 +6,17 @@
     "dev": "next dev",
     "build": "node scripts/copy-country-flags.mjs && next build",
     "build:tourist-cities": "node scripts/build-tourist-cities.mjs",
+    "build:tourist-cities:csv": "node scripts/build-tourist-cities.mjs --from-csv",
     "build:tourist-parks": "node scripts/build-tourist-parks.mjs",
+    "build:tourist-parks:csv": "node scripts/build-tourist-parks.mjs --from-csv",
     "build:popular-destinations": "node scripts/build-popular-destinations.mjs",
     "build:popular-parks": "node scripts/build-popular-parks.mjs",
+    "build:city-hubs": "node scripts/build-city-hubs.mjs",
     "build:map-supplements": "node scripts/build-map-supplements.mjs",
     "build:flags": "node scripts/copy-country-flags.mjs",
     "postinstall": "node scripts/copy-country-flags.mjs",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

@@ -61,6 +61,7 @@ export async function POST(request: Request) {
       note: data.note ?? null,
       media_type: data.media_type ?? null,
       media_url: data.media_url ?? null,
+      visit_dates: data.visit_dates ?? [],
     })
     .select()
     .single();

@@ -2,11 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { ProfileAvatarUpload } from "@/components/profile/ProfileAvatar";
 import { ShareProfile } from "@/components/share/ShareProfile";
 import { useModal } from "@/components/ui/ModalProvider";
 import { LIMITS } from "@/lib/constants";
+import {
+  translateCommon,
+  translateSettings,
+  translateWishlist,
+} from "@/lib/i18n/client-messages";
 import {
   MARITAL_STATUS_OPTIONS,
   PROFESSION_OPTIONS,
@@ -32,9 +36,9 @@ const inputClass =
   "w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-white outline-none focus:border-blue-500";
 
 export function ProfileSettingsForm({ profile, stats }: ProfileSettingsFormProps) {
-  const t = useTranslations("settings");
-  const tCommon = useTranslations("common");
-  const tWishlist = useTranslations("wishlist");
+  const t = translateSettings;
+  const tCommon = translateCommon;
+  const tWishlist = translateWishlist;
   const modal = useModal();
   const router = useRouter();
 

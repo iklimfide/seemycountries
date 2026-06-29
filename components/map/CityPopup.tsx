@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { popupMessages } from "@/lib/i18n/client-messages";
 import { toInstagramEmbedUrl } from "@/lib/utils/instagram";
+import { formatVisitDatesList } from "@/lib/utils/visit-date";
+import { getIntlLocale } from "@/lib/i18n/config";
 import type { VisitedCity } from "@/types/database";
 
 type CityPopupProps = {
@@ -13,6 +15,10 @@ type CityPopupProps = {
 
 export function CityPopup({ city, onClose }: CityPopupProps) {
   const embedContainerRef = useRef<HTMLDivElement>(null);
+  const visitDatesLabel =
+    city.visit_dates && city.visit_dates.length > 0
+      ? formatVisitDatesList(city.visit_dates, getIntlLocale())
+      : null;
 
   useEffect(() => {
     if (city.media_type !== "instagram" || !city.media_url) return;
@@ -64,6 +70,9 @@ export function CityPopup({ city, onClose }: CityPopupProps) {
               {city.city_name}
             </h2>
             <p className="text-sm text-slate-400">{city.country_name}</p>
+            {visitDatesLabel ? (
+              <p className="mt-1 text-sm text-blue-300/90">{visitDatesLabel}</p>
+            ) : null}
           </div>
           <button
             type="button"

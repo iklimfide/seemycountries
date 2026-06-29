@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { ParkForm } from "@/components/dashboard/ParkForm";
 import { useModal } from "@/components/ui/ModalProvider";
+import { commonMessages, modalMessages, parkMessages } from "@/lib/i18n/client-messages";
 import { parkTypeLabel } from "@/lib/utils/park-type";
 import type { ParkType, VisitedCountry, VisitedPark } from "@/types/database";
 
@@ -30,9 +30,6 @@ function sortParks(parks: VisitedPark[], countryFilter: string): VisitedPark[] {
 }
 
 export function ParkList({ parks, countries }: ParkListProps) {
-  const t = useTranslations("park");
-  const tModal = useTranslations("modal");
-  const tCommon = useTranslations("common");
   const router = useRouter();
   const modal = useModal();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -64,8 +61,8 @@ export function ParkList({ parks, countries }: ParkListProps) {
   }, [parks, countryFilter]);
 
   async function handleDelete(id: string) {
-    const confirmed = await modal.confirm(tModal("deleteParkMessage"), {
-      title: tModal("deleteParkTitle"),
+    const confirmed = await modal.confirm(modalMessages.deleteParkMessage, {
+      title: modalMessages.deleteParkTitle,
       destructive: true,
     });
     if (!confirmed) return;
@@ -103,35 +100,35 @@ export function ParkList({ parks, countries }: ParkListProps) {
   }
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-white">
-          {t("title")}
+    <section className="flex min-w-0 max-w-full flex-col gap-4">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+        <h2 className="min-w-0 dashboard-section-title-park">
+          {parkMessages.title}
           <span className="ml-2 text-sm font-normal text-slate-500">
-            · {t("visitedOnly")}
+            · {parkMessages.visitedOnly}
           </span>
         </h2>
         {canAddPark && (
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:border-slate-500 hover:text-white"
+            className="dashboard-btn-add-park"
           >
-            + {t("add")}
+            + {parkMessages.add}
           </button>
         )}
       </div>
 
       {!canAddPark ? (
-        <p className="text-sm text-slate-500">{t("addCountryFirst")}</p>
+        <p className="text-sm text-slate-500">{parkMessages.addCountryFirst}</p>
       ) : parks.length === 0 ? (
-        <p className="text-sm text-slate-500">{t("empty")}</p>
+        <p className="text-sm text-slate-500">{parkMessages.empty}</p>
       ) : (
         <>
           {countryOptions.length > 1 && (
             <div className="max-w-xs">
               <label htmlFor="park-list-country-filter" className="mb-1.5 block text-sm text-slate-400">
-                {t("filterByCountry")}
+                {parkMessages.filterByCountry}
               </label>
               <select
                 id="park-list-country-filter"
@@ -139,7 +136,7 @@ export function ParkList({ parks, countries }: ParkListProps) {
                 onChange={(e) => setCountryFilter(e.target.value)}
                 className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
               >
-                <option value={ALL_COUNTRIES}>{t("allCountries")}</option>
+                <option value={ALL_COUNTRIES}>{parkMessages.allCountries}</option>
                 {countryOptions.map((country) => (
                   <option key={country.code} value={country.code}>
                     {country.name}
@@ -150,7 +147,7 @@ export function ParkList({ parks, countries }: ParkListProps) {
           )}
 
           {filteredParks.length === 0 ? (
-            <p className="text-sm text-slate-500">{t("noParksInCountry")}</p>
+            <p className="text-sm text-slate-500">{parkMessages.noParksInCountry}</p>
           ) : (
             <ul className="max-h-[min(28rem,60vh)] divide-y divide-slate-800 overflow-y-auto rounded-xl border border-slate-700 scrollbar-thin">
               {filteredParks.map((park) => (
@@ -175,14 +172,14 @@ export function ParkList({ parks, countries }: ParkListProps) {
                       onClick={() => setEditingId(park.id)}
                       className="text-sm text-emerald-400 hover:text-emerald-300"
                     >
-                      {tCommon("edit")}
+                      {commonMessages.edit}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(park.id)}
                       className="text-sm text-red-400 hover:text-red-300"
                     >
-                      {tCommon("delete")}
+                      {commonMessages.delete}
                     </button>
                   </div>
                 </li>
