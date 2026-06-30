@@ -12,6 +12,7 @@ type VisitedCountryFlagsProps = {
   countryCodes: string[];
   onCountryClick?: (country: { code: string; name: string }) => void;
   variant?: "default" | "landing";
+  className?: string;
 };
 
 function FlagTile({
@@ -78,6 +79,7 @@ export function VisitedCountryFlags({
   countryCodes,
   onCountryClick,
   variant = "default",
+  className = "",
 }: VisitedCountryFlagsProps) {
   const countries = useMemo(
     () => buildVisitedCountryList(visitedCountries, userCities, countryCodes, userParks),
@@ -90,8 +92,8 @@ export function VisitedCountryFlags({
     <div
       className={
         variant === "landing"
-          ? "profile-panel-scroll scrollbar-thin"
-          : "mt-2 max-w-full min-w-0 overflow-x-auto overscroll-x-contain scrollbar-thin sm:mt-3"
+          ? `profile-panel-scroll scrollbar-thin ${className}`.trim()
+          : `mt-2 max-w-full min-w-0 overflow-x-auto overscroll-x-contain scrollbar-thin sm:mt-3 ${className}`.trim()
       }
     >
       <div

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { DEMO_PERSONA } from "@/lib/data/demo-persona";
+import { profilePath } from "@/lib/seo/site";
 
 export async function HomeHero() {
   const t = await getTranslations("home");
@@ -26,12 +28,12 @@ export async function HomeHero() {
         >
           {t("heroCtaPrimary")}
         </Link>
-        <a
-          href="#sample-map"
+        <Link
+          href={profilePath(DEMO_PERSONA.username)}
           className="inline-flex items-center justify-center rounded-full border border-[#d8e1ef] bg-white px-[22px] py-[13px] text-[15px] font-extrabold text-[#2563eb] transition hover:-translate-y-px hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)] max-sm:w-full"
         >
           {t("heroCtaSecondary")}
-        </a>
+        </Link>
       </div>
 
       <div className="flex flex-wrap gap-3.5 text-sm font-semibold text-[#64748b] max-sm:justify-center max-sm:gap-x-4 max-sm:gap-y-2">

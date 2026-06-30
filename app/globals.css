@@ -693,6 +693,20 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb {
   width: 100%;
 }
 
+.profile-page--embedded {
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.1);
+}
+
+.profile-page--embedded .profile-shell {
+  max-width: none;
+}
+
+.profile-page--embedded .profile-main {
+  padding-bottom: 18px;
+}
+
 .profile-shell {
   width: 100%;
   max-width: 480px;

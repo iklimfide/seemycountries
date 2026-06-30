@@ -24,6 +24,8 @@ type PublicProfileViewProps = {
   isOwnProfile: boolean;
   isGuest: boolean;
   ownerTools?: ReactNode;
+  /** Landing page: show hero + identity + map only, without extra marketing blocks. */
+  embedded?: boolean;
 };
 
 export async function PublicProfileView({
@@ -32,6 +34,7 @@ export async function PublicProfileView({
   isOwnProfile,
   isGuest,
   ownerTools,
+  embedded = false,
 }: PublicProfileViewProps) {
   const [t, tHome] = await Promise.all([getTranslations("profile"), getTranslations("home")]);
 
@@ -69,121 +72,129 @@ export async function PublicProfileView({
   );
   const latestCountry = latestVisitedCountry(visitedCountries, visitedCities, visitedParks);
 
-  return (
-    <TravelMapFocusShell>
-      <div className="profile-page">
-        <div className="profile-shell">
-          <ProfileHeroCover
-            coverUrl={coverUrl}
-            residence={profile.residence}
-            heroTitle={isOwnProfile ? t("travelDiaryTitle") : t("travelDiaryTitleVisitor", { name: displayName })}
-            heroSubtitle={t("travelDiarySubtitle")}
+  const profileBody = (
+    <div className={`profile-page${embedded ? " profile-page--embedded" : ""}`}>
+      <div className="profile-shell">
+        <ProfileHeroCover
+          coverUrl={coverUrl}
+          residence={profile.residence}
+          heroTitle={isOwnProfile ? t("travelDiaryTitle") : t("travelDiaryTitleVisitor", { name: displayName })}
+          heroSubtitle={t("travelDiarySubtitle")}
+        />
+
+        <main className="profile-main">
+          <ProfileIdentityCard
+            avatarUrl={profile.avatar_url}
+            displayName={displayName}
+            username={profile.username}
+            bio={profile.bio}
+            fallbackBio={profileDescription}
+            stats={stats}
+            isOwnProfile={isOwnProfile}
+            countryCount={stats.countries}
+            labels={{
+              countries: t("statCountriesShort"),
+              cities: t("statCitiesShort"),
+              nationalParks: t("statNationalParksShort"),
+              themeParks: t("statThemeParksShort"),
+              share: t("shareProfile"),
+              edit: t("editProfile"),
+            }}
           />
 
-          <main className="profile-main">
-            <ProfileIdentityCard
-              avatarUrl={profile.avatar_url}
-              displayName={displayName}
-              username={profile.username}
-              bio={profile.bio}
-              fallbackBio={profileDescription}
-              stats={stats}
-              isOwnProfile={isOwnProfile}
+          {hasMapContent ? (
+            <ProfileMapPanel
+              visitedCountryCodes={visitedCodes}
+              wishlistCountryCodes={visibleWishlistCodes}
+              visitedCountries={visitedCountries}
+              wishlistCountries={visibleWishlistCountries}
+              visitedCities={visitedCities}
+              visitedParks={visitedParks}
+              isLoggedIn={isLoggedIn}
+              canEditMap={isOwnProfile}
               countryCount={stats.countries}
-              labels={{
-                countries: t("statCountriesShort"),
-                cities: t("statCitiesShort"),
-                nationalParks: t("statNationalParksShort"),
-                themeParks: t("statThemeParksShort"),
-                share: t("shareProfile"),
-                edit: t("editProfile"),
-              }}
+              latestCountry={latestCountry}
+              title={t("worldMapTitle")}
+              detailLabel={t("mapDetail")}
+              markedLabel={t("countriesMarked", { count: stats.countries })}
+              latestAddedPrefix={t("latestAddedPrefix")}
             />
+          ) : (
+            <section className="profile-section">
+              <p className="profile-empty">{t("noCountries")}</p>
+            </section>
+          )}
 
-            {hasMapContent ? (
-              <ProfileMapPanel
-                visitedCountryCodes={visitedCodes}
-                wishlistCountryCodes={visibleWishlistCodes}
-                visitedCountries={visitedCountries}
-                wishlistCountries={visibleWishlistCountries}
-                visitedCities={visitedCities}
-                visitedParks={visitedParks}
-                isLoggedIn={isLoggedIn}
-                canEditMap={isOwnProfile}
-                countryCount={stats.countries}
-                latestCountry={latestCountry}
-                title={t("worldMapTitle")}
-                detailLabel={t("mapDetail")}
-                markedLabel={t("countriesMarked", { count: stats.countries })}
-                latestAddedPrefix={t("latestAddedPrefix")}
+          {!embedded ? (
+            <>
+              <ProfileTripsRow
+                trips={trips}
+                title={t("myTrips")}
+                allLabel={t("tripsAll")}
+                allHref={hasMapContent ? profileAllPath(profile.username) : undefined}
+                badgeLabels={{
+                  recent: t("tripBadgeRecent"),
+                  favorite: t("tripBadgeFavorite"),
+                  dayTrip: t("tripBadgeDayTrip"),
+                }}
+                visitCountLabel={(count) => t("tripVisitCount", { count })}
+                emptyNote={t("tripDefaultNote")}
               />
-            ) : (
-              <section className="profile-section">
-                <p className="profile-empty">{t("noCountries")}</p>
-              </section>
-            )}
 
-            <ProfileTripsRow
-              trips={trips}
-              title={t("myTrips")}
-              allLabel={t("tripsAll")}
-              allHref={hasMapContent ? profileAllPath(profile.username) : undefined}
-              badgeLabels={{
-                recent: t("tripBadgeRecent"),
-                favorite: t("tripBadgeFavorite"),
-                dayTrip: t("tripBadgeDayTrip"),
-              }}
-              visitCountLabel={(count) => t("tripVisitCount", { count })}
-              emptyNote={t("tripDefaultNote")}
-            />
+              {ownerTools ? (
+                <div className="profile-dashboard-tools">{ownerTools}</div>
+              ) : null}
 
-            {ownerTools ? (
-              <div className="profile-dashboard-tools">{ownerTools}</div>
-            ) : null}
+              {!isOwnProfile && hasMapContent ? (
+                <section className="profile-section">
+                  <HomeFeatures />
+                </section>
+              ) : null}
 
-            {!isOwnProfile && hasMapContent ? (
-              <section className="profile-section">
-                <HomeFeatures />
-              </section>
-            ) : null}
+              {!isOwnProfile && isGuest ? (
+                <section className="profile-cta">
+                  <div>
+                    <p className="profile-cta-title">{tHome("ctaTitle")}</p>
+                    <p className="profile-cta-hint">{tHome("ctaHint")}</p>
+                  </div>
+                  <div className="profile-cta-actions">
+                    <Link href="/register" className="profile-cta-primary">
+                      {t("createYourMap")}
+                    </Link>
+                    <Link href="/login" className="profile-cta-secondary">
+                      {tHome("login")}
+                    </Link>
+                  </div>
+                </section>
+              ) : null}
 
-            {!isOwnProfile && isGuest ? (
-              <section className="profile-cta">
-                <div>
-                  <p className="profile-cta-title">{tHome("ctaTitle")}</p>
-                  <p className="profile-cta-hint">{tHome("ctaHint")}</p>
-                </div>
-                <div className="profile-cta-actions">
-                  <Link href="/register" className="profile-cta-primary">
-                    {t("createYourMap")}
-                  </Link>
-                  <Link href="/login" className="profile-cta-secondary">
-                    {tHome("login")}
-                  </Link>
-                </div>
-              </section>
-            ) : null}
-
-            <ProfileSummaryGrid
-              summary={summary}
-              title={t("summaryTitle")}
-              labels={{
-                topVisitTitle: t("summaryTopVisit"),
-                topVisitEmpty: t("summaryTopVisitEmpty"),
-                topVisitSuffix: t("summaryTopVisitSuffix"),
-                nextRouteTitle: t("summaryNextRoute"),
-                nextRouteEmpty: t("summaryNextRouteEmpty"),
-                nextRouteSuffix: t("summaryNextRouteSuffix"),
-                countriesTitle: t("summaryCountries"),
-                countriesBody: (count) => t("summaryCountriesBody", { count }),
-                favoritesTitle: t("summaryFavorites"),
-                favoritesEmpty: t("summaryFavoritesEmpty"),
-                favoritesBody: (count) => t("summaryFavoritesBody", { count }),
-              }}
-            />
-          </main>
-        </div>
+              <ProfileSummaryGrid
+                summary={summary}
+                title={t("summaryTitle")}
+                labels={{
+                  topVisitTitle: t("summaryTopVisit"),
+                  topVisitEmpty: t("summaryTopVisitEmpty"),
+                  topVisitSuffix: t("summaryTopVisitSuffix"),
+                  nextRouteTitle: t("summaryNextRoute"),
+                  nextRouteEmpty: t("summaryNextRouteEmpty"),
+                  nextRouteSuffix: t("summaryNextRouteSuffix"),
+                  countriesTitle: t("summaryCountries"),
+                  countriesBody: (count) => t("summaryCountriesBody", { count }),
+                  favoritesTitle: t("summaryFavorites"),
+                  favoritesEmpty: t("summaryFavoritesEmpty"),
+                  favoritesBody: (count) => t("summaryFavoritesBody", { count }),
+                }}
+              />
+            </>
+          ) : null}
+        </main>
       </div>
-    </TravelMapFocusShell>
+    </div>
   );
+
+  if (embedded) {
+    return profileBody;
+  }
+
+  return <TravelMapFocusShell>{profileBody}</TravelMapFocusShell>;
 }

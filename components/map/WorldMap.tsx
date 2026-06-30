@@ -63,7 +63,7 @@ function buildProjection(
   fitLand: FeatureCollection,
   mainlandWorld = false
 ) {
-  if (mainlandWorld) {
+  if (mainlandWorld && continent === "world") {
     return fitProjectionFill(
       geoNaturalEarth1(),
       WIDTH,
@@ -149,12 +149,16 @@ export function WorldMap({
   }, [mainlandFeatures]);
 
   const visibleFeatures = useMemo(() => {
-    if (mainlandWorld) return filterMainlandWorldFeatures(mainlandFeatures);
+    if (mainlandWorld) {
+      const mainland = filterMainlandWorldFeatures(mainlandFeatures);
+      if (continent === "world") return mainland;
+      return filterVisibleForContinent(continent, mainland);
+    }
     return filterVisibleForContinent(continent, mainlandFeatures);
   }, [continent, mainlandFeatures, mainlandWorld]);
 
   const fitFeatures = useMemo(() => {
-    if (mainlandWorld) return visibleFeatures;
+    if (mainlandWorld && continent === "world") return visibleFeatures;
     return selectFitFeatures(continent, visibleFeatures);
   }, [continent, visibleFeatures, mainlandWorld]);
 
@@ -504,6 +508,7 @@ export function WorldMap({
           })}
 
           {mapReady &&
+            !mainlandWorld &&
             !pinnedCountryCode &&
             visitedPinPositions.map((pin) => (
               <MapCountryPin

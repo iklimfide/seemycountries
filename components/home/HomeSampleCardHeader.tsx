@@ -15,9 +15,9 @@ type HomeSampleCardHeaderProps = {
 
 function StatPill({ value, label }: { value: number; label: string }) {
   return (
-    <div className="flex h-12 w-[5.25rem] shrink-0 flex-col items-center justify-center rounded-xl border border-[#93c5fd] bg-[#dbeafe] px-1 py-1.5 sm:w-[5.5rem]">
+    <div className="flex h-11 w-full min-w-0 flex-col items-center justify-center rounded-xl border border-[#93c5fd] bg-[#dbeafe] px-1 py-1.5 sm:h-12 sm:w-[5.5rem] sm:shrink-0">
       <strong className="text-base font-bold leading-none text-[#0f172a]">{value}</strong>
-      <span className="mt-1 whitespace-nowrap text-[8px] font-bold leading-none text-[#2563eb] sm:text-[9px]">
+      <span className="mt-1 max-w-full truncate px-0.5 text-[8px] font-bold leading-none text-[#2563eb] sm:text-[9px]">
         {label}
       </span>
     </div>
@@ -44,8 +44,8 @@ export async function HomeSampleCardHeader({
   const profileHref = profilePath(username);
 
   return (
-    <div className="flex items-center justify-between gap-2 border-b border-[#d8e1ef] bg-gradient-to-b from-white to-[#f8fbff] px-4 py-3.5 sm:gap-3 sm:px-5">
-      <div className="flex min-w-0 shrink items-center gap-2.5">
+    <div className="flex flex-col gap-3 overflow-hidden border-b border-[#d8e1ef] bg-gradient-to-b from-white to-[#f8fbff] px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5">
+      <div className="flex min-w-0 items-center gap-2.5">
         {isDemo ? (
           <Link
             href={profileHref}
@@ -93,7 +93,7 @@ export async function HomeSampleCardHeader({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-stretch gap-1 overflow-x-auto scrollbar-thin sm:gap-1.5">
+      <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:shrink-0 sm:items-stretch sm:gap-1.5">
         <StatPill value={stats.countries} label={t("countries")} />
         <StatPill value={stats.cities} label={t("cities")} />
         {showParks ? (

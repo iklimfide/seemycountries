@@ -375,7 +375,7 @@ export function TravelMapView({
     <div
       className={
         homeLayout
-          ? "col-span-full grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 [&_input]:h-[50px] [&_input]:rounded-[14px] [&_input]:border-[#d8e1ef] [&_input]:bg-white [&_input]:px-[15px] [&_input]:text-[#111827] [&_input]:shadow-[0_5px_14px_rgba(15,23,42,0.05)] [&_input]:placeholder:text-[#94a3b8] [&_input]:focus:border-[#93c5fd] [&_input]:focus:ring-4 [&_input]:focus:ring-[rgba(37,99,235,0.10)] [&_select]:h-[50px] [&_select]:rounded-[14px] [&_select]:border-[#d8e1ef] [&_select]:bg-white [&_select]:px-[15px] [&_select]:text-[#111827] [&_select]:shadow-[0_5px_14px_rgba(15,23,42,0.05)] [&_select]:focus:border-[#93c5fd] [&_select]:focus:ring-4 [&_select]:focus:ring-[rgba(37,99,235,0.10)]"
+          ? "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 [&_input]:h-[50px] [&_input]:rounded-[14px] [&_input]:border-[#d8e1ef] [&_input]:bg-white [&_input]:px-[15px] [&_input]:text-[#111827] [&_input]:shadow-[0_5px_14px_rgba(15,23,42,0.05)] [&_input]:placeholder:text-[#94a3b8] [&_input]:focus:border-[#93c5fd] [&_input]:focus:ring-4 [&_input]:focus:ring-[rgba(37,99,235,0.10)] [&_select]:h-[50px] [&_select]:rounded-[14px] [&_select]:border-[#d8e1ef] [&_select]:bg-white [&_select]:px-[15px] [&_select]:text-[#111827] [&_select]:shadow-[0_5px_14px_rgba(15,23,42,0.05)] [&_select]:focus:border-[#93c5fd] [&_select]:focus:ring-4 [&_select]:focus:ring-[rgba(37,99,235,0.10)]"
           : "mb-2 grid min-w-0 max-w-full grid-cols-1 gap-2 overflow-x-hidden sm:mb-3 sm:grid-cols-2 xl:grid-cols-4"
       }
     >
@@ -416,10 +416,10 @@ export function TravelMapView({
   const mapBlock = (
     <div
       id={homeLayout ? "sample-map" : "travel-map"}
-      className={`relative w-full min-w-0 max-w-full overflow-hidden scroll-mt-24 ${homeLayout ? "min-h-[320px] sm:min-h-[430px]" : ""}`}
+      className={`relative w-full min-w-0 max-w-full overflow-hidden scroll-mt-24`}
     >
       {homeLayout ? (
-        <div className="pointer-events-none absolute left-[18px] top-4 z-10 rounded-full border border-slate-300/35 bg-white/86 px-3 py-2 text-[13px] font-bold text-[#475569] backdrop-blur-sm">
+        <div className="pointer-events-none absolute left-[18px] top-4 z-10 hidden max-w-[calc(100%-2.25rem)] rounded-full border border-slate-300/35 bg-white/86 px-3 py-2 text-[13px] font-bold text-[#475569] backdrop-blur-sm sm:block">
           {mapMessages.demoExploreHint}
         </div>
       ) : null}
@@ -435,7 +435,7 @@ export function TravelMapView({
         focusRequest={focusRequest}
         onFocusComplete={() => setFocusRequest(null)}
         pinnedCountryCode={pinnedCountryCode}
-        mainlandWorld={compactProfile}
+        mainlandWorld={compactProfile || homeLayout}
       />
     </div>
   );
@@ -448,6 +448,9 @@ export function TravelMapView({
       countryCodes={visitedCountryCodes}
       onCountryClick={explorable ? focusCountryOnMap : undefined}
       variant={homeLayout ? "landing" : "default"}
+      className={
+        homeLayout ? "border-t border-[#d8e1ef] !px-3 !py-2 sm:!px-4 sm:!py-2.5" : ""
+      }
     />
   );
 
@@ -494,14 +497,19 @@ export function TravelMapView({
   if (homeLayout) {
     return (
       <div className="contents">
-        <aside className="overflow-hidden rounded-[30px] border border-[#d8e1ef] bg-white shadow-[0_18px_45px_rgba(15,23,42,0.10)]">
+        <aside className="min-w-0 overflow-hidden rounded-[30px] border border-[#d8e1ef] bg-white shadow-[0_18px_45px_rgba(15,23,42,0.10)]">
           {profileHeader}
-          <div className="relative overflow-hidden bg-[radial-gradient(circle_at_28%_22%,rgba(37,99,235,0.14),transparent_30%),radial-gradient(circle_at_75%_65%,rgba(16,185,129,0.10),transparent_28%),linear-gradient(180deg,#dbeafe_0%,#eff6ff_100%)] px-6 py-6">
+          <div className="border-b border-[#d8e1ef] bg-white px-3 py-3 sm:px-5 sm:py-4">
+            {filterGrid}
+          </div>
+          <div className="relative overflow-hidden bg-[radial-gradient(circle_at_28%_22%,rgba(37,99,235,0.14),transparent_30%),radial-gradient(circle_at_75%_65%,rgba(16,185,129,0.10),transparent_28%),linear-gradient(180deg,#dbeafe_0%,#eff6ff_100%)] px-3 pt-3 pb-0 sm:px-6 sm:pt-5 sm:pb-0">
+            <p className="mb-2 text-center text-[11px] font-semibold leading-snug text-[#475569] sm:hidden">
+              {mapMessages.demoExploreHint}
+            </p>
             {mapBlock}
           </div>
           {flagsBlock}
         </aside>
-        {filterGrid}
         {popups}
       </div>
     );
