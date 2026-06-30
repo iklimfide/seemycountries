@@ -173,14 +173,18 @@ function rowPayload(row: DestinationRow) {
     };
   }
 
-  return {
-    kind: "city" as const,
-    city_name: row.cityName,
-    country_code: row.countryCode,
-    country_name: row.countryName,
-    latitude: row.latitude,
-    longitude: row.longitude,
-  };
+  if (row.kind === "city") {
+    return {
+      kind: "city" as const,
+      city_name: row.cityName,
+      country_code: row.countryCode,
+      country_name: row.countryName,
+      latitude: row.latitude,
+      longitude: row.longitude,
+    };
+  }
+
+  throw new Error("rowPayload is only for city and country rows");
 }
 
 export function SaveDestinationModal({ open, onClose }: SaveDestinationModalProps) {
