@@ -42,7 +42,7 @@ export function ProfileMapPanel({
   const coverage = worldCoveragePercent(countryCount);
 
   return (
-    <section className="profile-section">
+    <section id="profile-map" className="profile-section">
       <div className="profile-section-head">
         <h2 className="profile-section-title">{title}</h2>
         <a href="#travel-map" className="profile-see-all">

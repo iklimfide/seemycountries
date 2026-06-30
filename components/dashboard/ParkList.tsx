@@ -13,6 +13,7 @@ const ALL_COUNTRIES = "ALL";
 type ParkListProps = {
   parks: VisitedPark[];
   countries: VisitedCountry[];
+  embedded?: boolean;
 };
 
 function sortParks(parks: VisitedPark[], countryFilter: string): VisitedPark[] {
@@ -29,7 +30,7 @@ function sortParks(parks: VisitedPark[], countryFilter: string): VisitedPark[] {
   });
 }
 
-export function ParkList({ parks, countries }: ParkListProps) {
+export function ParkList({ parks, countries, embedded = false }: ParkListProps) {
   const router = useRouter();
   const modal = useModal();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -100,41 +101,48 @@ export function ParkList({ parks, countries }: ParkListProps) {
   }
 
   return (
-    <section className="flex min-w-0 max-w-full flex-col gap-4">
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-        <h2 className="min-w-0 dashboard-section-title-park">
-          {parkMessages.title}
-          <span className="ml-2 text-sm font-normal text-slate-500">
-            · {parkMessages.visitedOnly}
-          </span>
-        </h2>
-        {canAddPark && (
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            className="dashboard-btn-add-park"
-          >
-            + {parkMessages.add}
-          </button>
-        )}
-      </div>
+    <section className={`flex min-w-0 max-w-full flex-col gap-4${embedded ? " profile-owner-edit-surface" : ""}`}>
+      {!embedded ? (
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+          <h2 className="min-w-0 dashboard-section-title-park">
+            {parkMessages.title}
+            <span className="ml-2 text-sm font-normal text-slate-500">
+              · {parkMessages.visitedOnly}
+            </span>
+          </h2>
+          {canAddPark ? (
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="dashboard-btn-add-park"
+            >
+              + {parkMessages.add}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {!canAddPark ? (
-        <p className="text-sm text-slate-500">{parkMessages.addCountryFirst}</p>
+        <p className={embedded ? "profile-owner-empty" : "text-sm text-slate-500"}>
+          {parkMessages.addCountryFirst}
+        </p>
       ) : parks.length === 0 ? (
-        <p className="text-sm text-slate-500">{parkMessages.empty}</p>
+        <p className={embedded ? "profile-owner-empty" : "text-sm text-slate-500"}>{parkMessages.empty}</p>
       ) : (
         <>
-          {countryOptions.length > 1 && (
+          {countryOptions.length > 1 ? (
             <div className="max-w-xs">
-              <label htmlFor="park-list-country-filter" className="mb-1.5 block text-sm text-slate-400">
+              <label
+                htmlFor="park-list-country-filter"
+                className={embedded ? "profile-owner-label" : "mb-1.5 block text-sm text-slate-400"}
+              >
                 {parkMessages.filterByCountry}
               </label>
               <select
                 id="park-list-country-filter"
                 value={countryFilter}
                 onChange={(e) => setCountryFilter(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                className={embedded ? "profile-owner-input w-full" : "w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"}
               >
                 <option value={ALL_COUNTRIES}>{parkMessages.allCountries}</option>
                 {countryOptions.map((country) => (
@@ -144,19 +152,27 @@ export function ParkList({ parks, countries }: ParkListProps) {
                 ))}
               </select>
             </div>
-          )}
+          ) : null}
 
           {filteredParks.length === 0 ? (
-            <p className="text-sm text-slate-500">{parkMessages.noParksInCountry}</p>
+            <p className={embedded ? "profile-owner-empty" : "text-sm text-slate-500"}>
+              {parkMessages.noParksInCountry}
+            </p>
           ) : (
-            <ul className="max-h-[min(28rem,60vh)] divide-y divide-slate-800 overflow-y-auto rounded-xl border border-slate-700 scrollbar-thin">
+            <ul
+              className={
+                embedded
+                  ? "profile-owner-table max-h-[min(28rem,60vh)] divide-y overflow-y-auto scrollbar-thin"
+                  : "max-h-[min(28rem,60vh)] divide-y divide-slate-800 overflow-y-auto rounded-xl border border-slate-700 scrollbar-thin"
+              }
+            >
               {filteredParks.map((park) => (
                 <li
                   key={park.id}
-                  className="flex items-center justify-between gap-3 px-4 py-3"
+                  className={`flex items-center justify-between gap-3 px-4 py-3${embedded ? " profile-owner-table-row" : ""}`}
                 >
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-white">
+                    <p className={`truncate font-medium ${embedded ? "profile-owner-show-primary" : "text-white"}`}>
                       {park.park_name}
                       {countryFilter === ALL_COUNTRIES ? (
                         <span className="font-normal text-slate-400">, {park.country_name}</span>

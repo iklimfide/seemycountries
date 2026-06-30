@@ -19,6 +19,7 @@ const ALL_COUNTRIES = "ALL";
 type CityListProps = {
   cities: VisitedCity[];
   countries: VisitedCountry[];
+  embedded?: boolean;
 };
 
 function sortCities(cities: VisitedCity[], countryFilter: string): VisitedCity[] {
@@ -33,7 +34,7 @@ function sortCities(cities: VisitedCity[], countryFilter: string): VisitedCity[]
   });
 }
 
-export function CityList({ cities, countries }: CityListProps) {
+export function CityList({ cities, countries, embedded = false }: CityListProps) {
   const router = useRouter();
   const modal = useModal();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -108,41 +109,48 @@ export function CityList({ cities, countries }: CityListProps) {
   }
 
   return (
-    <section className="flex min-w-0 max-w-full flex-col gap-4">
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-        <h2 className="min-w-0 dashboard-section-title-city">
-          {cityMessages.title}
-          <span className="ml-2 text-sm font-normal text-slate-500">
-            · {cityMessages.visitedOnly}
-          </span>
-        </h2>
-        {canAddCity && (
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            className="dashboard-btn-add-city"
-          >
-            + {cityMessages.add}
-          </button>
-        )}
-      </div>
+    <section className={`flex min-w-0 max-w-full flex-col gap-4${embedded ? " profile-owner-edit-surface" : ""}`}>
+      {!embedded ? (
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+          <h2 className="min-w-0 dashboard-section-title-city">
+            {cityMessages.title}
+            <span className="ml-2 text-sm font-normal text-slate-500">
+              · {cityMessages.visitedOnly}
+            </span>
+          </h2>
+          {canAddCity ? (
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="dashboard-btn-add-city"
+            >
+              + {cityMessages.add}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {!canAddCity ? (
-        <p className="text-sm text-slate-500">{cityMessages.addCountryFirst}</p>
+        <p className={embedded ? "profile-owner-empty" : "text-sm text-slate-500"}>
+          {cityMessages.addCountryFirst}
+        </p>
       ) : cities.length === 0 ? (
-        <p className="text-sm text-slate-500">{cityMessages.empty}</p>
+        <p className={embedded ? "profile-owner-empty" : "text-sm text-slate-500"}>{cityMessages.empty}</p>
       ) : (
         <>
-          {countryOptions.length > 1 && (
+          {countryOptions.length > 1 ? (
             <div className="max-w-xs">
-              <label htmlFor="city-list-country-filter" className="mb-1.5 block text-sm text-slate-400">
+              <label
+                htmlFor="city-list-country-filter"
+                className={embedded ? "profile-owner-label" : "mb-1.5 block text-sm text-slate-400"}
+              >
                 {cityMessages.filterByCountry}
               </label>
               <select
                 id="city-list-country-filter"
                 value={countryFilter}
                 onChange={(e) => setCountryFilter(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
+                className={embedded ? "profile-owner-input w-full" : "w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-blue-500"}
               >
                 <option value={ALL_COUNTRIES}>{cityMessages.allCountries}</option>
                 {countryOptions.map((country) => (
@@ -152,12 +160,20 @@ export function CityList({ cities, countries }: CityListProps) {
                 ))}
               </select>
             </div>
-          )}
+          ) : null}
 
           {filteredCities.length === 0 ? (
-            <p className="text-sm text-slate-500">{cityMessages.noCitiesInCountry}</p>
+            <p className={embedded ? "profile-owner-empty" : "text-sm text-slate-500"}>
+              {cityMessages.noCitiesInCountry}
+            </p>
           ) : (
-            <ul className="max-h-[min(28rem,60vh)] divide-y divide-slate-800 overflow-y-auto rounded-xl border border-slate-700 scrollbar-thin">
+            <ul
+              className={
+                embedded
+                  ? "profile-owner-table max-h-[min(28rem,60vh)] divide-y overflow-y-auto scrollbar-thin"
+                  : "max-h-[min(28rem,60vh)] divide-y divide-slate-800 overflow-y-auto rounded-xl border border-slate-700 scrollbar-thin"
+              }
+            >
               {filteredCities.map((city) => {
                 const visitSummary = formatVisitDatesSummary(
                   city.visit_dates ?? [],
@@ -168,10 +184,10 @@ export function CityList({ cities, countries }: CityListProps) {
                 return (
                 <li
                   key={city.id}
-                  className="flex items-center justify-between gap-3 px-4 py-3"
+                  className={`flex items-center justify-between gap-3 px-4 py-3${embedded ? " profile-owner-table-row" : ""}`}
                 >
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-white">
+                    <p className={`truncate font-medium ${embedded ? "profile-owner-show-primary" : "text-white"}`}>
                       {city.city_name}
                       {countryFilter === ALL_COUNTRIES ? (
                         <span className="font-normal text-slate-400">, {city.country_name}</span>

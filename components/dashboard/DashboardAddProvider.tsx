@@ -8,10 +8,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { SaveDestinationModal } from "@/components/dashboard/SaveDestinationModal";
+import { SaveDestinationModal, type SaveDestinationInitialTab } from "@/components/dashboard/SaveDestinationModal";
 
 type DashboardAddContextValue = {
-  openAddModal: () => void;
+  openAddModal: (tab?: SaveDestinationInitialTab) => void;
   closeAddModal: () => void;
 };
 
@@ -25,10 +25,17 @@ export function useDashboardAdd(): DashboardAddContextValue {
   return ctx;
 }
 
+export type { SaveDestinationInitialTab } from "@/components/dashboard/SaveDestinationModal";
+
 export function DashboardAddProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [initialTab, setInitialTab] = useState<SaveDestinationInitialTab>("popular");
 
-  const openAddModal = useCallback(() => setOpen(true), []);
+  const openAddModal = useCallback((tab?: SaveDestinationInitialTab) => {
+    if (tab) setInitialTab(tab);
+    setOpen(true);
+  }, []);
+
   const closeAddModal = useCallback(() => setOpen(false), []);
 
   const value = useMemo(
@@ -39,7 +46,7 @@ export function DashboardAddProvider({ children }: { children: ReactNode }) {
   return (
     <DashboardAddContext.Provider value={value}>
       {children}
-      <SaveDestinationModal open={open} onClose={closeAddModal} />
+      <SaveDestinationModal open={open} initialTab={initialTab} onClose={closeAddModal} />
     </DashboardAddContext.Provider>
   );
 }

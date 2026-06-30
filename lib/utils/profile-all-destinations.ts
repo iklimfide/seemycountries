@@ -1,0 +1,150 @@
+import { buildVisitedCountryList } from "@/lib/map/travel-lists";
+import { getCountryHubByCode } from "@/lib/data/country-hubs";
+import type { ParkType, VisitedCity, VisitedCountry, VisitedPark, WishlistCountry } from "@/types/database";
+import { buildProfileTrips, type ProfileTrip } from "@/lib/utils/profile-page";
+
+function countryHubSlug(code: string): string | null {
+  return getCountryHubByCode(code)?.slug ?? null;
+}
+
+function mediaImageUrl(item: {
+  media_type: string | null;
+  media_url: string | null;
+  media_preview_url?: string | null;
+}): string | null {
+  if (item.media_type === "photo" && item.media_url) return item.media_url;
+  if (item.media_preview_url) return item.media_preview_url;
+  return null;
+}
+
+export type ProfileCountryDestination = {
+  code: string;
+  name: string;
+  countrySlug: string | null;
+  imageUrl: string | null;
+  cityCount: number;
+  parkCount: number;
+  visitedId?: string;
+  visitedViaPlacesOnly: boolean;
+};
+
+export type ProfileParkDestination = {
+  id: string;
+  parkName: string;
+  countryCode: string;
+  countryName: string;
+  countrySlug: string | null;
+  imageUrl: string | null;
+  parkType: ParkType;
+  note: string | null;
+};
+
+export type ProfileWishlistDestination = {
+  id: string;
+  countryCode: string;
+  countryName: string;
+  countrySlug: string | null;
+};
+
+export type ProfileAllDestinations = {
+  countries: ProfileCountryDestination[];
+  cities: ProfileTrip[];
+  parks: ProfileParkDestination[];
+  wishlist: ProfileWishlistDestination[];
+};
+
+export function buildProfileAllDestinations(
+  visitedCountries: VisitedCountry[],
+  visitedCities: VisitedCity[],
+  visitedParks: VisitedPark[],
+  wishlistCountries: WishlistCountry[],
+  visitedCodes: string[]
+): ProfileAllDestinations {
+  const countryList = buildVisitedCountryList(
+    visitedCountries,
+    visitedCities,
+    visitedCodes,
+    visitedParks
+  );
+
+  const visitedByCode = new Map<string, VisitedCountry>();
+  for (const country of visitedCountries) {
+    visitedByCode.set(country.country_code.toUpperCase(), country);
+  }
+
+  const visitedCodeSet = new Set(visitedCodes.map((code) => code.toUpperCase()));
+
+  const citiesByCountry = new Map<string, VisitedCity[]>();
+  for (const city of visitedCities) {
+    const code = city.country_code.toUpperCase();
+    const list = citiesByCountry.get(code) ?? [];
+    list.push(city);
+    citiesByCountry.set(code, list);
+  }
+
+  const parksByCountry = new Map<string, VisitedPark[]>();
+  for (const park of visitedParks) {
+    const code = park.country_code.toUpperCase();
+    const list = parksByCountry.get(code) ?? [];
+    list.push(park);
+    parksByCountry.set(code, list);
+  }
+
+  const countries: ProfileCountryDestination[] = countryList.map((country) => {
+    const code = country.code.toUpperCase();
+    const cities = citiesByCountry.get(code) ?? [];
+    const parks = parksByCountry.get(code) ?? [];
+
+    let imageUrl: string | null = null;
+    for (const city of cities) {
+      imageUrl = mediaImageUrl(city);
+      if (imageUrl) break;
+    }
+    if (!imageUrl) {
+      for (const park of parks) {
+        imageUrl = mediaImageUrl(park);
+        if (imageUrl) break;
+      }
+    }
+
+    return {
+      code: country.code,
+      name: country.name,
+      countrySlug: countryHubSlug(country.code),
+      imageUrl,
+      cityCount: cities.length,
+      parkCount: parks.length,
+      visitedId: visitedByCode.get(code)?.id,
+      visitedViaPlacesOnly: visitedCodeSet.has(code) && !visitedByCode.has(code),
+    };
+  });
+
+  const parks: ProfileParkDestination[] = [...visitedParks]
+    .sort((a, b) => a.park_name.localeCompare(b.park_name, undefined, { sensitivity: "base" }))
+    .map((park) => ({
+      id: park.id,
+      parkName: park.park_name,
+      countryCode: park.country_code,
+      countryName: park.country_name,
+      countrySlug: countryHubSlug(park.country_code),
+      imageUrl: mediaImageUrl(park),
+      parkType: park.park_type,
+      note: park.note,
+    }));
+
+  const wishlist: ProfileWishlistDestination[] = [...wishlistCountries]
+    .sort((a, b) => a.country_name.localeCompare(b.country_name, undefined, { sensitivity: "base" }))
+    .map((country) => ({
+      id: country.id,
+      countryCode: country.country_code,
+      countryName: country.country_name,
+      countrySlug: countryHubSlug(country.country_code),
+    }));
+
+  return {
+    countries,
+    cities: buildProfileTrips(visitedCities),
+    parks,
+    wishlist,
+  };
+}

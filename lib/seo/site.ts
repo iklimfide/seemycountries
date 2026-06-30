@@ -19,6 +19,10 @@ export function profilePath(username: string): string {
   return `/${username.toLowerCase()}`;
 }
 
+export function profileAllPath(username: string): string {
+  return `${profilePath(username)}/all`;
+}
+
 export function profileUrl(username: string): string {
   return `${getSiteUrl()}${profilePath(username)}`;
 }

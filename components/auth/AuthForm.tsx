@@ -5,6 +5,7 @@ import { LIMITS } from "@/lib/constants";
 import { translateAuth, translateCommon } from "@/lib/i18n/client-messages";
 import { createClient } from "@/lib/supabase/client";
 import { formatDisplayName } from "@/lib/utils/display-name";
+import { resolveAuthenticatedHomePath } from "@/lib/client/authenticated-home";
 import { useModal } from "@/components/ui/ModalProvider";
 import {
   loginSchema,
@@ -154,7 +155,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           return;
         }
 
-        window.location.assign("/dashboard");
+        window.location.assign(await resolveAuthenticatedHomePath(supabase));
       } else {
         const parsed = loginSchema.safeParse(form);
         if (!parsed.success) {
@@ -174,7 +175,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           return;
         }
 
-        window.location.assign("/dashboard");
+        window.location.assign(await resolveAuthenticatedHomePath(supabase));
       }
     } finally {
       setLoading(false);

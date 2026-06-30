@@ -3,7 +3,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import {
   fetchPublicProfile,
-  fetchPublicWishlistCountries,
   type PublicProfile,
 } from "@/lib/supabase/public-profile";
 import {
@@ -33,40 +32,51 @@ export type PublicProfilePageData = {
   currentUsername: string | null;
 };
 
+async function loadWishlistCountries(
+  supabase: SupabaseClient,
+  profile: PublicProfile,
+  isOwnProfile: boolean
+): Promise<WishlistCountry[]> {
+  if (!isOwnProfile && !profile.wishlist_public) return [];
+
+  const { data, error } = await supabase
+    .from("wishlist_countries")
+    .select("*")
+    .eq("user_id", profile.id)
+    .order("country_name", { ascending: true });
+
+  if (error) return [];
+  return (data ?? []) as WishlistCountry[];
+}
+
 async function loadProfileRows(
   supabase: SupabaseClient,
   profile: PublicProfile
 ): Promise<
-  Pick<
-    PublicProfilePageData,
-    "visitedCountries" | "visitedCities" | "visitedParks" | "wishlistCountries"
-  >
+  Pick<PublicProfilePageData, "visitedCountries" | "visitedCities" | "visitedParks">
 > {
-  const [{ data: countries }, { data: cities }, { data: parks }, wishlistCountries] =
-    await Promise.all([
-      supabase
-        .from("visited_countries")
-        .select("*")
-        .eq("user_id", profile.id)
-        .order("country_name", { ascending: true }),
-      supabase
-        .from("visited_cities")
-        .select("*")
-        .eq("user_id", profile.id)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("visited_parks")
-        .select("*")
-        .eq("user_id", profile.id)
-        .order("created_at", { ascending: false }),
-      fetchPublicWishlistCountries(supabase, profile.id, profile.wishlist_public),
-    ]);
+  const [{ data: countries }, { data: cities }, { data: parks }] = await Promise.all([
+    supabase
+      .from("visited_countries")
+      .select("*")
+      .eq("user_id", profile.id)
+      .order("country_name", { ascending: true }),
+    supabase
+      .from("visited_cities")
+      .select("*")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("visited_parks")
+      .select("*")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false }),
+  ]);
 
   return {
     visitedCountries: (countries ?? []) as VisitedCountry[],
     visitedCities: (cities ?? []) as VisitedCity[],
     visitedParks: (parks ?? []) as VisitedPark[],
-    wishlistCountries,
   };
 }
 
@@ -79,19 +89,7 @@ export const loadPublicProfilePage = cache(
     const profile = await fetchPublicProfile(supabase, username);
     if (!profile) return null;
 
-    const [{ visitedCountries, visitedCities, visitedParks, wishlistCountries }, authUser] =
-      await Promise.all([loadProfileRows(supabase, profile), getAuthUser()]);
-
-    const stats = computeTravelStats(visitedCountries, visitedCities, visitedParks);
-    const visitedCodes = getVisitedCountryCodes(
-      visitedCountries,
-      visitedCities,
-      visitedParks
-    );
-    const wishlistCodes = profile.wishlist_public
-      ? getWishlistCountryCodes(wishlistCountries)
-      : [];
-
+    const authUser = await getAuthUser();
     let currentUsername: string | null = null;
     if (authUser) {
       const { data: currentProfile } = await supabase
@@ -101,6 +99,27 @@ export const loadPublicProfilePage = cache(
         .maybeSingle();
       currentUsername = currentProfile?.username ?? null;
     }
+
+    const isOwnProfile =
+      currentUsername != null &&
+      currentUsername.toLowerCase() === profile.username.toLowerCase();
+
+    const [{ visitedCountries, visitedCities, visitedParks }, wishlistCountries] =
+      await Promise.all([
+        loadProfileRows(supabase, profile),
+        loadWishlistCountries(supabase, profile, isOwnProfile),
+      ]);
+
+    const stats = computeTravelStats(visitedCountries, visitedCities, visitedParks);
+    const visitedCodes = getVisitedCountryCodes(
+      visitedCountries,
+      visitedCities,
+      visitedParks
+    );
+    const wishlistCodes =
+      isOwnProfile || profile.wishlist_public
+        ? getWishlistCountryCodes(wishlistCountries)
+        : [];
 
     return {
       profile,

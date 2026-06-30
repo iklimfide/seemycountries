@@ -1,0 +1,57 @@
+import Image from "next/image";
+import type { ReactNode } from "react";
+import { ProfileCountryLink } from "@/components/profile/ProfilePlaceLink";
+import { profileCardGradient } from "@/components/profile/profile-card-gradient";
+import { countryCodeToFlagUrl } from "@/lib/utils/country-flag";
+import { parkTypeLabel } from "@/lib/utils/park-type";
+import type { ProfileParkDestination } from "@/lib/utils/profile-all-destinations";
+
+type ProfileParkDestinationCardProps = {
+  park: ProfileParkDestination;
+  emptyNote: string;
+  layout?: "row" | "grid";
+  actions?: ReactNode;
+};
+
+export function ProfileParkDestinationCard({
+  park,
+  emptyNote,
+  layout = "grid",
+  actions,
+}: ProfileParkDestinationCardProps) {
+  return (
+    <article className={`profile-trip${layout === "grid" ? " profile-trip--grid" : ""}`}>
+      <div
+        className="profile-trip-image"
+        style={park.imageUrl ? undefined : { background: profileCardGradient(park.countryCode) }}
+      >
+        {park.imageUrl ? (
+          <Image src={park.imageUrl} alt="" fill sizes="245px" className="object-cover" />
+        ) : null}
+        <span className="profile-trip-badge">{parkTypeLabel(park.parkType)}</span>
+      </div>
+      <div className="profile-trip-body">
+        <h3>{park.parkName}</h3>
+        <p>{park.note?.trim() || emptyNote}</p>
+        <div className="profile-trip-meta">
+          <span className="profile-chip">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={countryCodeToFlagUrl(park.countryCode)}
+              alt=""
+              width={16}
+              height={12}
+              className="mr-1 inline-block rounded-sm"
+            />
+            <ProfileCountryLink
+              slug={park.countrySlug}
+              name={park.countryName}
+              className="profile-chip-link"
+            />
+          </span>
+        </div>
+        {actions}
+      </div>
+    </article>
+  );
+}

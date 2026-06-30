@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { Header } from "@/components/layout/Header";
 import { CountryPageContent } from "@/components/country/CountryPageContent";
 import { getCountryHubBySlug, listCountryHubSlugs } from "@/lib/data/country-hubs";
 import { getCachedRecentCountryTravelers } from "@/lib/supabase/country-travelers-cache";
@@ -97,7 +96,6 @@ export default async function CountryHubPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Header />
       <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
         <CountryPageContent
           hub={hub}

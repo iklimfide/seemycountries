@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
-import { DashboardAddProvider } from "@/components/dashboard/DashboardAddProvider";
-import { DashboardBottomBar } from "@/components/dashboard/DashboardBottomBar";
+import { OwnProfileShell } from "@/components/dashboard/OwnProfileShell";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function DashboardLayout({ children }: { children: ReactNode }) {
+export default async function SettingsLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
   if (!supabase) {
     return <>{children}</>;
@@ -27,12 +26,5 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     return <>{children}</>;
   }
 
-  return (
-    <DashboardAddProvider>
-      <div className="dashboard-shell">
-        {children}
-        <DashboardBottomBar username={profile.username} />
-      </div>
-    </DashboardAddProvider>
-  );
+  return <OwnProfileShell username={profile.username}>{children}</OwnProfileShell>;
 }

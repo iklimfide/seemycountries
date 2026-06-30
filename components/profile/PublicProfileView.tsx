@@ -15,6 +15,7 @@ import {
   resolveProfileCoverUrl,
 } from "@/lib/utils/profile-page";
 import { resolveProfileDisplayName } from "@/lib/utils/display-name";
+import { profileAllPath } from "@/lib/seo/site";
 import type { PublicProfilePageData } from "@/lib/supabase/profile-page-data";
 
 type PublicProfileViewProps = {
@@ -22,7 +23,7 @@ type PublicProfileViewProps = {
   profileDescription: string;
   isOwnProfile: boolean;
   isGuest: boolean;
-  dashboardTools?: ReactNode;
+  ownerTools?: ReactNode;
 };
 
 export async function PublicProfileView({
@@ -30,7 +31,7 @@ export async function PublicProfileView({
   profileDescription,
   isOwnProfile,
   isGuest,
-  dashboardTools,
+  ownerTools,
 }: PublicProfileViewProps) {
   const [t, tHome] = await Promise.all([getTranslations("profile"), getTranslations("home")]);
 
@@ -48,14 +49,10 @@ export async function PublicProfileView({
 
   const displayName = resolveProfileDisplayName(profile.display_name, profile.username);
   const wishlistPublic = profile.wishlist_public;
-  const isDashboard = dashboardTools != null;
   const visibleWishlistCountries =
-    isDashboard || wishlistPublic ? wishlistCountries : [];
-  const visibleWishlistCodes = isDashboard
-    ? wishlistCodes
-    : wishlistPublic
-      ? wishlistCodes
-      : [];
+    isOwnProfile || wishlistPublic ? wishlistCountries : [];
+  const visibleWishlistCodes =
+    isOwnProfile || wishlistPublic ? wishlistCodes : [];
   const hasMapContent =
     visitedCountries.length > 0 ||
     visitedCities.length > 0 ||
@@ -130,6 +127,7 @@ export async function PublicProfileView({
               trips={trips}
               title={t("myTrips")}
               allLabel={t("tripsAll")}
+              allHref={hasMapContent ? profileAllPath(profile.username) : undefined}
               badgeLabels={{
                 recent: t("tripBadgeRecent"),
                 favorite: t("tripBadgeFavorite"),
@@ -138,6 +136,33 @@ export async function PublicProfileView({
               visitCountLabel={(count) => t("tripVisitCount", { count })}
               emptyNote={t("tripDefaultNote")}
             />
+
+            {ownerTools ? (
+              <div className="profile-dashboard-tools">{ownerTools}</div>
+            ) : null}
+
+            {!isOwnProfile && hasMapContent ? (
+              <section className="profile-section">
+                <HomeFeatures />
+              </section>
+            ) : null}
+
+            {!isOwnProfile && isGuest ? (
+              <section className="profile-cta">
+                <div>
+                  <p className="profile-cta-title">{tHome("ctaTitle")}</p>
+                  <p className="profile-cta-hint">{tHome("ctaHint")}</p>
+                </div>
+                <div className="profile-cta-actions">
+                  <Link href="/register" className="profile-cta-primary">
+                    {t("createYourMap")}
+                  </Link>
+                  <Link href="/login" className="profile-cta-secondary">
+                    {tHome("login")}
+                  </Link>
+                </div>
+              </section>
+            ) : null}
 
             <ProfileSummaryGrid
               summary={summary}
@@ -156,44 +181,6 @@ export async function PublicProfileView({
                 favoritesBody: (count) => t("summaryFavoritesBody", { count }),
               }}
             />
-
-            {dashboardTools ? (
-              <div className="profile-dashboard-tools">{dashboardTools}</div>
-            ) : null}
-
-            {!isDashboard && !isOwnProfile && hasMapContent ? (
-              <section className="profile-section">
-                <HomeFeatures />
-              </section>
-            ) : null}
-
-            {!isDashboard && (isOwnProfile || isGuest) ? (
-              <section className="profile-cta">
-                <div>
-                  <p className="profile-cta-title">{tHome("ctaTitle")}</p>
-                  <p className="profile-cta-hint">{tHome("ctaHint")}</p>
-                </div>
-                {isOwnProfile ? (
-                  <div className="profile-cta-actions">
-                    <Link href="/dashboard" className="profile-cta-primary">
-                      {tHome("editMap")}
-                    </Link>
-                    <Link href="/dashboard/settings" className="profile-cta-secondary">
-                      {t("editProfile")}
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="profile-cta-actions">
-                    <Link href="/register" className="profile-cta-primary">
-                      {t("createYourMap")}
-                    </Link>
-                    <Link href="/login" className="profile-cta-secondary">
-                      {tHome("login")}
-                    </Link>
-                  </div>
-                )}
-              </section>
-            ) : null}
           </main>
         </div>
       </div>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { Header } from "@/components/layout/Header";
 import { CityPageContent } from "@/components/city/CityPageContent";
 import { getCityHubContext } from "@/lib/data/city-hubs";
 import { listCityHubSlugs } from "@/lib/data/city-hubs";
@@ -95,9 +94,7 @@ export default async function CityHubPage({ params }: PageProps) {
   };
 
   return (
-    <>
-      <Header />
-      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
+    <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
         <CityPageContent
           hub={hub}
           touristCity={touristCity}
@@ -110,6 +107,5 @@ export default async function CityHubPage({ params }: PageProps) {
           labels={labels}
         />
       </main>
-    </>
   );
 }

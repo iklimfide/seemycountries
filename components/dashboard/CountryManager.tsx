@@ -3,9 +3,14 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useModal } from "@/components/ui/ModalProvider";
+import { useToast } from "@/components/ui/ToastProvider";
 import { countryMessages, wishlistMessages } from "@/lib/i18n/client-messages";
 import { CountryCityPickerSheet } from "@/components/map/CountryCityPickerSheet";
 import { COUNTRY_LIST, getCountryName } from "@/lib/data/countries";
+import {
+  countryHasMappedPlaces,
+  isCountryRemoveBlockedByPlacesError,
+} from "@/lib/utils/country-remove";
 import type { VisitedCity, VisitedCountry, VisitedPark, WishlistCountry } from "@/types/database";
 
 type CountryManagerProps = {
@@ -14,6 +19,7 @@ type CountryManagerProps = {
   visitedCountryCodes: string[];
   visitedCities: VisitedCity[];
   visitedParks?: VisitedPark[];
+  embedded?: boolean;
 };
 
 type CountryRow = {
@@ -32,9 +38,11 @@ export function CountryManager({
   visitedCountryCodes,
   visitedCities,
   visitedParks = [],
+  embedded = false,
 }: CountryManagerProps) {
   const router = useRouter();
   const modal = useModal();
+  const toast = useToast();
   const [query, setQuery] = useState("");
   const [busyCode, setBusyCode] = useState<string | null>(null);
   const [cityPickerTarget, setCityPickerTarget] = useState<{
@@ -117,8 +125,11 @@ export function CountryManager({
   }
 
   async function removeVisited(row: CountryRow) {
-    if (row.visitedViaPlacesOnly) {
-      await modal.alert(countryMessages.removePlacesFirst, { variant: "info" });
+    if (
+      row.visitedViaPlacesOnly ||
+      countryHasMappedPlaces(row.code, visitedCities, visitedParks)
+    ) {
+      toast.show(countryMessages.removePlacesFirst);
       return false;
     }
     if (!row.visitedId) return false;
@@ -126,6 +137,10 @@ export function CountryManager({
     const res = await fetch(`/api/countries/${row.visitedId}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json();
+      if (isCountryRemoveBlockedByPlacesError(data.error)) {
+        toast.show(countryMessages.removePlacesFirst);
+        return false;
+      }
       await modal.alert(data.error ?? "Failed to remove country", { variant: "error" });
       return false;
     }
@@ -196,23 +211,41 @@ export function CountryManager({
   const showIdle = query.trim().length === 0 && rows.length === 0;
 
   return (
-    <section className="flex min-w-0 max-w-full flex-col gap-4 rounded-xl border border-slate-700 bg-slate-900 p-4 sm:p-5">
-      <div>
-        <h2 className="text-lg font-semibold text-white">{countryMessages.title}</h2>
-        <p className="mt-1 text-xs text-slate-500">{countryMessages.toggleHint}</p>
-      </div>
+    <section
+      className={
+        embedded
+          ? "profile-owner-edit-surface flex min-w-0 max-w-full flex-col gap-4"
+          : "flex min-w-0 max-w-full flex-col gap-4 rounded-xl border border-slate-700 bg-slate-900 p-4 sm:p-5"
+      }
+    >
+      {!embedded ? (
+        <div>
+          <h2 className="text-lg font-semibold text-white">{countryMessages.title}</h2>
+          <p className="mt-1 text-xs text-slate-500">{countryMessages.toggleHint}</p>
+        </div>
+      ) : null}
 
       <input
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={countryMessages.searchPlaceholder}
-        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
+        className={
+          embedded
+            ? "profile-owner-input w-full"
+            : "w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
+        }
         autoComplete="off"
       />
 
-      <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-950">
-        <div className="grid grid-cols-[minmax(0,1fr)_3.25rem_3.25rem] gap-2 border-b border-slate-800 px-2 py-2 text-xs font-medium uppercase tracking-wide text-slate-500 sm:grid-cols-[minmax(0,1fr)_5rem_5rem] sm:px-3">
+      <div
+        className={
+          embedded
+            ? "profile-owner-table overflow-hidden rounded-xl"
+            : "overflow-hidden rounded-lg border border-slate-700 bg-slate-950"
+        }
+      >
+        <div className={`grid grid-cols-[minmax(0,1fr)_3.25rem_3.25rem] gap-2 border-b px-2 py-2 text-xs font-medium uppercase tracking-wide sm:grid-cols-[minmax(0,1fr)_5rem_5rem] sm:px-3${embedded ? " border-[#e8eef5] text-[#6b7f96]" : " border-slate-800 text-slate-500"}`}>
           <span>{countryMessages.name}</span>
           <span className="text-center text-blue-400">{countryMessages.columnVisited}</span>
           <span className="text-center text-amber-400">{countryMessages.columnWant}</span>
@@ -220,11 +253,11 @@ export function CountryManager({
 
         <ul className="max-h-72 overflow-y-auto scrollbar-thin">
           {showIdle ? (
-            <li className="px-3 py-6 text-center text-sm text-slate-500">
+            <li className={`px-3 py-6 text-center text-sm${embedded ? " text-[#6b7f96]" : " text-slate-500"}`}>
               {countryMessages.searchIdle}
             </li>
           ) : rows.length === 0 ? (
-            <li className="px-3 py-6 text-center text-sm text-slate-500">
+            <li className={`px-3 py-6 text-center text-sm${embedded ? " text-[#6b7f96]" : " text-slate-500"}`}>
               {countryMessages.noResults}
             </li>
           ) : (
@@ -234,11 +267,11 @@ export function CountryManager({
               return (
                 <li
                   key={row.code}
-                  className="grid grid-cols-[minmax(0,1fr)_3.25rem_3.25rem] items-center gap-2 border-b border-slate-800/80 px-2 py-2.5 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_5rem_5rem] sm:px-3"
+                  className={`grid grid-cols-[minmax(0,1fr)_3.25rem_3.25rem] items-center gap-2 border-b px-2 py-2.5 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_5rem_5rem] sm:px-3${embedded ? " border-[#eef2f7]" : " border-slate-800/80"}`}
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm text-slate-200">{row.name}</p>
-                    <p className="text-xs text-slate-600">{row.code}</p>
+                    <p className={`truncate text-sm${embedded ? " text-[var(--profile-text)]" : " text-slate-200"}`}>{row.name}</p>
+                    <p className={`text-xs${embedded ? " text-[#94a3b8]" : " text-slate-600"}`}>{row.code}</p>
                   </div>
 
                   <div className="flex justify-center">

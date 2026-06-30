@@ -49,7 +49,7 @@ export function ProfileActionButtons({
           </svg>
         </button>
         {isOwnProfile ? (
-          <Link href="/dashboard/settings" className="profile-small-action" aria-label={editLabel}>
+          <Link href="/settings" className="profile-small-action" aria-label={editLabel}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path
                 d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"

@@ -2,11 +2,11 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { Header } from "@/components/layout/Header";
 import { ProfileSettingsForm } from "@/components/dashboard/ProfileSettingsForm";
 import { createClient } from "@/lib/supabase/server";
 import { computeTravelStats } from "@/lib/utils/stats";
 import { PROFILE_SELECT } from "@/lib/validations/profile";
+import { profilePath } from "@/lib/seo/site";
 import type { VisitedCity, VisitedCountry, VisitedPark } from "@/types/database";
 
 export const metadata: Metadata = {
@@ -51,25 +51,23 @@ export default async function ProfileSettingsPage() {
     (parks ?? []) as VisitedPark[]
   );
 
+  const mapHref = profile.username ? profilePath(profile.username) : "/";
+
   return (
-    <>
-      <Header username={profile.username} isLoggedIn />
-      <main className="mx-auto max-w-2xl flex-1 px-4 py-8">
+    <main className="mx-auto max-w-2xl flex-1 px-4 py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-white">{t("title")}</h1>
             <p className="mt-1 text-sm text-slate-500">{t("subtitle")}</p>
           </div>
-          <Link
-            href="/dashboard"
-            className="text-sm text-blue-400 hover:text-blue-300"
-          >
-            {t("backToMap")}
-          </Link>
+          {profile.username ? (
+            <Link href={mapHref} className="text-sm text-blue-400 hover:text-blue-300">
+              {t("backToMap")}
+            </Link>
+          ) : null}
         </div>
 
         <ProfileSettingsForm profile={profile} stats={stats} />
       </main>
-    </>
   );
 }

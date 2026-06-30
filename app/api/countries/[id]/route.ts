@@ -37,7 +37,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   if (cityCount && cityCount > 0) {
     return NextResponse.json(
-      { error: "Remove cities and parks in this country first" },
+      { error: "To delete a country, you first need to delete any cities or parks you've added to that country." },
       { status: 409 }
     );
   }
@@ -50,7 +50,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   if (parkCount && parkCount > 0) {
     return NextResponse.json(
-      { error: "Remove cities and parks in this country first" },
+      { error: "To delete a country, you first need to delete any cities or parks you've added to that country." },
       { status: 409 }
     );
   }

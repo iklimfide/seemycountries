@@ -47,3 +47,15 @@ export const translatePark = createMessageTranslator(parkMessages);
 export const translateWishlist = createMessageTranslator(wishlistMessages);
 export const translateAuth = createMessageTranslator(authMessages);
 export const translateSettings = createMessageTranslator(settingsMessages);
+
+export function profileVisitCountLabel(count: number): string {
+  return count === 1 ? "1 visit" : `${count} visits`;
+}
+
+export function profileDestinationCityCountLabel(count: number): string {
+  return count === 1 ? "1 city" : `${count} cities`;
+}
+
+export function profileDestinationParkCountLabel(count: number): string {
+  return count === 1 ? "1 park" : `${count} parks`;
+}

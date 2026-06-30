@@ -11,6 +11,7 @@ import {
 import { useModal } from "@/components/ui/ModalProvider";
 import { useToast } from "@/components/ui/ToastProvider";
 import type { CountryVisitorState } from "@/lib/data/country-visitor-state";
+import { isCountryRemoveBlockedByPlacesError } from "@/lib/utils/country-remove";
 
 type CountryPageActionsProps = {
   countryCode: string;
@@ -60,6 +61,10 @@ export function CountryPageActions({
       if (onMap && state.visitedId) {
         const result = await removeVisitedCountry(state.visitedId);
         if (!result.ok) {
+          if (isCountryRemoveBlockedByPlacesError(result.error)) {
+            toast.show(labels.removePlacesFirst);
+            return;
+          }
           await modal.alert(result.error, { variant: "error" });
           return;
         }

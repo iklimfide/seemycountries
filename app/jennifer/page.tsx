@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { Header } from "@/components/layout/Header";
 import { TravelMapFocusShell } from "@/components/map/TravelMapFocusShell";
 import { TravelMapView } from "@/components/map/TravelMapView";
 import { TravelStatsInteractive } from "@/components/stats/TravelStatsInteractive";
@@ -21,6 +20,7 @@ import {
 } from "@/lib/seo/profile";
 import { getSiteUrl, profilePath } from "@/lib/seo/site";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedHomePath } from "@/lib/supabase/authenticated-home";
 
 export const revalidate = 3600;
 
@@ -63,6 +63,8 @@ export default async function JenniferDemoPage() {
 
   const supabase = await createClient();
   const user = supabase ? (await supabase.auth.getUser()).data.user : null;
+  const userHomeHref =
+    supabase && user ? await getAuthenticatedHomePath(supabase) : null;
 
   const {
     profile,
@@ -99,7 +101,6 @@ export default async function JenniferDemoPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Header isLoggedIn={!!user} />
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-3 sm:py-8 lg:max-w-[1400px] lg:px-10 xl:max-w-[1520px] xl:px-12">
         <TravelMapFocusShell>
           <div className="flex flex-col gap-4 sm:gap-6">
@@ -170,9 +171,9 @@ export default async function JenniferDemoPage() {
                 <p className="font-medium text-white">{tHome("ctaTitle")}</p>
                 <p className="mt-1 text-sm text-slate-500">{tHome("ctaHint")}</p>
               </div>
-              {user ? (
+              {user && userHomeHref ? (
                 <Link
-                  href="/dashboard"
+                  href={userHomeHref}
                   className="shrink-0 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
                 >
                   {tHome("editMap")}

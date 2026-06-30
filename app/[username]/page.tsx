@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { Header } from "@/components/layout/Header";
+import { OwnProfileShell } from "@/components/dashboard/OwnProfileShell";
+import { ProfileOwnerTools } from "@/components/dashboard/ProfileOwnerTools";
 import { PublicProfileView } from "@/components/profile/PublicProfileView";
 import { BRAND } from "@/lib/constants";
 import { resolveProfileDisplayName } from "@/lib/utils/display-name";
@@ -111,19 +112,37 @@ export default async function PublicProfilePage({ params }: PageProps) {
     },
   };
 
+  const profileView = (
+    <PublicProfileView
+      data={data}
+      profileDescription={profileDescription}
+      isOwnProfile={isOwnProfile}
+      isGuest={isGuest}
+      ownerTools={
+        isOwnProfile ? (
+          <ProfileOwnerTools
+            visitedCountries={data.visitedCountries}
+            visitedCities={data.visitedCities}
+            visitedParks={data.visitedParks}
+            wishlistCountries={data.wishlistCountries}
+            visitedCodes={data.visitedCodes}
+          />
+        ) : undefined
+      }
+    />
+  );
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Header isLoggedIn={isLoggedIn} />
-      <PublicProfileView
-        data={data}
-        profileDescription={profileDescription}
-        isOwnProfile={isOwnProfile}
-        isGuest={isGuest}
-      />
+      {isOwnProfile ? (
+        <OwnProfileShell username={profile.username}>{profileView}</OwnProfileShell>
+      ) : (
+        profileView
+      )}
     </>
   );
 }

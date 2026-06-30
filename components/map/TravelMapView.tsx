@@ -21,6 +21,10 @@ import {
   removeWishlistCountry,
 } from "@/lib/client/country-actions";
 import { countryMessages, mapMessages } from "@/lib/i18n/client-messages";
+import {
+  countryHasMappedPlaces,
+  isCountryRemoveBlockedByPlacesError,
+} from "@/lib/utils/country-remove";
 import { getCountryContinent, DEFAULT_MAP_CONTINENT, type ContinentId } from "@/lib/map/continents";
 import type { PopularDestination } from "@/lib/data/popular-destinations";
 import type { PopularPark } from "@/lib/data/popular-parks";
@@ -209,14 +213,21 @@ export function TravelMapView({
         setOptimisticVisitedCodes((prev) => new Set(prev).add(selectedStatus.code));
         setCityPickerFirst(true);
       } else {
-        if (selectedStatus.visitedViaPlacesOnly) {
-          await modal.alert(countryMessages.removePlacesFirst, { variant: "info" });
+        if (
+          selectedStatus.visitedViaPlacesOnly ||
+          countryHasMappedPlaces(selectedStatus.code, userCities, userParks)
+        ) {
+          toast.show(countryMessages.removePlacesFirst);
           return;
         }
         if (!selectedStatus.visitedId) return;
 
         const result = await removeVisitedCountry(selectedStatus.visitedId);
         if (!result.ok) {
+          if (isCountryRemoveBlockedByPlacesError(result.error)) {
+            toast.show(countryMessages.removePlacesFirst);
+            return;
+          }
           await modal.alert(result.error, { variant: "error" });
           return;
         }

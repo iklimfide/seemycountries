@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProfileHomeLink } from "@/components/nav/ProfileHomeLink";
 import { countryCodeToFlagUrl } from "@/lib/utils/country-flag";
 import { countryPath } from "@/lib/seo/site";
 import type { CityHub } from "@/lib/data/city-hubs";
@@ -15,9 +16,12 @@ export function CityPageNav({ hub, labels }: CityPageNavProps) {
 
   return (
     <nav className="city-page__top-nav" aria-label="Breadcrumb navigation">
-      <Link href="/dashboard" className="city-page__nav-badge city-page__nav-badge--icon" aria-label={labels.home}>
+      <ProfileHomeLink
+        className="city-page__nav-badge city-page__nav-badge--icon"
+        aria-label={labels.home}
+      >
         <span aria-hidden>🧭</span>
-      </Link>
+      </ProfileHomeLink>
       <Link href={countryPath(hub.countrySlug)} className="city-page__nav-badge">
         {flagUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

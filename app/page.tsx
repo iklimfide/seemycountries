@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { Header } from "@/components/layout/Header";
 import { TravelStatsInteractive } from "@/components/stats/TravelStatsInteractive";
 import { TravelMapFocusShell } from "@/components/map/TravelMapFocusShell";
 import { HomeBestDestinations } from "@/components/home/HomeBestDestinations";
@@ -137,9 +136,7 @@ export default async function HomePage() {
   const mapProfileAvatar = isDemo ? DEMO_PERSONA.avatarUrl : null;
 
   return (
-    <>
-      <Header isLoggedIn={!!user} variant={showLanding ? "landing" : "default"} />
-      <main
+    <main
         className={
           showLanding
             ? "mx-auto w-full max-w-[1200px] flex-1 px-6 py-[46px] pb-[72px] max-sm:px-3.5 max-sm:py-8 max-sm:pb-[54px] lg:max-w-[1400px] lg:px-10 xl:max-w-[1520px] xl:px-12"
@@ -261,6 +258,5 @@ export default async function HomePage() {
           )}
         </TravelMapFocusShell>
       </main>
-    </>
   );
 }

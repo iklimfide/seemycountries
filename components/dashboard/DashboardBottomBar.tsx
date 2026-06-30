@@ -11,15 +11,6 @@ type DashboardBottomBarProps = {
   username: string;
 };
 
-function MapIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width={22} height={22} aria-hidden fill="none" stroke="currentColor" strokeWidth={1.8}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M3 12h18M12 3c2.5 2.8 4 6 4 9s-1.5 6.2-4 9M12 3c-2.5 2.8-4 6-4 9s1.5 6.2 4 9" />
-    </svg>
-  );
-}
-
 function ProfileIcon() {
   return (
     <svg viewBox="0 0 24 24" width={22} height={22} aria-hidden fill="none" stroke="currentColor" strokeWidth={1.8}>
@@ -74,26 +65,19 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 export function DashboardBottomBar({ username }: DashboardBottomBarProps) {
   const pathname = usePathname();
   const { openAddModal } = useDashboardAdd();
-  const publicProfileHref = profilePath(username);
-
-  const mapItem: NavItem = {
-    href: "/dashboard",
-    label: dashboardNavMessages.map,
-    isActive: (path) => path === "/dashboard",
-    icon: <MapIcon />,
-  };
+  const profileHref = profilePath(username);
 
   const profileItem: NavItem = {
-    href: publicProfileHref,
+    href: profileHref,
     label: dashboardNavMessages.profile,
-    isActive: (path) => path === publicProfileHref,
+    isActive: (path) => path === profileHref,
     icon: <ProfileIcon />,
   };
 
   const settingsItem: NavItem = {
-    href: "/dashboard/settings",
+    href: "/settings",
     label: dashboardNavMessages.settings,
-    isActive: (path) => path.startsWith("/dashboard/settings"),
+    isActive: (path) => path.startsWith("/settings"),
     icon: <SettingsIcon />,
   };
 
@@ -101,7 +85,7 @@ export function DashboardBottomBar({ username }: DashboardBottomBarProps) {
     <nav className="dashboard-bottom-bar" aria-label="Dashboard navigation">
       <div className="dashboard-bottom-bar__inner">
         <div className="dashboard-bottom-bar__side dashboard-bottom-bar__side--left">
-          <NavLink item={mapItem} pathname={pathname} />
+          <NavLink item={profileItem} pathname={pathname} />
         </div>
 
         <div className="dashboard-bottom-bar__center">
@@ -109,14 +93,13 @@ export function DashboardBottomBar({ username }: DashboardBottomBarProps) {
             type="button"
             className="dashboard-bottom-bar__add"
             aria-label={dashboardNavMessages.add}
-            onClick={openAddModal}
+            onClick={() => openAddModal()}
           >
             <PlusIcon />
           </button>
         </div>
 
         <div className="dashboard-bottom-bar__side dashboard-bottom-bar__side--right">
-          <NavLink item={profileItem} pathname={pathname} />
           <NavLink item={settingsItem} pathname={pathname} />
         </div>
       </div>
