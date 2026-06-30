@@ -40,7 +40,7 @@ export async function HomeFeatures({ className = "" }: { className?: string }) {
         <p className="m-0 text-base leading-relaxed text-[#64748b]">{t("featuresSectionSubtitle")}</p>
       </div>
 
-      <div className="mb-11 grid grid-cols-1 gap-[18px] sm:grid-cols-3">
+      <div className="mx-auto mb-11 grid max-w-2xl grid-cols-1 gap-4">
         {FEATURES.map((feature) => (
           <article
             key={feature.key}

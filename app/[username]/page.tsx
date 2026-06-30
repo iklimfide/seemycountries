@@ -20,6 +20,7 @@ import {
   profileOgImageVersion,
 } from "@/lib/seo/og";
 import { profilePath, profileUrl as buildProfileUrl, getSiteUrl } from "@/lib/seo/site";
+import { loadDemoPublicProfilePage } from "@/lib/data/jennifer-demo-page";
 import { loadPublicProfilePage } from "@/lib/supabase/profile-page-data";
 
 type PageProps = {
@@ -30,7 +31,7 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
-  const data = await loadPublicProfilePage(username);
+  const data = (await loadPublicProfilePage(username)) ?? (await loadDemoPublicProfilePage(username));
 
   if (!data) {
     return { title: "Traveler not found" };
@@ -84,7 +85,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PublicProfilePage({ params }: PageProps) {
   const { username } = await params;
-  const data = await loadPublicProfilePage(username);
+  const data = (await loadPublicProfilePage(username)) ?? (await loadDemoPublicProfilePage(username));
 
   if (!data) {
     notFound();
