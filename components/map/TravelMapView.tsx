@@ -49,6 +49,8 @@ type TravelMapViewProps = {
   /** Landing page: card shell, filters below hero, light controls. */
   homeLayout?: boolean;
   profileHeader?: ReactNode;
+  /** Public profile card: map only, flags/legend rendered outside. */
+  compactProfile?: boolean;
 };
 
 export function TravelMapView({
@@ -67,6 +69,7 @@ export function TravelMapView({
   showContinentFilter = false,
   homeLayout = false,
   profileHeader,
+  compactProfile = false,
 }: TravelMapViewProps) {
   const router = useRouter();
   const editable = canEditMap ?? isLoggedIn;
@@ -76,7 +79,7 @@ export function TravelMapView({
   const [selectedCountry, setSelectedCountry] = useState<CountrySelection | null>(null);
   const [selectedCity, setSelectedCity] = useState<VisitedCity | null>(null);
   const [continent, setContinent] = useState<ContinentId>(
-    homeLayout ? "world" : DEFAULT_MAP_CONTINENT
+    homeLayout || compactProfile ? "world" : DEFAULT_MAP_CONTINENT
   );
   const [focusRequest, setFocusRequest] = useState<{ code: string; nonce: number } | null>(
     null
@@ -414,13 +417,14 @@ export function TravelMapView({
         wishlistCountryCodes={wishlistCountryCodes}
         userCities={userCities}
         onCountryClick={explorable ? handleCountryClick : undefined}
-        onCityClick={userCities.length > 0 ? (city) => setSelectedCity(city) : undefined}
+        onCityClick={interactive && userCities.length > 0 ? (city) => setSelectedCity(city) : undefined}
         interactive={interactive}
         explorable={explorable}
         continent={continent}
         focusRequest={focusRequest}
         onFocusComplete={() => setFocusRequest(null)}
         pinnedCountryCode={pinnedCountryCode}
+        mainlandWorld={compactProfile}
       />
     </div>
   );
@@ -496,13 +500,13 @@ export function TravelMapView({
     <div className="min-w-0 max-w-full overflow-x-clip">
       {filterGrid}
       {mapBlock}
-      {flagsBlock}
-      {explorable && !homeLayout && (
+      {!compactProfile ? flagsBlock : null}
+      {explorable && !homeLayout && !compactProfile && (
         <p className="mt-1 hidden text-center text-xs text-slate-500 sm:mt-2 sm:block">
           {showContinentFilter ? mapMessages.demoExploreHint : mapMessages.exploreHint}
         </p>
       )}
-      <MapLegend showWishlist={showWishlist} />
+      {!compactProfile ? <MapLegend showWishlist={showWishlist} /> : null}
       {popups}
     </div>
   );

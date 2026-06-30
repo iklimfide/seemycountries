@@ -10,6 +10,7 @@ import { HomeFeatures } from "@/components/home/HomeFeatures";
 import { DemoTravelerStory } from "@/components/home/DemoTravelerSummary";
 import { BRAND } from "@/lib/constants";
 import { loadJenniferDemoPage } from "@/lib/data/jennifer-demo-page";
+import { resolveProfileDisplayName } from "@/lib/utils/display-name";
 import { DEMO_PERSONA } from "@/lib/data/demo-persona";
 import { formatMessage, homeMessages } from "@/lib/i18n/client-messages";
 import {
@@ -25,7 +26,7 @@ export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { profile, stats, visitedCodes } = loadJenniferDemoPage();
-  const displayName = profile.display_name ?? profile.username;
+  const displayName = resolveProfileDisplayName(profile.display_name, profile.username);
   const title = buildProfileTitle(displayName, profile.username);
   const description = buildProfileDescription(displayName, stats);
   const ogTitle = buildProfileOgTitle(displayName);
@@ -74,7 +75,7 @@ export default async function JenniferDemoPage() {
     wishlistCodes,
   } = data;
 
-  const displayName = profile.display_name ?? profile.username;
+  const displayName = resolveProfileDisplayName(profile.display_name, profile.username);
   const profileDescription = buildProfileDescription(displayName, stats);
   const publicUrl = `${getSiteUrl()}${profilePath(profile.username)}`;
 

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { WishlistCountry } from "@/types/database";
+import { normalizeUsernameInput } from "@/lib/utils/username";
 
 export type PublicProfile = {
   id: string;
@@ -22,7 +23,7 @@ export async function fetchPublicProfile(
   supabase: SupabaseClient,
   username: string
 ): Promise<PublicProfile | null> {
-  const normalized = username.toLowerCase();
+  const normalized = normalizeUsernameInput(username);
 
   const { data: extended, error: extendedError } = await supabase
     .from("profiles")

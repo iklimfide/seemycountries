@@ -20,8 +20,9 @@ import {
   normalizeCountryNumericId,
 } from "@/lib/map/country";
 import { type ContinentId, DEFAULT_MAP_CONTINENT } from "@/lib/map/continents";
-import { filterVisibleForContinent, selectFitFeatures } from "@/lib/map/continent-fit";
+import { filterVisibleForContinent, filterMainlandWorldFeatures, selectFitFeatures } from "@/lib/map/continent-fit";
 import { clipCountryToMainland } from "@/lib/map/mainland";
+import { fitProjectionFill } from "@/lib/map/projection-fit";
 import { clampFocusTransform, clampTransform, transformForCountryFocus, transformForFeature, transformToString } from "@/lib/map/zoom";
 import { isTinyCountryOnMap } from "@/lib/map/micro-states";
 import { MapCountryPin } from "@/components/map/MapCountryPin";
@@ -47,17 +48,31 @@ type WorldMapProps = {
   focusRequest?: { code: string; nonce: number } | null;
   onFocusComplete?: () => void;
   pinnedCountryCode?: string | null;
+  /** Static profile map: inhabited mainlands, no polar clutter or micro-state dots. */
+  mainlandWorld?: boolean;
 };
 
 const WIDTH = 800;
 const HEIGHT = 450;
 const MAP_PADDING = 16;
+const MAINLAND_WORLD_PADDING = 0;
 
 function buildProjection(
   continent: ContinentId,
   worldLand: FeatureCollection,
-  fitLand: FeatureCollection
+  fitLand: FeatureCollection,
+  mainlandWorld = false
 ) {
+  if (mainlandWorld) {
+    return fitProjectionFill(
+      geoNaturalEarth1(),
+      WIDTH,
+      HEIGHT,
+      fitLand,
+      MAINLAND_WORLD_PADDING
+    );
+  }
+
   const projection = geoNaturalEarth1();
   const extent: [[number, number], [number, number]] = [
     [MAP_PADDING, MAP_PADDING],
@@ -82,6 +97,7 @@ export function WorldMap({
   focusRequest = null,
   onFocusComplete,
   pinnedCountryCode = null,
+  mainlandWorld = false,
 }: WorldMapProps) {
   const [mapReady, setMapReady] = useState(false);
   const [hoveredCountryId, setHoveredCountryId] = useState<string | null>(null);
@@ -133,20 +149,22 @@ export function WorldMap({
   }, [mainlandFeatures]);
 
   const visibleFeatures = useMemo(() => {
+    if (mainlandWorld) return filterMainlandWorldFeatures(mainlandFeatures);
     return filterVisibleForContinent(continent, mainlandFeatures);
-  }, [continent, mainlandFeatures]);
+  }, [continent, mainlandFeatures, mainlandWorld]);
 
   const fitFeatures = useMemo(() => {
+    if (mainlandWorld) return visibleFeatures;
     return selectFitFeatures(continent, visibleFeatures);
-  }, [continent, visibleFeatures]);
+  }, [continent, visibleFeatures, mainlandWorld]);
 
   const fitLand = useMemo((): FeatureCollection => {
     return { type: "FeatureCollection", features: fitFeatures };
   }, [fitFeatures]);
 
   const projection = useMemo(
-    () => buildProjection(continent, worldLand, fitLand),
-    [continent, worldLand, fitLand]
+    () => buildProjection(continent, worldLand, fitLand, mainlandWorld),
+    [continent, worldLand, fitLand, mainlandWorld]
   );
 
   const pathGenerator = useMemo(() => geoPath(projection), [projection]);
@@ -386,9 +404,9 @@ export function WorldMap({
 
   return (
     <div
-      className={`relative w-full overflow-hidden border-y border-slate-700/50 aspect-[800/450] ${
-        explorable ? "touch-none" : ""
-      }`}
+      className={`relative w-full overflow-hidden aspect-[800/450] ${
+        mainlandWorld ? "" : "border-y border-slate-700/50"
+      } ${explorable ? "touch-none" : ""}`}
       style={{ backgroundColor: MAP_CSS.background }}
     >
       <svg
@@ -420,6 +438,10 @@ export function WorldMap({
             const d = pathGenerator(country);
             const tiny = isTinyCountryOnMap(pathGenerator, country);
             const canClickCountry = interactive && !!onCountryClick;
+
+            if (mainlandWorld && tiny) {
+              return null;
+            }
 
             if (tiny) {
               const [lng, lat] = geoCentroid(country);

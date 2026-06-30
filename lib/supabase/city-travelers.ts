@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CityHub } from "@/lib/data/city-hubs";
 import { profilePath } from "@/lib/seo/site";
+import { resolveProfileDisplayName } from "@/lib/utils/display-name";
 import type { MediaType } from "@/types/database";
 
 export type CityTravelerPin = {
@@ -49,7 +50,7 @@ function rowToPin(row: CityPinRow): CityTravelerPin | null {
     visitDates: row.visit_dates ?? [],
     pinnedAt: row.updated_at,
     username,
-    displayName: profile.display_name ?? profile.username,
+    displayName: resolveProfileDisplayName(profile.display_name, profile.username),
     avatarUrl: profile.avatar_url,
     profilePath: profilePath(username),
   };

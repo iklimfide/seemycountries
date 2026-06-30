@@ -1,10 +1,17 @@
 import type { Feature, Geometry } from "geojson";
 import { countryMetaFromFeature } from "@/lib/map/country";
-import { featureInContinent, type ContinentId } from "@/lib/map/continents";
+import { featureInContinent, getCountryContinent, type ContinentId } from "@/lib/map/continents";
 
 /** Shown on the Oceania map (excludes scattered Polynesia that break framing). */
-const OCEANIA_MAP_CODES = new Set([
+export const OCEANIA_MAP_CODES = new Set([
   "AU", "NZ", "PG", "FJ", "NC", "SB", "VU", "WS", "TO", "MH", "FM", "PW", "NR",
+]);
+
+/** Large landmasses for framing the static profile world map. */
+const WORLD_MAINLAND_FIT_CODES = new Set([
+  "US", "CA", "MX", "BR", "AR", "CL", "CO", "PE", "GB", "IS", "NO", "SE", "FI", "DE", "FR",
+  "ES", "IT", "TR", "RU", "KZ", "CN", "IN", "TH", "JP", "AU", "NZ", "ZA", "EG", "MA", "NG",
+  "KE", "DZ", "SA", "IR", "PK", "ID", "MY", "VN", "KR",
 ]);
 
 /**
@@ -49,6 +56,36 @@ export function selectFitFeatures(
   const picked = visibleFeatures.filter((country) => {
     const meta = countryMetaFromFeature(country);
     return meta != null && fitCodes.has(meta.code);
+  });
+
+  return picked.length > 0 ? picked : visibleFeatures;
+}
+
+/** Inhabited continents only — no Antarctica or remote Pacific/Atlantic micro-islands. */
+export function filterMainlandWorldFeatures(
+  features: Feature<Geometry>[]
+): Feature<Geometry>[] {
+  return features.filter((country) => {
+    const meta = countryMetaFromFeature(country);
+    if (!meta) return false;
+
+    const continent = getCountryContinent(meta.code);
+    if (!continent) return false;
+
+    if (continent === "oceania" && !OCEANIA_MAP_CODES.has(meta.code)) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+export function selectMainlandWorldFitFeatures(
+  visibleFeatures: Feature<Geometry>[]
+): Feature<Geometry>[] {
+  const picked = visibleFeatures.filter((country) => {
+    const meta = countryMetaFromFeature(country);
+    return meta != null && WORLD_MAINLAND_FIT_CODES.has(meta.code);
   });
 
   return picked.length > 0 ? picked : visibleFeatures;

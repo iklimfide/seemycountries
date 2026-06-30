@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { LIMITS } from "@/lib/constants";
 import { isReservedUsername } from "@/lib/constants/reserved-usernames";
+import { normalizeUsernameInput } from "@/lib/utils/username";
 
 export const usernameSchema = z
   .string()
@@ -14,7 +15,7 @@ export type UsernameUnavailableReason = "invalid" | "reserved" | "taken";
 export function getUsernameUnavailableReason(
   username: string
 ): UsernameUnavailableReason | null {
-  const normalized = username.toLowerCase().trim();
+  const normalized = normalizeUsernameInput(username);
   if (normalized.length < LIMITS.usernameMin) return "invalid";
   if (normalized.length > LIMITS.usernameMax) return "invalid";
   if (!/^[a-z0-9_]+$/.test(normalized)) return "invalid";

@@ -15,6 +15,7 @@ import {
   MARITAL_STATUS_OPTIONS,
   PROFESSION_OPTIONS,
 } from "@/lib/data/profile-options";
+import { resolveProfileDisplayName } from "@/lib/utils/display-name";
 import type { Profile, TravelStats } from "@/types/database";
 
 type ProfileSettingsFormProps = {
@@ -52,7 +53,7 @@ export function ProfileSettingsForm({ profile, stats }: ProfileSettingsFormProps
   const [wishlistPublic, setWishlistPublic] = useState(profile.wishlist_public);
   const [loading, setLoading] = useState(false);
 
-  const previewName = displayName.trim() || username;
+  const previewName = resolveProfileDisplayName(displayName, username);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

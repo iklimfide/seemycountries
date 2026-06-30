@@ -5,6 +5,7 @@ import { HeaderProfileIdentity } from "@/components/layout/HeaderProfileIdentity
 import { HeaderUserMenu } from "@/components/layout/HeaderUserMenu";
 import { TravelerBadge } from "@/components/profile/TravelerBadge";
 import { BRAND } from "@/lib/constants";
+import { resolveProfileDisplayName } from "@/lib/utils/display-name";
 import { getAuthUser } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -64,7 +65,7 @@ export async function Header({
 
         menuUser = {
           username: profile.username,
-          displayName: profile.display_name ?? profile.username,
+          displayName: resolveProfileDisplayName(profile.display_name, profile.username),
           avatarUrl,
         };
       }

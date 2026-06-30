@@ -8,6 +8,7 @@ import {
   fetchPublicProfile,
   fetchPublicWishlistCountries,
 } from "@/lib/supabase/public-profile";
+import { resolveProfileDisplayName } from "@/lib/utils/display-name";
 import {
   computeTravelStats,
   getVisitedCountryCodes,
@@ -50,7 +51,7 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
     ? getWishlistCountryCodes(wishlistCountries)
     : [];
 
-  const name = profile.display_name ?? profile.username;
+  const name = resolveProfileDisplayName(profile.display_name, profile.username);
   const statsParts: string[] = [];
   if (stats.countries > 0) statsParts.push(`${stats.countries} Countries`);
   if (stats.cities > 0) statsParts.push(`${stats.cities} Cities`);

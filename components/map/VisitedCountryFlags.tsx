@@ -90,7 +90,7 @@ export function VisitedCountryFlags({
     <div
       className={
         variant === "landing"
-          ? "max-w-full min-w-0 overflow-x-auto border-t border-[#d8e1ef] bg-white px-[18px] py-3.5 scrollbar-thin"
+          ? "profile-panel-scroll scrollbar-thin"
           : "mt-2 max-w-full min-w-0 overflow-x-auto overscroll-x-contain scrollbar-thin sm:mt-3"
       }
     >

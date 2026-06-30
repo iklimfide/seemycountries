@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeUsernameInput } from "@/lib/utils/username";
 import {
   getUsernameUnavailableReason,
   usernameSchema,
@@ -7,7 +8,7 @@ import {
 
 export async function GET(request: Request) {
   const raw = new URL(request.url).searchParams.get("username") ?? "";
-  const username = raw.toLowerCase().trim();
+  const username = normalizeUsernameInput(raw);
 
   const precheck = getUsernameUnavailableReason(username);
   if (precheck === "invalid" || precheck === "reserved") {

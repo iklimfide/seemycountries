@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { profilePath } from "@/lib/seo/site";
+import { resolveProfileDisplayName } from "@/lib/utils/display-name";
 
 export type CountryTraveler = {
   username: string;
@@ -54,7 +55,7 @@ export async function fetchRecentCountryTravelers(
 
       latestByUser.set(row.user_id, {
         username,
-        displayName: profile.display_name ?? profile.username,
+        displayName: resolveProfileDisplayName(profile.display_name, profile.username),
         avatarUrl: profile.avatar_url,
         lastPinnedAt: row.created_at,
         profilePath: profilePath(username),

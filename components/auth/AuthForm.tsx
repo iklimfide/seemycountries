@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { LIMITS } from "@/lib/constants";
 import { translateAuth, translateCommon } from "@/lib/i18n/client-messages";
 import { createClient } from "@/lib/supabase/client";
+import { formatDisplayName } from "@/lib/utils/display-name";
 import { useModal } from "@/components/ui/ModalProvider";
 import {
   loginSchema,
@@ -140,7 +141,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           options: {
             data: {
               username: parsed.data.username,
-              display_name: parsed.data.username,
+              display_name: formatDisplayName(parsed.data.username),
             },
           },
         });

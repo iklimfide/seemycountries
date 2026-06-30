@@ -19,6 +19,7 @@ import { DEMO_VISITED_COUNTRIES } from "@/lib/data/demo-countries";
 import { DEMO_WISHLIST_COUNTRIES } from "@/lib/data/demo-wishlist";
 import { DEMO_PERSONA, getDemoTravelStats } from "@/lib/data/demo-persona";
 import { getSiteUrl } from "@/lib/seo/site";
+import { resolveProfileDisplayName } from "@/lib/utils/display-name";
 import {
   computeTravelStats,
   getVisitedCountryCodes,
@@ -76,7 +77,9 @@ export default async function HomePage() {
         .single();
 
       username = profile?.username ?? null;
-      displayName = profile?.display_name ?? profile?.username ?? null;
+      displayName = profile?.username
+        ? resolveProfileDisplayName(profile.display_name, profile.username)
+        : null;
 
       const [{ data: userCountries }, { data: userCities }, { data: userParks }, { data: userWishlist }] =
         await Promise.all([

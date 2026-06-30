@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { LIMITS } from "@/lib/constants";
 import { MARITAL_STATUS_OPTIONS, PROFESSION_OPTIONS } from "@/lib/data/profile-options";
+import { formatDisplayName } from "@/lib/utils/display-name";
 
 const professionValues = PROFESSION_OPTIONS.map((o) => o.value);
 const maritalValues = MARITAL_STATUS_OPTIONS.map((o) => o.value);
@@ -11,7 +12,11 @@ export const profileSettingsSchema = z
     display_name: z
       .string()
       .max(LIMITS.displayNameMaxLength)
-      .transform((value) => value.trim())
+      .transform((value) => {
+        const trimmed = value.trim();
+        if (!trimmed) return null;
+        return formatDisplayName(trimmed);
+      })
       .nullable()
       .optional(),
     bio: z
