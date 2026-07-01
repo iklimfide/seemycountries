@@ -1,6 +1,8 @@
-import sharp from "sharp";
-
-const ALLOWED_HOST = /\.supabase\.co$/;
+import {
+  isAllowedOgImageUrl,
+  loadOgImagePng,
+} from "@/lib/seo/og-image-inline";
+import { getSiteUrl } from "@/lib/seo/site";
 
 export const runtime = "nodejs";
 
@@ -10,37 +12,29 @@ export async function GET(request: Request) {
     return new Response("Missing src", { status: 400 });
   }
 
-  let parsed: URL;
-  try {
-    parsed = new URL(src);
-  } catch {
-    return new Response("Invalid src", { status: 400 });
-  }
+  const maxWidth = parseInt(new URL(request.url).searchParams.get("w") ?? "", 10);
+  const maxHeight = parseInt(new URL(request.url).searchParams.get("h") ?? "", 10);
+  const resize =
+    Number.isFinite(maxWidth) || Number.isFinite(maxHeight)
+      ? {
+          maxWidth: Number.isFinite(maxWidth) ? maxWidth : undefined,
+          maxHeight: Number.isFinite(maxHeight) ? maxHeight : undefined,
+        }
+      : undefined;
 
-  if (parsed.protocol !== "https:" || !ALLOWED_HOST.test(parsed.hostname)) {
+  if (!isAllowedOgImageUrl(src, getSiteUrl())) {
     return new Response("Forbidden src", { status: 403 });
   }
 
-  try {
-    const response = await fetch(src, { cache: "no-store" });
-    if (!response.ok) {
-      return new Response("Upstream not found", { status: 404 });
-    }
-
-    const input = Buffer.from(await response.arrayBuffer());
-    if (input.length === 0) {
-      return new Response("Empty image", { status: 404 });
-    }
-
-    const png = await sharp(input).rotate().png({ compressionLevel: 6 }).toBuffer();
-
-    return new Response(png, {
-      headers: {
-        "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
-      },
-    });
-  } catch {
-    return new Response("Could not process image", { status: 500 });
+  const png = await loadOgImagePng(src, resize);
+  if (!png) {
+    return new Response("Could not process image", { status: 404 });
   }
+
+  return new Response(new Uint8Array(png), {
+    headers: {
+      "Content-Type": "image/png",
+      "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+    },
+  });
 }

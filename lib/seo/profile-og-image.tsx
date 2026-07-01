@@ -1,10 +1,11 @@
 import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
 import { ProfileCardOgLayout } from "@/lib/seo/profile-card-og-layout";
+import { getOgAssetOrigin } from "@/lib/seo/og-asset-origin";
+import { loadProxiedOgImageDataUrl } from "@/lib/seo/og-image-proxy-load";
 import { buildProfileDescription } from "@/lib/seo/profile";
 import { OG_IMAGE_SIZE } from "@/lib/seo/og";
 import { getSiteUrl } from "@/lib/seo/site";
-import { getOgAssetOrigin } from "@/lib/seo/og-asset-origin";
 import { createClient } from "@/lib/supabase/server";
 import { fetchPublicProfile } from "@/lib/supabase/public-profile";
 import { resolveProfileDisplayName } from "@/lib/utils/display-name";
@@ -16,12 +17,6 @@ function absoluteAssetUrl(url: string | null, siteUrl: string): string | null {
   if (!url) return null;
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   return `${siteUrl}${url.startsWith("/") ? url : `/${url}`}`;
-}
-
-/** Same-origin PNG proxy so edge OG can render Supabase WebP avatars. */
-function proxiedImageUrl(source: string | null, siteUrl: string): string | null {
-  if (!source) return null;
-  return `${siteUrl}/api/og-asset?src=${encodeURIComponent(source)}`;
 }
 
 export async function buildProfileOgImage(
@@ -53,8 +48,11 @@ export async function buildProfileOgImage(
     siteUrl
   );
   const avatarSource = absoluteAssetUrl(profile.avatar_url, siteUrl);
-  const coverUrl = proxiedImageUrl(coverSource, imageOrigin);
-  const avatarUrl = proxiedImageUrl(avatarSource, imageOrigin);
+
+  const [coverUrl, avatarUrl] = await Promise.all([
+    loadProxiedOgImageDataUrl(coverSource, imageOrigin, { width: 1120, height: 420 }),
+    loadProxiedOgImageDataUrl(avatarSource, imageOrigin, { width: 224, height: 224 }),
+  ]);
 
   const description =
     profile.bio?.trim() || buildProfileDescription(displayName, stats);

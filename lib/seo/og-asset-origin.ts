@@ -1,7 +1,6 @@
 import { headers } from "next/headers";
 import { getSiteUrl } from "@/lib/seo/site";
 
-/** Origin for same-request OG asset proxy (localhost in dev, public host in prod). */
 export async function getOgAssetOrigin(): Promise<string> {
   const headerStore = await headers();
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
