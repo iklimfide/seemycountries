@@ -4,12 +4,14 @@ import { getSiteUrl } from "@/lib/seo/site";
 
 export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
 
+export const OG_IMAGE_LAYOUT_VERSION = 2;
+
 export function profileOgImageVersion(
   stats: TravelStats,
   visitedCount: number,
   wishlistCount: number
 ): string {
-  return `${stats.countries}.${stats.cities}.${visitedCount}.${wishlistCount}`;
+  return `${OG_IMAGE_LAYOUT_VERSION}.${stats.countries}.${stats.cities}.${visitedCount}.${wishlistCount}`;
 }
 
 export function profileOgImagePath(username: string, version?: string): string {

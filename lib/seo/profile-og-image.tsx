@@ -3,20 +3,13 @@ import { notFound } from "next/navigation";
 import { ProfileCardOgLayout } from "@/lib/seo/profile-card-og-layout";
 import { buildProfileDescription } from "@/lib/seo/profile";
 import { OG_IMAGE_SIZE } from "@/lib/seo/og";
-import { getShareCardFonts, SHARE_CARD_FONT_FAMILIES } from "@/lib/seo/share-card-fonts";
 import { getSiteUrl } from "@/lib/seo/site";
 import { createClient } from "@/lib/supabase/server";
-import {
-  fetchPublicProfile,
-} from "@/lib/supabase/public-profile";
+import { fetchPublicProfile } from "@/lib/supabase/public-profile";
 import { resolveProfileDisplayName } from "@/lib/utils/display-name";
 import { resolveProfileCoverUrl } from "@/lib/utils/profile-page";
-import {
-  computeTravelStats,
-} from "@/lib/utils/stats";
+import { computeTravelStats } from "@/lib/utils/stats";
 import type { VisitedCity, VisitedCountry, VisitedPark } from "@/types/database";
-
-export const runtime = "edge";
 
 function absoluteAssetUrl(url: string | null, siteUrl: string): string | null {
   if (!url) return null;
@@ -49,12 +42,12 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
     siteUrl
   );
   const avatarUrl = absoluteAssetUrl(profile.avatar_url, siteUrl);
+
   const description =
     profile.bio?.trim() || buildProfileDescription(displayName, stats);
   const heroTitle = `${displayName}'s Travel Map`;
   const heroSubtitle =
     "Collect the places you've been and share how your map grows over time.";
-  const fonts = await getShareCardFonts().catch(() => null);
 
   return new ImageResponse(
     (
@@ -70,26 +63,6 @@ export async function buildProfileOgImage(username: string): Promise<ImageRespon
         stats={stats}
       />
     ),
-    {
-      ...OG_IMAGE_SIZE,
-      ...(fonts
-        ? {
-            fonts: [
-              {
-                name: SHARE_CARD_FONT_FAMILIES.sans,
-                data: fonts.bold,
-                weight: 700,
-                style: "normal" as const,
-              },
-              {
-                name: SHARE_CARD_FONT_FAMILIES.sans,
-                data: fonts.semi,
-                weight: 600,
-                style: "normal" as const,
-              },
-            ],
-          }
-        : {}),
-    }
+    { ...OG_IMAGE_SIZE }
   );
 }
