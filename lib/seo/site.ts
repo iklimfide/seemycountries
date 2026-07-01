@@ -30,7 +30,7 @@ export function profileUrl(username: string): string {
 /** Profile URL with a stable share query param to bust link-preview caches. */
 export function profileShareUrl(username: string): string {
   const url = new URL(profilePath(username), `${getSiteUrl()}/`);
-  url.searchParams.set("share", "3");
+  url.searchParams.set("share", "5");
   return url.toString();
 }
 

@@ -1,4 +1,5 @@
 import { buildProfileOgImage } from "@/lib/seo/profile-og-image";
+import { getOgAssetOrigin } from "@/lib/seo/og-asset-origin";
 import { BRAND } from "@/lib/constants";
 
 export const runtime = "edge";
@@ -12,5 +13,6 @@ type Props = {
 
 export default async function OgImage({ params }: Props) {
   const { username } = await params;
-  return buildProfileOgImage(username);
+  const assetOrigin = await getOgAssetOrigin();
+  return buildProfileOgImage(username, assetOrigin);
 }
