@@ -92,9 +92,11 @@ export async function fetchRecentCityPins(
 }
 
 export async function countCityPinners(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient | null,
   hub: CityHub
 ): Promise<number> {
+  if (!supabase) return 0;
+
   const { count } = await supabase
     .from("visited_cities")
     .select("user_id", { count: "exact", head: true })

@@ -5,9 +5,11 @@ type UserIdRow = {
 };
 
 export async function countCountryPinners(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient | null,
   countryCode: string
 ): Promise<number> {
+  if (!supabase) return 0;
+
   const code = countryCode.toUpperCase();
   const userIds = new Set<string>();
 
