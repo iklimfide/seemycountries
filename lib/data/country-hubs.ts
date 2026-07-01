@@ -1,4 +1,5 @@
 import rawCountries from "@/data/countries.json";
+import rawHomeBestCountries from "@/data/home-best-country-hubs.json";
 
 export type CountryHub = {
   slug: string;
@@ -16,11 +17,17 @@ type CountriesFile = {
 };
 
 const catalog = rawCountries as CountriesFile;
+const homeBestCatalog = rawHomeBestCountries as CountriesFile;
 
 const bySlug = new Map<string, CountryHub>();
 const byCode = new Map<string, CountryHub>();
 
 for (const hub of Object.values(catalog.countries)) {
+  bySlug.set(hub.slug.toLowerCase(), hub);
+  byCode.set(hub.code.toUpperCase(), hub);
+}
+
+for (const hub of Object.values(homeBestCatalog.countries)) {
   bySlug.set(hub.slug.toLowerCase(), hub);
   byCode.set(hub.code.toUpperCase(), hub);
 }

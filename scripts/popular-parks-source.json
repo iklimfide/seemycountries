@@ -67,5 +67,13 @@
     "label": "Nong Nooch",
     "countryCode": "TH",
     "lookup": "Nong Nooch"
-  }
+  },
+
+  { "parkType": "national_park", "label": "Niagara Falls", "countryCode": "US", "parkName": "Niagara Falls", "latitude": 43.0962, "longitude": -79.0377 },
+  { "parkType": "national_park", "label": "French Alps", "countryCode": "FR", "parkName": "French Alps", "latitude": 45.9237, "longitude": 6.8694 },
+  { "parkType": "national_park", "label": "Lake Garda", "countryCode": "IT", "parkName": "Lake Garda", "latitude": 45.6049, "longitude": 10.635 },
+  { "parkType": "national_park", "label": "Stonehenge", "countryCode": "GB", "parkName": "Stonehenge", "latitude": 51.1789, "longitude": -1.8262 },
+  { "parkType": "national_park", "label": "Dead Sea", "countryCode": "EG", "parkName": "Dead Sea", "latitude": 29.5, "longitude": 34.9 },
+  { "parkType": "national_park", "label": "Vesuvius", "countryCode": "IT", "lookup": "Vesuvius" },
+  { "parkType": "national_park", "label": "Scottish Highlands", "countryCode": "GB", "parkName": "Scottish Highlands", "latitude": 57.12, "longitude": -4.71 }
 ]

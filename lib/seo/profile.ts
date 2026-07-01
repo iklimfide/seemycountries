@@ -35,7 +35,7 @@ export function buildProfileDescription(
   stats: TravelStats
 ): string {
   if (stats.countries === 0 && stats.cities === 0) {
-    return `${displayName}'s travel map on ${BRAND.name} — explore countries and cities around the world.`;
+    return `${displayName} is building a travel map on ${BRAND.name}. Explore countries and cities around the world.`;
   }
 
   const parts: string[] = [];
@@ -48,7 +48,10 @@ export function buildProfileDescription(
     parts.push(`${stats.cities} ${stats.cities === 1 ? "city" : "cities"}`);
   }
 
-  return `${displayName} has visited ${parts.join(" and ")}. Explore the interactive travel map on ${BRAND.name}.`;
+  const pinnedPhrase =
+    parts.length === 2 ? parts.join(" and ") : (parts[0] ?? "");
+
+  return `${displayName} has pinned ${pinnedPhrase}. Explore their personal travel map on ${BRAND.name}.`;
 }
 
 export function buildShareText(

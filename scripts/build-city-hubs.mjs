@@ -96,6 +96,34 @@ const HERO_IMAGES = {
     url: "https://images.unsplash.com/photo-1501466044931-62695aada8e9?auto=format&fit=crop&w=400&q=80",
     alt: "Washington, D.C.",
   },
+  barcelona: {
+    url: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=400&q=80",
+    alt: "Barcelona",
+  },
+  amsterdam: {
+    url: "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?auto=format&fit=crop&w=400&q=80",
+    alt: "Amsterdam",
+  },
+  vienna: {
+    url: "https://images.unsplash.com/photo-1605012574745-2d3b3e5b5b5b?auto=format&fit=crop&w=400&q=80",
+    alt: "Vienna",
+  },
+  prague: {
+    url: "https://images.unsplash.com/photo-1541849546-216b3d09d218?auto=format&fit=crop&w=400&q=80",
+    alt: "Prague",
+  },
+  brussels: {
+    url: "https://images.unsplash.com/photo-1559128010-7c1b4769d6d5?auto=format&fit=crop&w=400&q=80",
+    alt: "Brussels",
+  },
+  venice: {
+    url: "https://images.unsplash.com/photo-1523906839108-9bad4dec3b60?auto=format&fit=crop&w=400&q=80",
+    alt: "Venice",
+  },
+  "new-york": {
+    url: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=400&q=80",
+    alt: "New York",
+  },
 };
 
 function capitalToSlug(capital) {
@@ -110,6 +138,12 @@ function capitalToSlug(capital) {
 
 function loadCountries() {
   return JSON.parse(fs.readFileSync(path.join(root, "data/countries.json"), "utf8")).countries;
+}
+
+function loadHomeBestCityHubs() {
+  const filePath = path.join(root, "data/home-best-city-hubs.json");
+  if (!fs.existsSync(filePath)) return [];
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
 function main() {
@@ -139,6 +173,10 @@ function main() {
     }
 
     cities[slug] = entry;
+  }
+
+  for (const hub of loadHomeBestCityHubs()) {
+    cities[hub.slug] = hub;
   }
 
   const output = {

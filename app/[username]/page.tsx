@@ -1,17 +1,11 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { OwnProfileShell } from "@/components/dashboard/OwnProfileShell";
 import { ProfileOwnerTools } from "@/components/dashboard/ProfileOwnerTools";
 import { PublicProfileView } from "@/components/profile/PublicProfileView";
 import { BRAND } from "@/lib/constants";
 import { resolveProfileDisplayName } from "@/lib/utils/display-name";
-import {
-  buildProfileDescription,
-  buildProfileOgDescription,
-  buildProfileOgTitle,
-  buildProfileTitle,
-} from "@/lib/seo/profile";
+import { buildProfileDescription, buildProfileOgTitle } from "@/lib/seo/profile";
 import {
   OG_IMAGE_SIZE,
   profileOgImageAlt,
@@ -19,7 +13,13 @@ import {
   profileOgImageUrl,
   profileOgImageVersion,
 } from "@/lib/seo/og";
-import { profilePath, profileUrl as buildProfileUrl, getSiteUrl } from "@/lib/seo/site";
+import {
+  DEFAULT_DESCRIPTION,
+  MY_MAP_TITLE,
+  profilePath,
+  profileUrl as buildProfileUrl,
+  getSiteUrl,
+} from "@/lib/seo/site";
 import { loadDemoPublicProfilePage } from "@/lib/data/jennifer-demo-page";
 import { loadPublicProfilePage } from "@/lib/supabase/profile-page-data";
 
@@ -41,10 +41,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const visitedCount = data.visitedCodes.length;
   const wishlistCount = data.wishlistCodes.length;
   const displayName = resolveProfileDisplayName(profile.display_name, profile.username);
-  const title = buildProfileTitle(displayName, profile.username);
-  const description = buildProfileDescription(displayName, stats);
+  const isOwnProfile = data.currentUsername === profile.username;
+  const title = isOwnProfile
+    ? MY_MAP_TITLE
+    : displayName === profile.username
+      ? `@${profile.username}`
+      : `${displayName} (@${profile.username})`;
   const ogTitle = buildProfileOgTitle(displayName);
-  const ogDescription = buildProfileOgDescription(visitedCount);
   const url = buildProfileUrl(profile.username);
   const ogVersion = profileOgImageVersion(stats, visitedCount, wishlistCount);
   const ogImagePath = profileOgImagePath(profile.username, ogVersion);
@@ -53,14 +56,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     metadataBase: new URL(getSiteUrl()),
     title,
-    description,
+    description: DEFAULT_DESCRIPTION,
     alternates: {
       canonical: profilePath(profile.username),
     },
     openGraph: {
       type: "website",
       title: ogTitle,
-      description: ogDescription,
+      description: DEFAULT_DESCRIPTION,
       url,
       siteName: BRAND.name,
       images: [
@@ -77,7 +80,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     twitter: {
       card: "summary_large_image",
       title: ogTitle,
-      description: ogDescription,
+      description: DEFAULT_DESCRIPTION,
       images: [ogImageUrl],
     },
   };
@@ -139,11 +142,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {isOwnProfile ? (
-        <OwnProfileShell username={profile.username}>{profileView}</OwnProfileShell>
-      ) : (
-        profileView
-      )}
+      {profileView}
     </>
   );
 }

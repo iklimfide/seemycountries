@@ -13,6 +13,18 @@ export type BadgeTierTheme = {
   iconRing: string;
 };
 
+export const TRAVELER_BADGE_LABELS: Record<TravelerBadgeTier, string> = {
+  explorer: "Explorer",
+  globetrotter: "Globetrotter",
+  super_voyager: "Super Voyager",
+  world_citizen: "World Citizen",
+};
+
+export function getTravelerBadgeLabel(countryCount: number): string | null {
+  const tier = getTravelerBadgeTier(countryCount);
+  return tier ? TRAVELER_BADGE_LABELS[tier] : null;
+}
+
 /** Visited country count → badge tier (1-based thresholds per product spec). */
 export function getTravelerBadgeTier(
   countryCount: number

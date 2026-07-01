@@ -40,8 +40,8 @@ export function ProfileCountryDestinationCard({
             <img
               src={countryCodeToFlagUrl(country.code)}
               alt=""
-              width={72}
-              height={72}
+              width={80}
+              height={80}
               className="rounded-full object-cover shadow-md"
             />
           </div>

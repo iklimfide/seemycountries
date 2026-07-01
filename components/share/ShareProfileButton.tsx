@@ -12,6 +12,7 @@ type ShareProfileCoreProps = {
   displayName: string;
   stats: TravelStats;
   isOwnProfile?: boolean;
+  onShareComplete?: () => void | Promise<void>;
 };
 
 function encode(text: string): string {
@@ -23,6 +24,7 @@ export function useShareProfile({
   displayName,
   stats,
   isOwnProfile = false,
+  onShareComplete,
 }: ShareProfileCoreProps) {
   const [open, setOpen] = useState(false);
 
@@ -43,6 +45,7 @@ export function useShareProfile({
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(shareText);
+      await onShareComplete?.();
     } catch {
       if (typeof window !== "undefined") {
         window.alert(shareMessages.copyFailed);

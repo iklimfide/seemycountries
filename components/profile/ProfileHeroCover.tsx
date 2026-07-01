@@ -1,18 +1,29 @@
 import Image from "next/image";
+import Link from "next/link";
+import type { ReactNode } from "react";
 
 type ProfileHeroCoverProps = {
   coverUrl: string | null;
   residence: string | null;
-  heroTitle: string;
+  residenceHref?: string | null;
+  heroTitle: ReactNode;
   heroSubtitle: string;
 };
 
 export function ProfileHeroCover({
   coverUrl,
   residence,
+  residenceHref,
   heroTitle,
   heroSubtitle,
 }: ProfileHeroCoverProps) {
+  const residencePill = residence ? (
+    <>
+      <span aria-hidden>📍</span>
+      <span>{residence}</span>
+    </>
+  ) : null;
+
   return (
     <header className="profile-hero">
       <div className="profile-hero-card">
@@ -29,11 +40,14 @@ export function ProfileHeroCover({
         <div className="profile-hero-overlay" aria-hidden />
 
         <div className="profile-hero-top">
-          {residence ? (
-            <div className="profile-city-pill">
-              <span aria-hidden>📍</span>
-              <span>{residence}</span>
-            </div>
+          {residencePill ? (
+            residenceHref ? (
+              <Link href={residenceHref} className="profile-city-pill profile-city-pill--link">
+                {residencePill}
+              </Link>
+            ) : (
+              <div className="profile-city-pill">{residencePill}</div>
+            )
           ) : (
             <span />
           )}
@@ -43,11 +57,6 @@ export function ProfileHeroCover({
           <h1>{heroTitle}</h1>
           <p>{heroSubtitle}</p>
         </div>
-
-        <div className="profile-route-line" aria-hidden />
-        <div className="profile-route-dot profile-route-dot--one" aria-hidden />
-        <div className="profile-route-dot profile-route-dot--two" aria-hidden />
-        <div className="profile-route-dot profile-route-dot--three" aria-hidden />
       </div>
     </header>
   );

@@ -1,29 +1,59 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatMessage, homeMessages } from "@/lib/i18n/client-messages";
+import { linkNameInMessage } from "@/lib/utils/link-name-in-message";
 
 type HomeExplainerProps = {
   name: string;
   countries: number;
   cities: number;
+  compact?: boolean;
+  profileHref?: string;
 };
 
-export async function HomeExplainer({ name, countries, cities }: HomeExplainerProps) {
+export async function HomeExplainer({
+  name,
+  countries,
+  cities,
+  compact = false,
+  profileHref,
+}: HomeExplainerProps) {
   const t = await getTranslations("home");
+  const statValues = { countries, cities };
 
   return (
-    <section className="mb-[54px] flex flex-col items-start justify-between gap-5 rounded-3xl border border-[#d8e1ef] bg-white px-7 py-6 shadow-[0_10px_28px_rgba(15,23,42,0.05)] sm:flex-row sm:items-center">
+    <section
+      className={
+        compact
+          ? "flex w-full flex-col items-center gap-4 rounded-[20px] border border-[#e8eef5] bg-[#f8fbff] px-5 py-4 text-center"
+          : "mb-[54px] flex flex-col items-start justify-between gap-5 rounded-3xl border border-[#d8e1ef] bg-white px-7 py-6 shadow-[0_10px_28px_rgba(15,23,42,0.05)] sm:flex-row sm:items-center"
+      }
+    >
       <div>
-        <h2 className="mb-1.5 text-xl tracking-tight text-[#0f172a]">
-          {formatMessage(homeMessages.explainerTitle, { name })}
+        <h2
+          className={
+            compact
+              ? "mb-1 text-[17px] font-bold tracking-tight text-[#0f172a]"
+              : "mb-1.5 text-xl tracking-tight text-[#0f172a]"
+          }
+        >
+          {profileHref
+            ? linkNameInMessage(homeMessages.explainerTitle, name, profileHref)
+            : formatMessage(homeMessages.explainerTitle, { name })}
         </h2>
-        <p className="m-0 leading-relaxed text-[#64748b]">
-          {formatMessage(homeMessages.explainerBody, { name, countries, cities })}
+        <p className={`m-0 leading-relaxed text-[#64748b] ${compact ? "text-[14px]" : ""}`}>
+          {profileHref
+            ? linkNameInMessage(homeMessages.explainerBody, name, profileHref, statValues)
+            : formatMessage(homeMessages.explainerBody, { name, ...statValues })}
         </p>
       </div>
       <Link
         href="/register"
-        className="inline-flex w-full shrink-0 items-center justify-center rounded-full bg-[#2563eb] px-[22px] py-[13px] text-[15px] font-extrabold text-white shadow-[0_12px_26px_rgba(37,99,235,0.28)] transition hover:-translate-y-px hover:bg-[#1d4ed8] sm:w-auto"
+        className={
+          compact
+            ? "inline-flex w-full max-w-[280px] shrink-0 items-center justify-center rounded-full bg-[#2563eb] px-4 py-2.5 text-[13px] font-bold text-white shadow-[0_8px_18px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8]"
+            : "inline-flex w-full shrink-0 items-center justify-center rounded-full bg-[#2563eb] px-[22px] py-[13px] text-[15px] font-extrabold text-white shadow-[0_12px_26px_rgba(37,99,235,0.28)] transition hover:-translate-y-px hover:bg-[#1d4ed8] sm:w-auto"
+        }
       >
         {t("cta")}
       </Link>

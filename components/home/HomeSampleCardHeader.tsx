@@ -85,7 +85,13 @@ export async function HomeSampleCardHeader({
         )}
         <div className="min-w-0">
           <strong className="block text-[14px] leading-snug font-bold text-[#0f172a] sm:text-[15px]">
-            {title}
+            {isDemo ? (
+              <Link href={profileHref} className="home-profile-name-link">
+                {title}
+              </Link>
+            ) : (
+              title
+            )}
           </strong>
           <small className="mt-0.5 block text-[11px] text-[#64748b] sm:text-xs">
             {isDemo ? tHome("sampleProfileLabel") : tHome("yourMap")}

@@ -21,10 +21,21 @@ function escapeXml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
+const SHARE_CARD_MAP = {
+  background: "#dceefb",
+  unvisited: "#bdd7ef",
+  visited: "#2563eb",
+  wishlistFill: "#f59e0b",
+  wishlist: "#d97706",
+  pin: "#1d4ed8",
+  stroke: "#ffffff",
+} as const;
+
 export function buildOgMapSvg(
   visitedCountryCodes: string[],
   cities: VisitedCity[],
-  wishlistCountryCodes: string[] = []
+  wishlistCountryCodes: string[] = [],
+  variant: "dark" | "share-card" = "dark"
 ): string {
   const topology = countries as unknown as Topology<{ countries: GeometryCollection }>;
   const countryFeatures = feature(topology, topology.objects.countries).features;
@@ -61,12 +72,17 @@ export function buildOgMapSvg(
       const d = pathGenerator(country);
       if (!d) return "";
 
+      const palette = variant === "share-card" ? SHARE_CARD_MAP : BRAND.colors;
       const fill = isVisited
-        ? BRAND.colors.visited
+        ? palette.visited
         : isWishlist
-          ? BRAND.colors.wishlistFill
-          : BRAND.colors.unvisited;
-      const stroke = isWishlist ? BRAND.colors.wishlist : BRAND.colors.background;
+          ? palette.wishlistFill
+          : palette.unvisited;
+      const stroke = isWishlist
+        ? palette.wishlist
+        : variant === "share-card"
+          ? SHARE_CARD_MAP.stroke
+          : BRAND.colors.background;
       const strokeWidth = isWishlist ? "1.2" : "0.6";
 
       return `<path d="${escapeXml(d)}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
@@ -80,12 +96,14 @@ export function buildOgMapSvg(
       const point = projection([city.longitude, city.latitude]);
       if (!point) return "";
       const [x, y] = point;
-      return `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="5" fill="${BRAND.colors.pin}" stroke="#ffffff" stroke-width="1.5"/>`;
+      return `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="5" fill="${variant === "share-card" ? SHARE_CARD_MAP.pin : BRAND.colors.pin}" stroke="#ffffff" stroke-width="1.5"/>`;
     })
     .join("");
 
+  const bg = variant === "share-card" ? SHARE_CARD_MAP.background : BRAND.colors.background;
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${MAP_WIDTH} ${MAP_HEIGHT}" width="${MAP_WIDTH}" height="${MAP_HEIGHT}">
-  <rect width="${MAP_WIDTH}" height="${MAP_HEIGHT}" fill="${BRAND.colors.background}"/>
+  <rect width="${MAP_WIDTH}" height="${MAP_HEIGHT}" fill="${bg}"/>
   <g>${countryPaths}</g>
   <g>${pins}</g>
 </svg>`;
@@ -95,8 +113,16 @@ export function buildOgMapSvg(
 export function ogMapDataUrl(
   visitedCountryCodes: string[],
   cities: VisitedCity[],
-  wishlistCountryCodes: string[] = []
+  wishlistCountryCodes: string[] = [],
+  variant: "dark" | "share-card" = "dark"
 ): string {
-  const svg = buildOgMapSvg(visitedCountryCodes, cities, wishlistCountryCodes);
+  const svg = buildOgMapSvg(visitedCountryCodes, cities, wishlistCountryCodes, variant);
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+export function shareCardMapDataUrl(
+  visitedCountryCodes: string[],
+  cities: VisitedCity[]
+): string {
+  return ogMapDataUrl(visitedCountryCodes, cities, [], "share-card");
 }

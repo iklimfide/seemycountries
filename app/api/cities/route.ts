@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidateCityHubForPin } from "@/lib/cache/revalidate-city-hub";
 import { cityInputSchema } from "@/lib/validations/city";
 import { resolveCityMediaFields } from "@/lib/utils/city-media";
+import { ensureVisitedCountry } from "@/lib/supabase/ensure-visited-country";
 import { geocodeCity } from "@/lib/utils/geocode";
 
 export async function POST(request: Request) {
@@ -32,18 +33,15 @@ export async function POST(request: Request) {
   const data = parsed.data;
   const code = data.country_code.toUpperCase();
 
-  const { data: visitedCountry } = await supabase
-    .from("visited_countries")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("country_code", code)
-    .maybeSingle();
+  const countryResult = await ensureVisitedCountry(
+    supabase,
+    user.id,
+    code,
+    data.country_name
+  );
 
-  if (!visitedCountry) {
-    return NextResponse.json(
-      { error: "Add this country to your map before adding a city" },
-      { status: 400 }
-    );
+  if (!countryResult.ok) {
+    return NextResponse.json({ error: countryResult.error }, { status: 500 });
   }
 
   const coords =

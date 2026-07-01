@@ -3,13 +3,15 @@ import { Geist } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { BRAND } from "@/lib/constants";
-import { DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, getSiteUrl } from "@/lib/seo/site";
+import { DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, HOME_TITLE, getSiteUrl } from "@/lib/seo/site";
 import { defaultLocale, type Locale } from "@/lib/i18n/config";
 import enMessages from "@/messages/en.json";
 import { ModalProvider } from "@/components/ui/ModalProvider";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ClearPwaArtifacts } from "@/components/dev/ClearPwaArtifacts";
+import { OwnProfileShell } from "@/components/dashboard/OwnProfileShell";
+import { getLoggedInUsername } from "@/lib/supabase/auth";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -57,6 +59,14 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default async function RootLayout({
@@ -74,6 +84,19 @@ export default async function RootLayout({
     // Fallback when request config is unavailable (e.g. during error recovery)
   }
 
+  const username = await getLoggedInUsername();
+
+  const appBody = (
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <ThemeProvider>
+        <ClearPwaArtifacts />
+        <ModalProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </ModalProvider>
+      </ThemeProvider>
+    </NextIntlClientProvider>
+  );
+
   return (
     <html
       lang={locale}
@@ -81,14 +104,11 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden bg-background text-foreground">
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ThemeProvider>
-            <ClearPwaArtifacts />
-            <ModalProvider>
-              <ToastProvider>{children}</ToastProvider>
-            </ModalProvider>
-          </ThemeProvider>
-        </NextIntlClientProvider>
+        {username ? (
+          <OwnProfileShell username={username}>{appBody}</OwnProfileShell>
+        ) : (
+          appBody
+        )}
       </body>
     </html>
   );

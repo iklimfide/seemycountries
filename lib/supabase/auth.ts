@@ -12,3 +12,19 @@ export const getAuthUser = cache(async (): Promise<User | null> => {
 
   return user;
 });
+
+export const getLoggedInUsername = cache(async (): Promise<string | null> => {
+  const user = await getAuthUser();
+  if (!user) return null;
+
+  const supabase = await createClient();
+  if (!supabase) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .single();
+
+  return profile?.username ?? null;
+});

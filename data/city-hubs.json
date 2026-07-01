@@ -162,6 +162,22 @@
       "heroImage": "https://images.unsplash.com/photo-1650802315195-f58a8663c9be?auto=format&fit=crop&w=400&q=80",
       "heroImageAlt": "Ankara"
     },
+    "antalya": {
+      "slug": "antalya",
+      "name": "Antalya",
+      "countryCode": "TR",
+      "countrySlug": "turkey",
+      "countryName": "Turkey",
+      "heroImageAlt": "Antalya"
+    },
+    "istanbul": {
+      "slug": "istanbul",
+      "name": "Istanbul",
+      "countryCode": "TR",
+      "countrySlug": "turkey",
+      "countryName": "Turkey",
+      "heroImageAlt": "Istanbul"
+    },
     "london": {
       "slug": "london",
       "name": "London",
@@ -189,6 +205,78 @@
       "countryName": "Vietnam",
       "heroImage": "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=400&q=80",
       "heroImageAlt": "Hanoi"
+    },
+    "barcelona": {
+      "slug": "barcelona",
+      "name": "Barcelona",
+      "countryCode": "ES",
+      "countrySlug": "spain",
+      "countryName": "Spain",
+      "heroImage": "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=400&q=80",
+      "heroImageAlt": "Barcelona"
+    },
+    "amsterdam": {
+      "slug": "amsterdam",
+      "name": "Amsterdam",
+      "countryCode": "NL",
+      "countrySlug": "netherlands",
+      "countryName": "Netherlands",
+      "heroImage": "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?auto=format&fit=crop&w=400&q=80",
+      "heroImageAlt": "Amsterdam"
+    },
+    "vienna": {
+      "slug": "vienna",
+      "name": "Vienna",
+      "countryCode": "AT",
+      "countrySlug": "austria",
+      "countryName": "Austria",
+      "heroImage": "https://images.unsplash.com/photo-1605012574745-2d3b3e5b5b5b?auto=format&fit=crop&w=400&q=80",
+      "heroImageAlt": "Vienna"
+    },
+    "prague": {
+      "slug": "prague",
+      "name": "Prague",
+      "countryCode": "CZ",
+      "countrySlug": "czech-republic",
+      "countryName": "Czech Republic",
+      "touristCityName": "Prague 1",
+      "heroImage": "https://images.unsplash.com/photo-1541849546-216b3d09d218?auto=format&fit=crop&w=400&q=80",
+      "heroImageAlt": "Prague"
+    },
+    "brussels": {
+      "slug": "brussels",
+      "name": "Brussels",
+      "countryCode": "BE",
+      "countrySlug": "belgium",
+      "countryName": "Belgium",
+      "heroImage": "https://images.unsplash.com/photo-1559128010-7c1b4769d6d5?auto=format&fit=crop&w=400&q=80",
+      "heroImageAlt": "Brussels"
+    },
+    "venice": {
+      "slug": "venice",
+      "name": "Venice",
+      "countryCode": "IT",
+      "countrySlug": "italy",
+      "countryName": "Italy",
+      "heroImage": "https://images.unsplash.com/photo-1523906839108-9bad4dec3b60?auto=format&fit=crop&w=400&q=80",
+      "heroImageAlt": "Venice"
+    },
+    "new-york": {
+      "slug": "new-york",
+      "name": "New York",
+      "countryCode": "US",
+      "countrySlug": "united-states",
+      "countryName": "United States",
+      "heroImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=400&q=80",
+      "heroImageAlt": "New York"
+    },
+    "los-angeles": {
+      "slug": "los-angeles",
+      "name": "Los Angeles",
+      "countryCode": "US",
+      "countrySlug": "united-states",
+      "countryName": "United States",
+      "heroImageAlt": "Los Angeles"
     }
   }
 }

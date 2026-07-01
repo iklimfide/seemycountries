@@ -91,6 +91,19 @@ export async function fetchRecentCityPins(
   return pins.slice(0, limit);
 }
 
+export async function countCityPinners(
+  supabase: SupabaseClient,
+  hub: CityHub
+): Promise<number> {
+  const { count } = await supabase
+    .from("visited_cities")
+    .select("user_id", { count: "exact", head: true })
+    .eq("country_code", hub.countryCode.toUpperCase())
+    .ilike("city_name", hub.name.trim());
+
+  return count ?? 0;
+}
+
 export function cityPinsWithContent(pins: CityTravelerPin[]): CityTravelerPin[] {
   return pins.filter((pin) => Boolean(pin.mediaUrl) || Boolean(pin.note?.trim()));
 }

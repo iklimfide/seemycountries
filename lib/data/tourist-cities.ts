@@ -23556,6 +23556,20 @@ export function getTouristCitiesByCountry(countryCode: string): TouristCity[] {
   );
 }
 
+export function findTouristCitiesByExactName(
+  cityName: string,
+  countryCode?: string | null
+): TouristCity[] {
+  const needle = cityName.trim().toLocaleLowerCase("tr");
+  if (!needle) return [];
+
+  const pool = countryCode
+    ? TOURIST_CITIES.filter((city) => city.countryCode === countryCode.toUpperCase())
+    : TOURIST_CITIES;
+
+  return pool.filter((city) => city.name.toLocaleLowerCase("tr") === needle);
+}
+
 export function searchTouristCities(
   countryCode: string,
   query = "",

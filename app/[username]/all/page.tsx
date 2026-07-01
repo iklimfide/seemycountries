@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { OwnProfileShell } from "@/components/dashboard/OwnProfileShell";
 import { ProfileAllDestinationsView } from "@/components/profile/ProfileAllDestinationsView";
 import { resolveProfileDisplayName } from "@/lib/utils/display-name";
 import { buildProfileAllDestinations } from "@/lib/utils/profile-all-destinations";
-import { profileAllPath } from "@/lib/seo/site";
+import { DEFAULT_DESCRIPTION, profileAllPath } from "@/lib/seo/site";
+import { loadDemoPublicProfilePage } from "@/lib/data/jennifer-demo-page";
 import { loadPublicProfilePage } from "@/lib/supabase/profile-page-data";
 
 type PageProps = {
@@ -15,7 +15,7 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
-  const data = await loadPublicProfilePage(username);
+  const data = (await loadPublicProfilePage(username)) ?? (await loadDemoPublicProfilePage(username));
 
   if (!data) {
     return { title: "Traveler not found" };
@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${displayName} — All destinations`,
+    description: DEFAULT_DESCRIPTION,
     alternates: {
       canonical: profileAllPath(data.profile.username),
     },
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProfileAllDestinationsPage({ params }: PageProps) {
   const { username } = await params;
-  const data = await loadPublicProfilePage(username);
+  const data = (await loadPublicProfilePage(username)) ?? (await loadDemoPublicProfilePage(username));
 
   if (!data) {
     notFound();
@@ -69,9 +70,5 @@ export default async function ProfileAllDestinationsPage({ params }: PageProps) 
     />
   );
 
-  return isOwnProfile ? (
-    <OwnProfileShell username={profile.username}>{view}</OwnProfileShell>
-  ) : (
-    view
-  );
+  return view;
 }

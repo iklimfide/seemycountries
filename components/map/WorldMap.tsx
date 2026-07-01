@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback, useRef, useEffect, useLayoutEffect } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { geoCentroid, geoNaturalEarth1, geoPath } from "d3-geo";
 import { select } from "d3-selection";
 import { zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from "d3-zoom";
@@ -303,7 +303,7 @@ export function WorldMap({
     [applyFocusTransform, pathGenerator]
   );
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!mapReady) return;
 
     if (focusRequest) {

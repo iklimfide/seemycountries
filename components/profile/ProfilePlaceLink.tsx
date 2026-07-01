@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { cityPath, countryPath } from "@/lib/seo/site";
+import { cityPath, countryPath, parkPath } from "@/lib/seo/site";
 
 type ProfilePlaceLinkProps = {
   href: string | null;
@@ -46,6 +46,22 @@ export function ProfileCountryLink({
 }) {
   return (
     <ProfilePlaceLink href={slug ? countryPath(slug) : null} className={className}>
+      {name}
+    </ProfilePlaceLink>
+  );
+}
+
+export function ProfileParkLink({
+  slug,
+  name,
+  className,
+}: {
+  slug: string | null;
+  name: string;
+  className?: string;
+}) {
+  return (
+    <ProfilePlaceLink href={slug ? parkPath(slug) : null} className={className}>
       {name}
     </ProfilePlaceLink>
   );

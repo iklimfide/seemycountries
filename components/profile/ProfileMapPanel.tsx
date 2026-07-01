@@ -2,8 +2,7 @@
 
 import { TravelMapView } from "@/components/map/TravelMapView";
 import { VisitedCountryFlags } from "@/components/map/VisitedCountryFlags";
-import { ProfileCountryLink } from "@/components/profile/ProfilePlaceLink";
-import { worldCoveragePercent, type LatestVisitedCountry } from "@/lib/utils/profile-page";
+import { worldCoveragePercent } from "@/lib/utils/profile-page";
 import type { VisitedCity, VisitedCountry, VisitedPark, WishlistCountry } from "@/types/database";
 
 type ProfileMapPanelProps = {
@@ -16,11 +15,9 @@ type ProfileMapPanelProps = {
   isLoggedIn: boolean;
   canEditMap: boolean;
   countryCount: number;
-  latestCountry: LatestVisitedCountry | null;
   title: string;
   detailLabel: string;
-  markedLabel: string;
-  latestAddedPrefix: string;
+  exploredBadgeLabel: string;
 };
 
 export function ProfileMapPanel({
@@ -33,11 +30,9 @@ export function ProfileMapPanel({
   isLoggedIn,
   canEditMap,
   countryCount,
-  latestCountry,
   title,
   detailLabel,
-  markedLabel,
-  latestAddedPrefix,
+  exploredBadgeLabel,
 }: ProfileMapPanelProps) {
   const coverage = worldCoveragePercent(countryCount);
 
@@ -72,25 +67,10 @@ export function ProfileMapPanel({
             showContinentFilter={false}
             compactProfile
           />
-        </div>
-
-        <div className="profile-map-caption">
-          <div>
-            <b>{markedLabel}</b>
-            <br />
-            {latestCountry ? (
-              <span>
-                {latestAddedPrefix}
-                <ProfileCountryLink
-                  slug={latestCountry.countrySlug}
-                  name={latestCountry.name}
-                />
-              </span>
-            ) : (
-              <span>&nbsp;</span>
-            )}
+          <div className="profile-map-badge" aria-label={`${coverage}% ${exploredBadgeLabel}`}>
+            <strong>{coverage}%</strong>
+            <span>{exploredBadgeLabel}</span>
           </div>
-          <span>🌍 %{coverage}</span>
         </div>
 
         <VisitedCountryFlags
@@ -99,6 +79,7 @@ export function ProfileMapPanel({
           userParks={visitedParks}
           countryCodes={visitedCountryCodes}
           variant="landing"
+          className="border-t border-[#d8e1ef] !px-4 !py-3"
         />
       </div>
     </section>

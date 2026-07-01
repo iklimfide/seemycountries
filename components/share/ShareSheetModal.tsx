@@ -23,6 +23,7 @@ type ShareSheetModalProps = {
   open: boolean;
   onClose: () => void;
   onCopy: () => void;
+  onShareComplete?: () => void | Promise<void>;
   shareLinks: {
     x: string;
     whatsapp: string;
@@ -54,6 +55,7 @@ export function ShareSheetModal({
   open,
   onClose,
   onCopy,
+  onShareComplete,
   shareLinks,
 }: ShareSheetModalProps) {
   useEffect(() => {
@@ -72,6 +74,7 @@ export function ShareSheetModal({
   function openLink(url: string) {
     window.open(url, "_blank", "noopener,noreferrer");
     onClose();
+    void onShareComplete?.();
   }
 
   const options: ShareOption[] = [

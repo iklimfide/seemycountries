@@ -7,15 +7,21 @@ import { ProfileHeroCover } from "@/components/profile/ProfileHeroCover";
 import { ProfileIdentityCard } from "@/components/profile/ProfileIdentityCard";
 import { ProfileMapPanel } from "@/components/profile/ProfileMapPanel";
 import { ProfileSummaryGrid } from "@/components/profile/ProfileSummaryGrid";
+import { isDemoProfileUsername } from "@/lib/data/jennifer-demo-page";
+import { computeTravelUpdateDelta } from "@/lib/utils/travel-update";
+import { ProfileTravelUpdateCard } from "@/components/profile/ProfileTravelUpdateCard";
+import { ProfileTravelUpdateSection } from "@/components/profile/ProfileTravelUpdateSection";
 import { ProfileTripsRow } from "@/components/profile/ProfileTripsRow";
+import { PublicGuestAuthLinks } from "@/components/nav/PublicGuestAuthLinks";
+import { LogOutButton } from "@/components/auth/LogOutButton";
 import {
   buildProfileSummary,
   buildProfileTrips,
-  latestVisitedCountry,
   resolveProfileCoverUrl,
 } from "@/lib/utils/profile-page";
+import { resolveResidenceCityHref } from "@/lib/utils/residence-city";
 import { resolveProfileDisplayName } from "@/lib/utils/display-name";
-import { profileAllPath } from "@/lib/seo/site";
+import { profileAllPath, profilePath } from "@/lib/seo/site";
 import type { PublicProfilePageData } from "@/lib/supabase/profile-page-data";
 
 type PublicProfileViewProps = {
@@ -26,6 +32,8 @@ type PublicProfileViewProps = {
   ownerTools?: ReactNode;
   /** Landing page: show hero + identity + map only, without extra marketing blocks. */
   embedded?: boolean;
+  /** When set (e.g. home demo), avatar, name, and hero title link to the full profile. */
+  profilePageHref?: string;
 };
 
 export async function PublicProfileView({
@@ -35,8 +43,13 @@ export async function PublicProfileView({
   isGuest,
   ownerTools,
   embedded = false,
+  profilePageHref,
 }: PublicProfileViewProps) {
-  const [t, tHome] = await Promise.all([getTranslations("profile"), getTranslations("home")]);
+  const [t, tHome, tCommon] = await Promise.all([
+    getTranslations("profile"),
+    getTranslations("home"),
+    getTranslations("common"),
+  ]);
 
   const {
     profile,
@@ -63,22 +76,60 @@ export async function PublicProfileView({
     visibleWishlistCodes.length > 0;
 
   const coverUrl = resolveProfileCoverUrl(visitedCities, visitedParks);
-  const trips = buildProfileTrips(visitedCities);
+  const trips = buildProfileTrips(visitedCities, visitedParks);
   const summary = buildProfileSummary(
     visitedCountries,
     visitedCities,
     visitedParks,
     visibleWishlistCountries
   );
-  const latestCountry = latestVisitedCountry(visitedCountries, visitedCities, visitedParks);
+  const isDemoProfile = isDemoProfileUsername(profile.username);
+  const showTravelUpdateCard =
+    (isOwnProfile || isDemoProfile) && (!embedded || isDemoProfile);
+  const demoTravelDelta = computeTravelUpdateDelta(
+    null,
+    stats,
+    visitedCodes,
+    visitedCountries,
+    visitedCities,
+    visitedParks
+  );
+  const demoProfileHref = profilePageHref ?? (embedded && isDemoProfile ? profilePath(profile.username) : undefined);
+  const residenceHref = resolveResidenceCityHref(profile.residence);
+  const heroTitle = isOwnProfile
+    ? t("travelDiaryTitle")
+    : demoProfileHref
+      ? (
+          <>
+            <Link href={demoProfileHref} className="profile-hero-name-link">
+              {displayName}
+            </Link>
+            {t("travelDiaryTitleVisitorSuffix")}
+          </>
+        )
+      : t("travelDiaryTitleVisitor", { name: displayName });
 
   const profileBody = (
     <div className={`profile-page${embedded ? " profile-page--embedded" : ""}`}>
+      {isGuest && !embedded ? (
+        <div className="profile-guest-auth-bar">
+          <PublicGuestAuthLinks
+            loginHref={`/login?next=${encodeURIComponent(profilePath(profile.username))}`}
+            registerHref={`/register?next=${encodeURIComponent(profilePath(profile.username))}`}
+            loginLabel={tCommon("login")}
+            registerLabel={tCommon("register")}
+            className="home-guest-auth"
+            linkClassName="home-guest-auth__link"
+            primaryClassName="home-guest-auth__link home-guest-auth__link--primary"
+          />
+        </div>
+      ) : null}
       <div className="profile-shell">
         <ProfileHeroCover
           coverUrl={coverUrl}
           residence={profile.residence}
-          heroTitle={isOwnProfile ? t("travelDiaryTitle") : t("travelDiaryTitleVisitor", { name: displayName })}
+          residenceHref={residenceHref}
+          heroTitle={heroTitle}
           heroSubtitle={t("travelDiarySubtitle")}
         />
 
@@ -92,6 +143,7 @@ export async function PublicProfileView({
             stats={stats}
             isOwnProfile={isOwnProfile}
             countryCount={stats.countries}
+            profileHref={demoProfileHref}
             labels={{
               countries: t("statCountriesShort"),
               cities: t("statCitiesShort"),
@@ -101,6 +153,31 @@ export async function PublicProfileView({
               edit: t("editProfile"),
             }}
           />
+
+          {showTravelUpdateCard ? (
+            isOwnProfile && !embedded ? (
+              <ProfileTravelUpdateSection
+                profileId={profile.id}
+                username={profile.username}
+                displayName={displayName}
+                stats={stats}
+                visitedCountries={visitedCountries}
+                visitedCities={visitedCities}
+                visitedParks={visitedParks}
+                visitedCodes={visitedCodes}
+              />
+            ) : (
+              <ProfileTravelUpdateCard
+                username={profile.username}
+                displayName={displayName}
+                stats={stats}
+                delta={demoTravelDelta}
+                isOwnProfile={false}
+                travelUpdateImagePath={`/api/demo/travel-update-image?username=${encodeURIComponent(profile.username)}`}
+                persistShareSnapshot={false}
+              />
+            )
+          ) : null}
 
           {hasMapContent ? (
             <ProfileMapPanel
@@ -113,11 +190,9 @@ export async function PublicProfileView({
               isLoggedIn={isLoggedIn}
               canEditMap={isOwnProfile}
               countryCount={stats.countries}
-              latestCountry={latestCountry}
               title={t("worldMapTitle")}
               detailLabel={t("mapDetail")}
-              markedLabel={t("countriesMarked", { count: stats.countries })}
-              latestAddedPrefix={t("latestAddedPrefix")}
+              exploredBadgeLabel={t("mapExploredBadge")}
             />
           ) : (
             <section className="profile-section">
@@ -185,6 +260,8 @@ export async function PublicProfileView({
                   favoritesBody: (count) => t("summaryFavoritesBody", { count }),
                 }}
               />
+
+              {isOwnProfile ? <LogOutButton variant="profile" /> : null}
             </>
           ) : null}
         </main>

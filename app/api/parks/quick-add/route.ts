@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateParkHubForPin } from "@/lib/cache/revalidate-park-hub";
+import { ensureVisitedCountry } from "@/lib/supabase/ensure-visited-country";
 import { quickParkSchema } from "@/lib/validations/park";
 
 export async function POST(request: Request) {
@@ -42,29 +44,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ park: existingPark, added: false, alreadyHad: true });
   }
 
-  const { data: visitedCountry } = await supabase
-    .from("visited_countries")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("country_code", code)
-    .maybeSingle();
+  const countryResult = await ensureVisitedCountry(
+    supabase,
+    user.id,
+    code,
+    data.country_name
+  );
 
-  if (!visitedCountry) {
-    const { error: countryError } = await supabase.from("visited_countries").insert({
-      user_id: user.id,
-      country_code: code,
-      country_name: data.country_name,
-    });
-
-    if (countryError && countryError.code !== "23505") {
-      return NextResponse.json({ error: countryError.message }, { status: 500 });
-    }
-
-    await supabase
-      .from("wishlist_countries")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("country_code", code);
+  if (!countryResult.ok) {
+    return NextResponse.json({ error: countryResult.error }, { status: 500 });
   }
 
   const { data: park, error: parkError } = await supabase
@@ -87,6 +75,8 @@ export async function POST(request: Request) {
   if (parkError) {
     return NextResponse.json({ error: parkError.message }, { status: 500 });
   }
+
+  revalidateParkHubForPin(park.country_code, park.park_name);
 
   return NextResponse.json({ park, added: true, alreadyHad: false });
 }

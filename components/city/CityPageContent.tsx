@@ -1,10 +1,14 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { CityPageActions } from "@/components/city/CityPageActions";
 import { CityPageNav } from "@/components/city/CityPageNav";
+import { CityPageActions } from "@/components/city/CityPageActions";
+import { HubPageTopBar } from "@/components/hub/HubPageTopBar";
 import { CityHubMemories } from "@/components/city/CityHubMemories";
+import { HubPagePinCount } from "@/components/hub/HubPagePinCount";
 import { HubRecentTravelers } from "@/components/hub/HubRecentTravelers";
-import { countryPath } from "@/lib/seo/site";
+import { ensureParkHubFromTouristPark } from "@/lib/data/park-hubs";
+import { DEFAULT_CITY_HERO_IMAGE } from "@/lib/constants";
+import { countryPath, parkPath } from "@/lib/seo/site";
 import { parkTypeLabel } from "@/lib/utils/park-type";
 import type { CityHub } from "@/lib/data/city-hubs";
 import type { CountryHub } from "@/lib/data/country-hubs";
@@ -23,10 +27,13 @@ type CityPageContentProps = {
   memoryPins: CityTravelerPin[];
   visitorState: CityVisitorState;
   loginHref: string;
+  registerHref: string;
+  pinCountLabel: string;
   labels: {
     home: string;
     visited: string;
     wantToVisit: string;
+    like: string;
     cityAdded: string;
     cityRemoved: string;
     wishlistAdded: string;
@@ -46,6 +53,8 @@ type CityPageContentProps = {
     recentTravelers: string;
     noTravelersYet: string;
     pinCity: string;
+    login: string;
+    register: string;
   };
 };
 
@@ -58,6 +67,8 @@ export function CityPageContent({
   memoryPins,
   visitorState,
   loginHref,
+  registerHref,
+  pinCountLabel,
   labels,
 }: CityPageContentProps) {
   const rows: { label: string; value: ReactNode }[] = [];
@@ -85,34 +96,44 @@ export function CityPageContent({
       label: labels.parksInCity,
       value: (
         <ul className="m-0 list-none p-0">
-          {parks.map((park) => (
-            <li key={`${park.parkType}:${park.name}`} className="py-1 first:pt-0 last:pb-0">
-              {park.name}
-              <span className="city-page__subtext">{parkTypeLabel(park.parkType)}</span>
-            </li>
-          ))}
+          {parks.map((park) => {
+            const parkHub = ensureParkHubFromTouristPark(park);
+            return (
+              <li key={`${park.parkType}:${park.name}`} className="py-1 first:pt-0 last:pb-0">
+                <Link href={parkPath(parkHub.slug)} className="city-page__link">
+                  {park.name}
+                </Link>
+                <span className="city-page__subtext">{parkTypeLabel(park.parkType)}</span>
+              </li>
+            );
+          })}
         </ul>
       ),
     });
   }
 
+  const pinWithPhoto = memoryPins.find((pin) => pin.mediaPreviewUrl || pin.mediaUrl);
+  const heroUrl =
+    pinWithPhoto?.mediaPreviewUrl ?? pinWithPhoto?.mediaUrl ?? DEFAULT_CITY_HERO_IMAGE;
+
   return (
     <div className="city-page">
-      <CityPageNav hub={hub} labels={labels} />
+      <HubPageTopBar
+        loginHref={loginHref}
+        registerHref={registerHref}
+        loginLabel={labels.login}
+        registerLabel={labels.register}
+        showAuthLinks={!visitorState.isLoggedIn}
+      >
+        <CityPageNav hub={hub} labels={labels} />
+      </HubPageTopBar>
 
       <div className="city-page__container">
         <section className="city-page__hero">
-          {hub.heroImage ? (
-            <div className="city-page__image-wrap">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={hub.heroImage}
-                alt={hub.heroImageAlt ?? hub.name}
-                width={200}
-                height={200}
-              />
-            </div>
-          ) : null}
+          <div className="city-page__image-wrap">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={heroUrl} alt="" width={200} height={200} />
+          </div>
 
           <div>
             <h1 className="city-page__title">{hub.name}</h1>
@@ -126,6 +147,7 @@ export function CityPageContent({
               loginHref={loginHref}
               labels={labels}
             />
+            <HubPagePinCount label={pinCountLabel} />
           </div>
         </section>
 

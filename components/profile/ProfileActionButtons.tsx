@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ShareSheetModal } from "@/components/share/ShareSheetModal";
 import { useShareProfile } from "@/components/share/ShareProfileButton";
+import { ProfileSettingsIcon, ProfileShareIcon } from "@/components/profile/ProfileActionIcons";
+import { finalizeTravelShare } from "@/lib/client/travel-share-snapshot";
 import type { TravelStats } from "@/types/database";
 
 type ProfileActionButtonsProps = {
@@ -22,11 +25,19 @@ export function ProfileActionButtons({
   shareLabel,
   editLabel,
 }: ProfileActionButtonsProps) {
+  const router = useRouter();
+
+  async function handleShareComplete() {
+    if (!isOwnProfile) return;
+    await finalizeTravelShare(() => router.refresh());
+  }
+
   const { open, setOpen, shareLinks, handleCopy } = useShareProfile({
     username,
     displayName,
     stats,
     isOwnProfile,
+    onShareComplete: isOwnProfile ? handleShareComplete : undefined,
   });
 
   return (
@@ -38,27 +49,11 @@ export function ProfileActionButtons({
           aria-label={shareLabel}
           onClick={() => setOpen(true)}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path
-              d="M7 17L17 7M17 7H9M17 7V15"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <ProfileShareIcon />
         </button>
         {isOwnProfile ? (
           <Link href="/settings" className="profile-small-action" aria-label={editLabel}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path
-                d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <ProfileSettingsIcon />
           </Link>
         ) : (
           <span className="profile-small-action profile-small-action--placeholder" aria-hidden />
@@ -69,6 +64,7 @@ export function ProfileActionButtons({
         open={open}
         onClose={() => setOpen(false)}
         onCopy={handleCopy}
+        onShareComplete={isOwnProfile ? handleShareComplete : undefined}
         shareLinks={shareLinks}
       />
     </>

@@ -12,6 +12,7 @@ import { useModal } from "@/components/ui/ModalProvider";
 import { useToast } from "@/components/ui/ToastProvider";
 import type { CountryVisitorState } from "@/lib/data/country-visitor-state";
 import { isCountryRemoveBlockedByPlacesError } from "@/lib/utils/country-remove";
+import { HubPageLikeButton } from "@/components/hub/HubPageLikeButton";
 
 type CountryPageActionsProps = {
   countryCode: string;
@@ -20,6 +21,7 @@ type CountryPageActionsProps = {
   labels: {
     visited: string;
     wantToVisit: string;
+    like: string;
     countryAdded: string;
     countryRemoved: string;
     wishlistAdded: string;
@@ -126,26 +128,40 @@ export function CountryPageActions({
 
   return (
     <div className="city-page__actions">
-      <button
-        type="button"
-        onClick={handleVisited}
-        disabled={busy || visitedLocked}
-        aria-pressed={onMap}
+      <label
         className={`city-page__btn city-page__btn--visited ${onMap ? "city-page__btn--active" : ""}`}
       >
-        <span aria-hidden>✓</span>
-        {labels.visited}
-      </button>
-      <button
-        type="button"
-        onClick={handleWantToVisit}
-        disabled={busy || wishlistDisabled}
-        aria-pressed={onWishlist}
-        className={`city-page__btn city-page__btn--wish ${onWishlist ? "city-page__btn--active" : ""}`}
-      >
-        <span aria-hidden>🔖</span>
-        {labels.wantToVisit}
-      </button>
+        <input
+          type="checkbox"
+          className="city-page__btn-check"
+          checked={onMap}
+          disabled={busy || visitedLocked}
+          onChange={() => void handleVisited()}
+          aria-label={labels.visited}
+        />
+        <span>{labels.visited}</span>
+      </label>
+      <div className="city-page__actions-secondary">
+        <label
+          className={`city-page__btn city-page__btn--wish ${onWishlist ? "city-page__btn--active" : ""}`}
+        >
+          <input
+            type="checkbox"
+            className="city-page__btn-check city-page__btn-check--wish"
+            checked={onWishlist}
+            disabled={busy || wishlistDisabled}
+            onChange={() => void handleWantToVisit()}
+            aria-label={labels.wantToVisit}
+          />
+          <span>{labels.wantToVisit}</span>
+        </label>
+        <HubPageLikeButton
+          label={labels.like}
+          loginHref={loginHref}
+          isLoggedIn={state.isLoggedIn}
+          disabled={busy}
+        />
+      </div>
     </div>
   );
 }

@@ -24,37 +24,56 @@ const STEP_STYLES = [
   "bg-[#d1fae5] text-[#047857]",
 ] as const;
 
-export async function HomeFeatures({ className = "" }: { className?: string }) {
+export async function HomeFeatures({
+  className = "",
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
   const t = await getTranslations("home");
   const steps = [t("steps.signUp"), t("steps.addPins"), t("steps.shareLink")] as const;
 
   return (
-    <section className={className} aria-labelledby="home-features-title">
-      <div className="mx-auto mb-[26px] max-w-[700px] text-center">
+    <section
+      className={compact ? [className, "w-full"].filter(Boolean).join(" ") : className}
+      aria-labelledby="home-features-title"
+    >
+      <div className={compact ? "mb-4 text-center" : "mx-auto mb-[26px] max-w-[700px] text-center"}>
         <h2
           id="home-features-title"
-          className="mb-2.5 text-[34px] tracking-tight text-[#071126] max-sm:text-[28px]"
+          className={
+            compact
+              ? "mb-1.5 text-[20px] font-bold tracking-tight text-[#071126]"
+              : "mb-2.5 text-[34px] tracking-tight text-[#071126] max-sm:text-[28px]"
+          }
         >
           {t("featuresSectionTitle")}
         </h2>
-        <p className="m-0 text-base leading-relaxed text-[#64748b]">{t("featuresSectionSubtitle")}</p>
+        <p className={`m-0 leading-relaxed text-[#64748b] ${compact ? "text-[14px]" : "text-base"}`}>
+          {t("featuresSectionSubtitle")}
+        </p>
       </div>
 
-      <div className="mx-auto mb-11 grid max-w-2xl grid-cols-1 gap-4">
+      <div className={compact ? "mb-4 grid grid-cols-1 gap-3" : "mx-auto mb-11 grid max-w-2xl grid-cols-1 gap-4"}>
         {FEATURES.map((feature) => (
           <article
             key={feature.key}
-            className="rounded-[26px] border border-[#d8e1ef] bg-white px-[26px] py-[30px] text-center shadow-[0_12px_30px_rgba(15,23,42,0.06)]"
+            className={
+              compact
+                ? "rounded-[18px] border border-[#e8eef5] bg-white px-4 py-4 text-center shadow-[0_6px_18px_rgba(15,23,42,0.04)]"
+                : "rounded-[26px] border border-[#d8e1ef] bg-white px-[26px] py-[30px] text-center shadow-[0_12px_30px_rgba(15,23,42,0.06)]"
+            }
           >
             <div
-              className={`mx-auto mb-[17px] grid h-[54px] w-[54px] place-items-center rounded-[18px] text-[25px] ${feature.iconBg}`}
+              className={`${compact ? "mx-auto mb-2.5 grid" : "mx-auto mb-[17px] grid"} h-[54px] w-[54px] place-items-center rounded-[18px] text-[25px] ${feature.iconBg}`}
             >
               <span aria-hidden>{feature.icon}</span>
             </div>
-            <h3 className="mb-2.5 text-xl tracking-tight text-[#0f172a]">
+            <h3 className={`font-bold tracking-tight text-[#0f172a] ${compact ? "mb-1 text-[15px]" : "mb-2.5 text-xl"}`}>
               {t(`features.${feature.key}.title`)}
             </h3>
-            <p className="m-0 text-[15px] leading-relaxed text-[#64748b]">
+            <p className={`m-0 leading-relaxed text-[#64748b] ${compact ? "text-[13px]" : "text-[15px]"}`}>
               {t(`features.${feature.key}.description`)}
             </p>
           </article>
@@ -62,7 +81,11 @@ export async function HomeFeatures({ className = "" }: { className?: string }) {
       </div>
 
       <div
-        className="mb-[52px] flex flex-wrap justify-center gap-3.5 text-sm font-bold text-[#64748b]"
+        className={
+          compact
+            ? "flex flex-wrap justify-center gap-2.5 text-[12px] font-bold text-[#64748b]"
+            : "mb-[52px] flex flex-wrap justify-center gap-3.5 text-sm font-bold text-[#64748b]"
+        }
         aria-label="How it works"
       >
         {steps.map((label, index) => (

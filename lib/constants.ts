@@ -13,6 +13,15 @@ export const BRAND = {
   },
 } as const;
 
+export const DEFAULT_CITY_HERO_IMAGE = "/images/city-default.png";
+export const DEFAULT_CITY_HERO_ALT = "City skyline illustration";
+
+export const DEFAULT_THEME_PARK_HERO_IMAGE = "/images/theme-park-default.png";
+export const DEFAULT_THEME_PARK_HERO_ALT = "Theme park illustration";
+
+export const DEFAULT_NATIONAL_PARK_HERO_IMAGE = "/images/national-park-default.png";
+export const DEFAULT_NATIONAL_PARK_HERO_ALT = "National park illustration";
+
 export const LIMITS = {
   noteMaxLength: 1000,
   bioMaxLength: 500,

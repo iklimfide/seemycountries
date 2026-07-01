@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { parkInputSchema } from "@/lib/validations/park";
+import { revalidateParkHubForPin } from "@/lib/cache/revalidate-park-hub";
+import { ensureVisitedCountry } from "@/lib/supabase/ensure-visited-country";
 import { geocodeCity } from "@/lib/utils/geocode";
 
 export async function POST(request: Request) {
@@ -30,18 +32,15 @@ export async function POST(request: Request) {
   const data = parsed.data;
   const code = data.country_code.toUpperCase();
 
-  const { data: visitedCountry } = await supabase
-    .from("visited_countries")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("country_code", code)
-    .maybeSingle();
+  const countryResult = await ensureVisitedCountry(
+    supabase,
+    user.id,
+    code,
+    data.country_name
+  );
 
-  if (!visitedCountry) {
-    return NextResponse.json(
-      { error: "Add this country to your map before adding a park" },
-      { status: 400 }
-    );
+  if (!countryResult.ok) {
+    return NextResponse.json({ error: countryResult.error }, { status: 500 });
   }
 
   let latitude = data.latitude ?? null;
@@ -75,6 +74,8 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  revalidateParkHubForPin(park.country_code, park.park_name);
 
   return NextResponse.json(park);
 }

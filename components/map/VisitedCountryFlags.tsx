@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
+import { getCountryHubByCode } from "@/lib/data/country-hubs";
 import { buildVisitedCountryList } from "@/lib/map/travel-lists";
+import { countryPath } from "@/lib/seo/site";
 import { countryCodeToFlagUrl } from "@/lib/utils/country-flag";
 import type { VisitedCity, VisitedCountry, VisitedPark } from "@/types/database";
 
@@ -15,19 +18,30 @@ type VisitedCountryFlagsProps = {
   className?: string;
 };
 
+function countryHubHref(code: string): string | null {
+  const slug = getCountryHubByCode(code)?.slug;
+  return slug ? countryPath(slug) : null;
+}
+
 function FlagTile({
   country,
   onClick,
+  linkHref,
   variant = "default",
 }: {
   country: { code: string; name: string };
   onClick?: () => void;
+  linkHref?: string | null;
   variant?: "default" | "landing";
 }) {
   const shellClass =
     variant === "landing"
       ? "flex h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[#d8e1ef] bg-white sm:h-10 sm:w-10"
       : "flex h-9 w-9 shrink-0 overflow-hidden rounded-full border border-slate-700/80 bg-slate-900/70 sm:h-10 sm:w-10";
+  const hoverClass =
+    variant === "landing"
+      ? "hover:border-[#93c5fd] hover:bg-[#f8fbff]"
+      : "hover:border-slate-500 hover:bg-slate-800";
   const flag = (
     // eslint-disable-next-line @next/next/no-img-element -- many small lazy-loaded SVG tiles
     <img
@@ -49,14 +63,24 @@ function FlagTile({
         title={country.name}
         aria-label={country.name}
         onClick={onClick}
-        className={`${shellClass} transition-colors ${
-          variant === "landing"
-            ? "hover:border-[#93c5fd] hover:bg-[#f8fbff]"
-            : "hover:border-slate-500 hover:bg-slate-800"
-        }`}
+        className={`${shellClass} transition-colors ${hoverClass}`}
       >
         {flag}
       </button>
+    );
+  }
+
+  if (linkHref) {
+    return (
+      <Link
+        href={linkHref}
+        role="listitem"
+        title={country.name}
+        aria-label={country.name}
+        className={`${shellClass} transition-colors ${hoverClass}`}
+      >
+        {flag}
+      </Link>
     );
   }
 
@@ -107,6 +131,7 @@ export function VisitedCountryFlags({
           <FlagTile
             key={country.code}
             country={country}
+            linkHref={onCountryClick ? null : countryHubHref(country.code)}
             onClick={onCountryClick ? () => onCountryClick(country) : undefined}
             variant={variant}
           />

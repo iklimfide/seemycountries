@@ -50,8 +50,32 @@ export function cityUrl(slug: string): string {
   return `${getSiteUrl()}${cityPath(slug)}`;
 }
 
+export function parkPath(slug: string): string {
+  return `/park/${slug.toLowerCase()}`;
+}
+
+export function parkUrl(slug: string): string {
+  return `${getSiteUrl()}${parkPath(slug)}`;
+}
+
+export function buildParkPageTitle(parkName: string): string {
+  return `${parkName} Travel Map`;
+}
+
 export const DEFAULT_DESCRIPTION =
-  "Mark the countries and cities you've visited. One photo and memory per city — share your travel map with one link.";
+  "Create your personal travel map. Pin countries, cities, parks, and places you've visited, track your travel progress, and share your journey with a single link.";
+
+export const HOME_TITLE = "TravelerPin - Your Travel Map";
+export const MY_MAP_TITLE = "My Travel Map";
+export const EXPLORE_TITLE = "Explore Travelers & Travel Maps";
+
+export function buildCountryPageTitle(countryName: string): string {
+  return `${countryName} Travel Map`;
+}
+
+export function buildCityPageTitle(cityName: string): string {
+  return `${cityName} Travel Map`;
+}
 
 export const DEFAULT_KEYWORDS = [
   "travel map",

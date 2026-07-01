@@ -1,6 +1,7 @@
 import { buildVisitedCountryList } from "@/lib/map/travel-lists";
 import { getCountryHubByCode } from "@/lib/data/country-hubs";
 import type { ParkType, VisitedCity, VisitedCountry, VisitedPark, WishlistCountry } from "@/types/database";
+import { getDefaultParkHeroImage } from "@/lib/utils/park-hero-image";
 import { buildProfileTrips, type ProfileTrip } from "@/lib/utils/profile-page";
 
 function countryHubSlug(code: string): string | null {
@@ -34,7 +35,7 @@ export type ProfileParkDestination = {
   countryCode: string;
   countryName: string;
   countrySlug: string | null;
-  imageUrl: string | null;
+  imageUrl: string;
   parkType: ParkType;
   note: string | null;
 };
@@ -127,7 +128,7 @@ export function buildProfileAllDestinations(
       countryCode: park.country_code,
       countryName: park.country_name,
       countrySlug: countryHubSlug(park.country_code),
-      imageUrl: mediaImageUrl(park),
+      imageUrl: mediaImageUrl(park) ?? getDefaultParkHeroImage(park.park_type),
       parkType: park.park_type,
       note: park.note,
     }));
@@ -143,7 +144,7 @@ export function buildProfileAllDestinations(
 
   return {
     countries,
-    cities: buildProfileTrips(visitedCities),
+    cities: buildProfileTrips(visitedCities, visitedParks),
     parks,
     wishlist,
   };

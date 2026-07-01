@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { revalidateParkHubForPin } from "@/lib/cache/revalidate-park-hub";
 import { createClient } from "@/lib/supabase/server";
 import { PARK_TYPES } from "@/types/database";
 import { formatCityDisplayName } from "@/lib/utils/city-name";
@@ -58,6 +59,8 @@ export async function POST(request: Request) {
   if (deleteError) {
     return NextResponse.json({ error: deleteError.message }, { status: 500 });
   }
+
+  revalidateParkHubForPin(code, data.park_name);
 
   const [{ count: cityCount }, { count: parkCount }, { data: countryRow }] =
     await Promise.all([

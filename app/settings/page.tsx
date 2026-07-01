@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { ProfileSettingsForm } from "@/components/dashboard/ProfileSettingsForm";
+import { LogOutButton } from "@/components/auth/LogOutButton";
 import { createClient } from "@/lib/supabase/server";
 import { computeTravelStats } from "@/lib/utils/stats";
 import { PROFILE_SELECT } from "@/lib/validations/profile";
@@ -68,6 +69,10 @@ export default async function ProfileSettingsPage() {
         </div>
 
         <ProfileSettingsForm profile={profile} stats={stats} />
+
+        <div className="mt-8">
+          <LogOutButton />
+        </div>
       </main>
   );
 }

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { CountryPageActions } from "@/components/country/CountryPageActions";
 import { CountryPageNav } from "@/components/country/CountryPageNav";
+import { HubPageTopBar } from "@/components/hub/HubPageTopBar";
+import { HubPagePinCount } from "@/components/hub/HubPagePinCount";
 import { HubRecentTravelers } from "@/components/hub/HubRecentTravelers";
 import { findCityHubSlug } from "@/lib/data/city-hubs";
 import { countryCodeToFlagUrl } from "@/lib/utils/country-flag";
@@ -15,10 +17,13 @@ type CountryPageContentProps = {
   travelers: CountryTraveler[];
   visitorState: CountryVisitorState;
   loginHref: string;
+  registerHref: string;
+  pinCountLabel: string;
   labels: {
     home: string;
     visited: string;
     wantToVisit: string;
+    like: string;
     countryAdded: string;
     countryRemoved: string;
     wishlistAdded: string;
@@ -32,6 +37,8 @@ type CountryPageContentProps = {
     recentTravelers: string;
     noTravelersYet: string;
     pinCountry: string;
+    login: string;
+    register: string;
   };
 };
 
@@ -40,6 +47,8 @@ export function CountryPageContent({
   travelers,
   visitorState,
   loginHref,
+  registerHref,
+  pinCountLabel,
   labels,
 }: CountryPageContentProps) {
   const flagUrl = countryCodeToFlagUrl(hub.code);
@@ -64,7 +73,15 @@ export function CountryPageContent({
 
   return (
     <div className="city-page">
-      <CountryPageNav hub={hub} labels={labels} />
+      <HubPageTopBar
+        loginHref={loginHref}
+        registerHref={registerHref}
+        loginLabel={labels.login}
+        registerLabel={labels.register}
+        showAuthLinks={!visitorState.isLoggedIn}
+      >
+        <CountryPageNav hub={hub} labels={labels} />
+      </HubPageTopBar>
 
       <div className="city-page__container">
         <section className="city-page__hero">
@@ -83,6 +100,7 @@ export function CountryPageContent({
               loginHref={loginHref}
               labels={labels}
             />
+            <HubPagePinCount label={pinCountLabel} />
           </div>
         </section>
 

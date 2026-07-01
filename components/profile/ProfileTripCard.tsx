@@ -1,8 +1,8 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { ProfileCityLink, ProfileCountryLink } from "@/components/profile/ProfilePlaceLink";
-import { profileCardGradient } from "@/components/profile/profile-card-gradient";
+import { ProfileCityLink, ProfileCountryLink, ProfileParkLink } from "@/components/profile/ProfilePlaceLink";
 import { countryCodeToFlagUrl } from "@/lib/utils/country-flag";
+import { parkTypeLabel } from "@/lib/utils/park-type";
 import type { ProfileTrip } from "@/lib/utils/profile-page";
 
 type ProfileTripCardProps = {
@@ -26,24 +26,29 @@ export function ProfileTripCard({
     <article
       className={`profile-trip${layout === "grid" ? " profile-trip--grid" : ""}`}
     >
-      <div
-        className="profile-trip-image"
-        style={trip.imageUrl ? undefined : { background: profileCardGradient(trip.countryCode) }}
-      >
-        {trip.imageUrl ? (
-          <Image src={trip.imageUrl} alt="" fill sizes="245px" className="object-cover" />
-        ) : null}
+      <div className="profile-trip-image">
+        <Image src={trip.imageUrl} alt="" fill sizes="245px" className="object-cover" />
         {trip.badge ? (
           <span className="profile-trip-badge">{badgeLabels[trip.badge]}</span>
+        ) : trip.kind === "park" && trip.parkType ? (
+          <span className="profile-trip-badge">{parkTypeLabel(trip.parkType)}</span>
         ) : null}
       </div>
       <div className="profile-trip-body">
         <h3>
-          <ProfileCityLink
-            slug={trip.citySlug}
-            name={trip.cityName}
-            className="profile-trip-title-link"
-          />
+          {trip.kind === "city" ? (
+            <ProfileCityLink
+              slug={trip.citySlug}
+              name={trip.placeName}
+              className="profile-trip-title-link"
+            />
+          ) : (
+            <ProfileParkLink
+              slug={trip.parkSlug}
+              name={trip.placeName}
+              className="profile-trip-title-link"
+            />
+          )}
         </h3>
         <p>{trip.note?.trim() || emptyNote}</p>
         <div className="profile-trip-meta">
@@ -62,7 +67,9 @@ export function ProfileTripCard({
               className="profile-chip-link"
             />
           </span>
-          <span className="profile-chip">{visitCountLabel(trip.visitCount)}</span>
+          {trip.kind === "city" ? (
+            <span className="profile-chip">{visitCountLabel(trip.visitCount)}</span>
+          ) : null}
         </div>
         {actions}
       </div>

@@ -5,11 +5,12 @@ import { CityPageContent } from "@/components/city/CityPageContent";
 import { getCityHubContext } from "@/lib/data/city-hubs";
 import { listCityHubSlugs } from "@/lib/data/city-hubs";
 import { loadCityVisitorState } from "@/lib/supabase/city-visitor-state";
-import { cityPinsWithContent, uniqueCityTravelers } from "@/lib/supabase/city-travelers";
+import { cityPinsWithContent, countCityPinners, uniqueCityTravelers } from "@/lib/supabase/city-travelers";
 import { getCachedRecentCityPinsWithPreviews } from "@/lib/supabase/city-travelers-cache";
 import { getAuthUser } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
-import { cityPath, cityUrl } from "@/lib/seo/site";
+import { cityPath, cityUrl, buildCityPageTitle, DEFAULT_DESCRIPTION, getSiteUrl } from "@/lib/seo/site";
+import { DEFAULT_CITY_HERO_ALT, DEFAULT_CITY_HERO_IMAGE } from "@/lib/constants";
 import { sanitizeCitySlug } from "@/lib/utils/sanitize-city-slug";
 import "../city-page.css";
 
@@ -32,15 +33,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!context) return { title: "City not found" };
 
   const { hub } = context;
-  const title = `${hub.name}, ${hub.countryName}`;
+  const title = buildCityPageTitle(hub.name);
+  const ogImage = `${getSiteUrl()}${DEFAULT_CITY_HERO_IMAGE}`;
 
   return {
     title,
+    description: DEFAULT_DESCRIPTION,
     alternates: { canonical: cityPath(slug) },
     openGraph: {
       title,
+      description: DEFAULT_DESCRIPTION,
       url: cityUrl(slug),
-      ...(hub.heroImage ? { images: [{ url: hub.heroImage, alt: hub.heroImageAlt ?? hub.name }] } : {}),
+      images: [{ url: ogImage, alt: hub.heroImageAlt ?? DEFAULT_CITY_HERO_ALT }],
     },
   };
 }
@@ -54,10 +58,13 @@ export default async function CityHubPage({ params }: PageProps) {
   if (!context) notFound();
 
   const { hub, touristCity, countryHub, parks } = context;
-  const loginHref = `/login?next=${encodeURIComponent(cityPath(slug))}`;
+  const returnPath = cityPath(slug);
+  const loginHref = `/login?next=${encodeURIComponent(returnPath)}`;
+  const registerHref = `/register?next=${encodeURIComponent(returnPath)}`;
 
-  const [t, cityPins, user, supabase] = await Promise.all([
+  const [t, tCommon, cityPins, user, supabase] = await Promise.all([
     getTranslations("cityHub"),
+    getTranslations("common"),
     getCachedRecentCityPinsWithPreviews(hub),
     getAuthUser(),
     createClient(),
@@ -67,11 +74,17 @@ export default async function CityHubPage({ params }: PageProps) {
   const travelers = uniqueCityTravelers(cityPins);
 
   const visitorState = await loadCityVisitorState(supabase, user?.id, hub);
+  const pinCount = await countCityPinners(supabase, hub);
+  const pinCountLabel =
+    pinCount > 0
+      ? t("travelersPinned", { count: pinCount })
+      : t("noTravelersPinned");
 
   const labels = {
     home: t("home"),
     visited: t("visited"),
     wantToVisit: t("wantToVisit"),
+    like: t("like"),
     cityAdded: t("cityAdded"),
     cityRemoved: t("cityRemoved"),
     wishlistAdded: t("wishlistAdded"),
@@ -91,6 +104,8 @@ export default async function CityHubPage({ params }: PageProps) {
     recentTravelers: t("recentTravelers", { city: hub.name }),
     noTravelersYet: t("noTravelersYet", { city: hub.name }),
     pinCity: t("pinCity", { city: hub.name }),
+    login: tCommon("login"),
+    register: tCommon("register"),
   };
 
   return (
@@ -104,6 +119,8 @@ export default async function CityHubPage({ params }: PageProps) {
           memoryPins={memoryPins}
           visitorState={visitorState}
           loginHref={loginHref}
+          registerHref={registerHref}
+          pinCountLabel={pinCountLabel}
           labels={labels}
         />
       </main>

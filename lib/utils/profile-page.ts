@@ -1,10 +1,14 @@
 import { buildVisitedCountryList } from "@/lib/map/travel-lists";
+import { DEFAULT_CITY_HERO_IMAGE } from "@/lib/constants";
 import { getCountryHubByCode } from "@/lib/data/country-hubs";
 import { findCityHubSlug } from "@/lib/data/city-hubs";
+import type { ParkType } from "@/lib/data/tourist-park-search";
 import { cityVisitCount } from "@/lib/utils/visit-date";
+import { getDefaultParkHeroImage } from "@/lib/utils/park-hero-image";
+import { buildParkSlug } from "@/lib/utils/park-slug";
 import type { VisitedCity, VisitedCountry, VisitedPark, WishlistCountry } from "@/types/database";
 
-const WORLD_COUNTRY_TOTAL = 195;
+export const WORLD_COUNTRY_TOTAL = 195;
 
 function countryHubSlug(code: string): string | null {
   return getCountryHubByCode(code)?.slug ?? null;
@@ -16,12 +20,15 @@ function cityHubSlug(countryCode: string, cityName: string): string | null {
 
 export type ProfileTrip = {
   id: string;
-  cityName: string;
+  kind: "city" | "park";
+  placeName: string;
   citySlug: string | null;
+  parkSlug: string | null;
+  parkType: ParkType | null;
   countryCode: string;
   countryName: string;
   countrySlug: string | null;
-  imageUrl: string | null;
+  imageUrl: string;
   note: string | null;
   visitCount: number;
   createdAt: string;
@@ -71,6 +78,14 @@ export function resolveProfileCoverUrl(
   return null;
 }
 
+function cityTripImage(city: VisitedCity): string {
+  return mediaImageUrl(city) ?? DEFAULT_CITY_HERO_IMAGE;
+}
+
+function parkTripImage(park: VisitedPark): string {
+  return mediaImageUrl(park) ?? getDefaultParkHeroImage(park.park_type);
+}
+
 function tripBadge(city: VisitedCity, isRecent: boolean): ProfileTrip["badge"] {
   const visits = cityVisitCount(city);
   if (isRecent) return "recent";
@@ -79,25 +94,52 @@ function tripBadge(city: VisitedCity, isRecent: boolean): ProfileTrip["badge"] {
   return null;
 }
 
-export function buildProfileTrips(cities: VisitedCity[]): ProfileTrip[] {
-  const sorted = [...cities].sort(
+export function buildProfileTrips(
+  cities: VisitedCity[],
+  parks: VisitedPark[] = []
+): ProfileTrip[] {
+  const sortedCities = [...cities].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
-  const recentThreshold = sorted[0]?.created_at;
+  const recentThreshold = sortedCities[0]?.created_at;
 
-  return sorted.map((city) => ({
+  const cityTrips: ProfileTrip[] = sortedCities.map((city) => ({
     id: city.id,
-    cityName: city.city_name,
+    kind: "city",
+    placeName: city.city_name,
     citySlug: cityHubSlug(city.country_code, city.city_name),
+    parkSlug: null,
+    parkType: null,
     countryCode: city.country_code,
     countryName: city.country_name,
     countrySlug: countryHubSlug(city.country_code),
-    imageUrl: mediaImageUrl(city),
+    imageUrl: cityTripImage(city),
     note: city.note,
     visitCount: cityVisitCount(city),
     createdAt: city.created_at,
     badge: tripBadge(city, city.created_at === recentThreshold),
   }));
+
+  const parkTrips: ProfileTrip[] = parks.map((park) => ({
+    id: park.id,
+    kind: "park",
+    placeName: park.park_name,
+    citySlug: null,
+    parkSlug: buildParkSlug(park.park_name, park.country_code),
+    parkType: park.park_type,
+    countryCode: park.country_code,
+    countryName: park.country_name,
+    countrySlug: countryHubSlug(park.country_code),
+    imageUrl: parkTripImage(park),
+    note: park.note,
+    visitCount: 1,
+    createdAt: park.created_at,
+    badge: null,
+  }));
+
+  return [...cityTrips, ...parkTrips].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 }
 
 export function buildProfileSummary(

@@ -1,7 +1,9 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { ShareSheetModal } from "@/components/share/ShareSheetModal";
 import { shareMessages } from "@/lib/i18n/client-messages";
+import { finalizeTravelShare } from "@/lib/client/travel-share-snapshot";
 import type { TravelStats } from "@/types/database";
 import { useShareProfile } from "@/components/share/ShareProfileButton";
 
@@ -18,11 +20,19 @@ export function ShareProfile({
   stats,
   isOwnProfile = false,
 }: ShareProfileProps) {
+  const router = useRouter();
+
+  async function handleShareComplete() {
+    if (!isOwnProfile) return;
+    await finalizeTravelShare(() => router.refresh());
+  }
+
   const { open, setOpen, shareLinks, handleCopy } = useShareProfile({
     username,
     displayName,
     stats,
     isOwnProfile,
+    onShareComplete: isOwnProfile ? handleShareComplete : undefined,
   });
 
   return (
@@ -48,6 +58,7 @@ export function ShareProfile({
         open={open}
         onClose={() => setOpen(false)}
         onCopy={handleCopy}
+        onShareComplete={isOwnProfile ? handleShareComplete : undefined}
         shareLinks={shareLinks}
       />
     </>

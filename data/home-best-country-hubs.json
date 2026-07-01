@@ -1,0 +1,44 @@
+{
+  "countries": {
+    "netherlands": {
+      "slug": "netherlands",
+      "code": "NL",
+      "name": "Netherlands",
+      "currency": "Euro (EUR)",
+      "plugType": "Type C, F",
+      "visaNote": "Schengen area — short-stay visa rules depend on your passport. Verify before booking.",
+      "capital": "Amsterdam",
+      "language": "Dutch"
+    },
+    "austria": {
+      "slug": "austria",
+      "code": "AT",
+      "name": "Austria",
+      "currency": "Euro (EUR)",
+      "plugType": "Type C, F",
+      "visaNote": "Schengen member. Many passports enjoy visa-free tourism stays of up to 90 days in 180 days.",
+      "capital": "Vienna",
+      "language": "German"
+    },
+    "belgium": {
+      "slug": "belgium",
+      "code": "BE",
+      "name": "Belgium",
+      "currency": "Euro (EUR)",
+      "plugType": "Type C, E",
+      "visaNote": "Schengen area — short-stay visa rules depend on your passport. Verify before booking.",
+      "capital": "Brussels",
+      "language": "Dutch, French, German"
+    },
+    "czech-republic": {
+      "slug": "czech-republic",
+      "code": "CZ",
+      "name": "Czech Republic",
+      "currency": "Czech koruna (CZK)",
+      "plugType": "Type C, E",
+      "visaNote": "Schengen member. Many passports enjoy visa-free tourism stays of up to 90 days in 180 days.",
+      "capital": "Prague",
+      "language": "Czech"
+    }
+  }
+}

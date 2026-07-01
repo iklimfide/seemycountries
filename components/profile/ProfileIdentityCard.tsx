@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { ProfileActionButtons } from "@/components/profile/ProfileActionButtons";
 import { ProfileStatCounters } from "@/components/profile/ProfileStatCounters";
+import { ProfileWorldProgress } from "@/components/profile/ProfileWorldProgress";
 import { TravelerBadge } from "@/components/profile/TravelerBadge";
 import type { TravelStats } from "@/types/database";
 
@@ -21,6 +23,7 @@ type ProfileIdentityCardProps = {
     share: string;
     edit: string;
   };
+  profileHref?: string;
 };
 
 export async function ProfileIdentityCard({
@@ -33,6 +36,7 @@ export async function ProfileIdentityCard({
   isOwnProfile,
   countryCount,
   labels,
+  profileHref,
 }: ProfileIdentityCardProps) {
   return (
     <section className="profile-card">
@@ -46,16 +50,36 @@ export async function ProfileIdentityCard({
       />
 
       <div className="profile-avatar-shell">
-        <ProfileAvatar
-          avatarUrl={avatarUrl}
-          displayName={displayName}
-          username={username}
-          size="lg"
-          className="profile-avatar !h-24 !w-24 !rounded-[30px] !text-3xl !ring-[6px] !ring-white"
-        />
+        {profileHref ? (
+          <Link href={profileHref} className="profile-avatar-link" aria-label={`${displayName}'s profile`}>
+            <ProfileAvatar
+              avatarUrl={avatarUrl}
+              displayName={displayName}
+              username={username}
+              size="lg"
+              className="profile-avatar !h-28 !w-28 !rounded-[32px] !text-[38px] !ring-8 !ring-[#eef3f9]"
+            />
+          </Link>
+        ) : (
+          <ProfileAvatar
+            avatarUrl={avatarUrl}
+            displayName={displayName}
+            username={username}
+            size="lg"
+            className="profile-avatar !h-28 !w-28 !rounded-[32px] !text-[38px] !ring-8 !ring-[#eef3f9]"
+          />
+        )}
       </div>
 
-      <h2 className="profile-name">{displayName}</h2>
+      {profileHref ? (
+        <h2 className="profile-name">
+          <Link href={profileHref} className="profile-name-link">
+            {displayName}
+          </Link>
+        </h2>
+      ) : (
+        <h2 className="profile-name">{displayName}</h2>
+      )}
 
       <div className="mt-2 flex justify-center">
         <TravelerBadge countryCount={countryCount} />
@@ -63,16 +87,20 @@ export async function ProfileIdentityCard({
 
       <p className="profile-desc">{bio?.trim() || fallbackBio}</p>
 
-      <ProfileStatCounters
-        countries={stats.countries}
-        cities={stats.cities}
-        nationalParks={stats.nationalParks}
-        themeParks={stats.themeParks}
-        countriesLabel={labels.countries}
-        citiesLabel={labels.cities}
-        nationalParksLabel={labels.nationalParks}
-        themeParksLabel={labels.themeParks}
-      />
+      <div className="profile-metrics">
+        <ProfileWorldProgress countryCount={countryCount} />
+
+        <ProfileStatCounters
+          countries={stats.countries}
+          cities={stats.cities}
+          nationalParks={stats.nationalParks}
+          themeParks={stats.themeParks}
+          countriesLabel={labels.countries}
+          citiesLabel={labels.cities}
+          nationalParksLabel={labels.nationalParks}
+          themeParksLabel={labels.themeParks}
+        />
+      </div>
     </section>
   );
 }

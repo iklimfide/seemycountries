@@ -4,10 +4,11 @@ import { getTranslations } from "next-intl/server";
 import { CountryPageContent } from "@/components/country/CountryPageContent";
 import { getCountryHubBySlug, listCountryHubSlugs } from "@/lib/data/country-hubs";
 import { getCachedRecentCountryTravelers } from "@/lib/supabase/country-travelers-cache";
+import { countCountryPinners } from "@/lib/supabase/country-pin-count";
 import { loadCountryVisitorState } from "@/lib/supabase/country-visitor-state";
 import { getAuthUser } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
-import { countryPath, countryUrl } from "@/lib/seo/site";
+import { countryPath, countryUrl, buildCountryPageTitle, DEFAULT_DESCRIPTION } from "@/lib/seo/site";
 import { sanitizeCountrySlug } from "@/lib/utils/sanitize-country-slug";
 import "../../city/city-page.css";
 
@@ -29,16 +30,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const hub = getCountryHubBySlug(slug);
   if (!hub) return { title: "Country not found" };
 
-  const title = `${hub.name} travel guide`;
-  const description = `Plan a trip to ${hub.name}: ${hub.currency}. ${hub.plugType}. ${hub.visaNote}`;
+  const title = buildCountryPageTitle(hub.name);
 
   return {
     title,
-    description,
+    description: DEFAULT_DESCRIPTION,
     alternates: { canonical: countryPath(slug) },
     openGraph: {
       title,
-      description,
+      description: DEFAULT_DESCRIPTION,
       url: countryUrl(slug),
     },
   };
@@ -52,16 +52,24 @@ export default async function CountryHubPage({ params }: PageProps) {
   const hub = getCountryHubBySlug(slug);
   if (!hub) notFound();
 
-  const loginHref = `/login?next=${encodeURIComponent(countryPath(slug))}`;
+  const returnPath = countryPath(slug);
+  const loginHref = `/login?next=${encodeURIComponent(returnPath)}`;
+  const registerHref = `/register?next=${encodeURIComponent(returnPath)}`;
 
-  const [t, travelers, user, supabase] = await Promise.all([
+  const [t, tCommon, travelers, user, supabase] = await Promise.all([
     getTranslations("countryHub"),
+    getTranslations("common"),
     getCachedRecentCountryTravelers(hub.code),
     getAuthUser(),
     createClient(),
   ]);
 
   const visitorState = await loadCountryVisitorState(supabase, user?.id, hub);
+  const pinCount = await countCountryPinners(supabase, hub.code);
+  const pinCountLabel =
+    pinCount > 0
+      ? t("travelersPinned", { count: pinCount })
+      : t("noTravelersPinned");
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -75,6 +83,7 @@ export default async function CountryHubPage({ params }: PageProps) {
     home: t("home"),
     visited: t("visited"),
     wantToVisit: t("wantToVisit"),
+    like: t("like"),
     countryAdded: t("countryAdded"),
     countryRemoved: t("countryRemoved"),
     wishlistAdded: t("wishlistAdded"),
@@ -88,6 +97,8 @@ export default async function CountryHubPage({ params }: PageProps) {
     recentTravelers: t("recentTravelers"),
     noTravelersYet: t("noTravelersYet"),
     pinCountry: t("pinCountry"),
+    login: tCommon("login"),
+    register: tCommon("register"),
   };
 
   return (
@@ -102,6 +113,8 @@ export default async function CountryHubPage({ params }: PageProps) {
           travelers={travelers}
           visitorState={visitorState}
           loginHref={loginHref}
+          registerHref={registerHref}
+          pinCountLabel={pinCountLabel}
           labels={labels}
         />
       </main>

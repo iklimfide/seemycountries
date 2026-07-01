@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateParkHubForPin } from "@/lib/cache/revalidate-park-hub";
+import { ensureVisitedCountry } from "@/lib/supabase/ensure-visited-country";
 import { parkInputSchema } from "@/lib/validations/park";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -43,18 +45,15 @@ export async function PATCH(request: Request, context: RouteContext) {
   const data = parsed.data;
   const code = data.country_code.toUpperCase();
 
-  const { data: visitedCountry } = await supabase
-    .from("visited_countries")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("country_code", code)
-    .maybeSingle();
+  const countryResult = await ensureVisitedCountry(
+    supabase,
+    user.id,
+    code,
+    data.country_name
+  );
 
-  if (!visitedCountry) {
-    return NextResponse.json(
-      { error: "Add this country to your map before saving this park" },
-      { status: 400 }
-    );
+  if (!countryResult.ok) {
+    return NextResponse.json({ error: countryResult.error }, { status: 500 });
   }
 
   let latitude = existing.latitude;
@@ -95,6 +94,14 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  revalidateParkHubForPin(park.country_code, park.park_name);
+  if (
+    existing.park_name !== park.park_name ||
+    existing.country_code.toUpperCase() !== park.country_code.toUpperCase()
+  ) {
+    revalidateParkHubForPin(existing.country_code, existing.park_name);
+  }
+
   return NextResponse.json(park);
 }
 
@@ -113,6 +120,17 @@ export async function DELETE(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { data: existing } = await supabase
+    .from("visited_parks")
+    .select("park_name, country_code")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!existing) {
+    return NextResponse.json({ error: "Park not found" }, { status: 404 });
+  }
+
   const { error } = await supabase
     .from("visited_parks")
     .delete()
@@ -122,6 +140,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  revalidateParkHubForPin(existing.country_code, existing.park_name);
 
   return NextResponse.json({ success: true });
 }

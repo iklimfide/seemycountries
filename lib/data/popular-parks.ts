@@ -327,5 +327,68 @@ export const POPULAR_PARKS: PopularPark[] = [
     "countryName": "Thailand",
     "latitude": 12.766666666,
     "longitude": 100.933333333
+  },
+  {
+    "parkType": "national_park",
+    "countryCode": "US",
+    "parkName": "Niagara Falls",
+    "label": "Niagara Falls",
+    "countryName": "United States (United States of America)",
+    "latitude": 43.0962,
+    "longitude": -79.0377
+  },
+  {
+    "parkType": "national_park",
+    "countryCode": "FR",
+    "parkName": "French Alps",
+    "label": "French Alps",
+    "countryName": "France",
+    "latitude": 45.9237,
+    "longitude": 6.8694
+  },
+  {
+    "parkType": "national_park",
+    "countryCode": "IT",
+    "parkName": "Lake Garda",
+    "label": "Lake Garda",
+    "countryName": "Italy",
+    "latitude": 45.6049,
+    "longitude": 10.635
+  },
+  {
+    "parkType": "national_park",
+    "countryCode": "GB",
+    "parkName": "Stonehenge",
+    "label": "Stonehenge",
+    "countryName": "UK (United Kingdom)",
+    "latitude": 51.1789,
+    "longitude": -1.8262
+  },
+  {
+    "parkType": "national_park",
+    "countryCode": "EG",
+    "parkName": "Dead Sea",
+    "label": "Dead Sea",
+    "countryName": "Egypt",
+    "latitude": 29.5,
+    "longitude": 34.9
+  },
+  {
+    "parkType": "national_park",
+    "countryCode": "IT",
+    "parkName": "Vesuvius",
+    "label": "Vesuvius",
+    "countryName": "Italy",
+    "latitude": 40.817,
+    "longitude": 14.427
+  },
+  {
+    "parkType": "national_park",
+    "countryCode": "GB",
+    "parkName": "Scottish Highlands",
+    "label": "Scottish Highlands",
+    "countryName": "UK (United Kingdom)",
+    "latitude": 57.12,
+    "longitude": -4.71
   }
 ];

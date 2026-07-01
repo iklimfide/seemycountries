@@ -924,8 +924,8 @@ export function SaveDestinationModal({
                       <Image
                         src={countryCodeToFlagUrl(row.countryCode)}
                         alt=""
-                        width={28}
-                        height={28}
+                        width={32}
+                        height={32}
                         className="rounded-full object-cover"
                       />
                     </span>

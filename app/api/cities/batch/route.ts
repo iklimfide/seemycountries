@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { ensureVisitedCountry } from "@/lib/supabase/ensure-visited-country";
 import { cityBatchSchema } from "@/lib/validations/city-batch";
 
 export async function POST(request: Request) {
@@ -29,18 +30,15 @@ export async function POST(request: Request) {
   const { country_code, country_name, cities } = parsed.data;
   const code = country_code.toUpperCase();
 
-  const { data: visitedCountry } = await supabase
-    .from("visited_countries")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("country_code", code)
-    .maybeSingle();
+  const countryResult = await ensureVisitedCountry(
+    supabase,
+    user.id,
+    code,
+    country_name
+  );
 
-  if (!visitedCountry) {
-    return NextResponse.json(
-      { error: "Add this country to your map before adding cities" },
-      { status: 400 }
-    );
+  if (!countryResult.ok) {
+    return NextResponse.json({ error: countryResult.error }, { status: 500 });
   }
 
   const { data: existing } = await supabase

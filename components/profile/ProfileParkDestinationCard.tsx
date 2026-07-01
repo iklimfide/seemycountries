@@ -1,7 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { ProfileCountryLink } from "@/components/profile/ProfilePlaceLink";
-import { profileCardGradient } from "@/components/profile/profile-card-gradient";
 import { countryCodeToFlagUrl } from "@/lib/utils/country-flag";
 import { parkTypeLabel } from "@/lib/utils/park-type";
 import type { ProfileParkDestination } from "@/lib/utils/profile-all-destinations";
@@ -21,13 +20,8 @@ export function ProfileParkDestinationCard({
 }: ProfileParkDestinationCardProps) {
   return (
     <article className={`profile-trip${layout === "grid" ? " profile-trip--grid" : ""}`}>
-      <div
-        className="profile-trip-image"
-        style={park.imageUrl ? undefined : { background: profileCardGradient(park.countryCode) }}
-      >
-        {park.imageUrl ? (
-          <Image src={park.imageUrl} alt="" fill sizes="245px" className="object-cover" />
-        ) : null}
+      <div className="profile-trip-image">
+        <Image src={park.imageUrl} alt="" fill sizes="245px" className="object-cover" />
         <span className="profile-trip-badge">{parkTypeLabel(park.parkType)}</span>
       </div>
       <div className="profile-trip-body">

@@ -38,6 +38,19 @@ export function findCityHubSlug(countryCode: string, cityName: string): string |
   return byCountryAndName.get(key)?.slug ?? null;
 }
 
+export function findCityHubByName(cityName: string): CityHub | null {
+  const needle = cityName.trim().toLocaleLowerCase("tr");
+  if (!needle) return null;
+
+  for (const hub of bySlug.values()) {
+    if (hub.name.toLocaleLowerCase("tr") === needle) {
+      return hub;
+    }
+  }
+
+  return null;
+}
+
 export function listCityHubSlugs(): string[] {
   return [...bySlug.keys()].sort((a, b) => a.localeCompare(b));
 }
