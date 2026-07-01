@@ -4,6 +4,7 @@ import { ProfileActionButtons } from "@/components/profile/ProfileActionButtons"
 import { ProfileStatCounters } from "@/components/profile/ProfileStatCounters";
 import { ProfileWorldProgress } from "@/components/profile/ProfileWorldProgress";
 import { TravelerBadge } from "@/components/profile/TravelerBadge";
+import { profileAllPath } from "@/lib/seo/site";
 import type { TravelStats } from "@/types/database";
 
 type ProfileIdentityCardProps = {
@@ -91,6 +92,7 @@ export async function ProfileIdentityCard({
         <ProfileWorldProgress countryCount={countryCount} />
 
         <ProfileStatCounters
+          allHref={profileAllPath(username)}
           countries={stats.countries}
           cities={stats.cities}
           nationalParks={stats.nationalParks}

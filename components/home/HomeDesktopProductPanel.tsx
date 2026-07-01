@@ -4,7 +4,7 @@ import { HomeBelowFoldSections } from "@/components/home/HomeBelowFoldSections";
 import { BRAND } from "@/lib/constants";
 import { DEMO_PERSONA } from "@/lib/data/demo-persona";
 import { getDemoLatestPinned } from "@/lib/data/demo-latest-pinned";
-import { profilePath } from "@/lib/seo/site";
+import { profileAllPath, profilePath } from "@/lib/seo/site";
 import { countryCodeToFlagUrl } from "@/lib/utils/country-flag";
 
 type HomeDesktopProductPanelProps = {
@@ -17,13 +17,18 @@ function DashboardStat({
   label,
   value,
   accent = false,
+  href,
 }: {
   label: string;
   value: string;
   accent?: boolean;
+  href?: string;
 }) {
-  return (
-    <div className="rounded-[20px] border border-[#e8eef5] bg-white/90 p-5 text-center shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+  const className =
+    "block rounded-[20px] border border-[#e8eef5] bg-white/90 p-5 text-center shadow-[0_8px_24px_rgba(15,23,42,0.04)] no-underline transition hover:-translate-y-px hover:border-[#bfdbfe] hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)]";
+
+  const content = (
+    <>
       <p
         className={`text-[28px] font-bold leading-none tracking-tight ${
           accent ? "text-[#2563eb]" : "text-[#0f172a]"
@@ -32,8 +37,18 @@ function DashboardStat({
         {value}
       </p>
       <p className="mt-2 text-[14px] font-semibold leading-snug text-[#64748b]">{label}</p>
-    </div>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className={className}>{content}</div>;
 }
 
 export async function HomeDesktopProductPanel({
@@ -43,6 +58,7 @@ export async function HomeDesktopProductPanel({
 }: HomeDesktopProductPanelProps) {
   const t = await getTranslations("home");
   const latestPinned = getDemoLatestPinned();
+  const demoAllHref = profileAllPath(DEMO_PERSONA.username);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -73,8 +89,16 @@ export async function HomeDesktopProductPanel({
           </p>
 
           <div className="mx-auto mt-8 grid max-w-[520px] grid-cols-2 gap-4">
-            <DashboardStat value={String(countries)} label={t("desktopPanelCountriesPinned")} />
-            <DashboardStat value={String(cities)} label={t("desktopPanelCitiesPinned")} />
+            <DashboardStat
+              href={demoAllHref}
+              value={String(countries)}
+              label={t("desktopPanelCountriesPinned")}
+            />
+            <DashboardStat
+              href={demoAllHref}
+              value={String(cities)}
+              label={t("desktopPanelCitiesPinned")}
+            />
             <DashboardStat
               value={`${worldPercent}%`}
               label={t("desktopPanelWorldExplored")}
