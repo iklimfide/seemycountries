@@ -1,4 +1,3 @@
-import { BRAND } from "@/lib/constants";
 import { WORLD_COUNTRY_TOTAL, worldCoveragePercent } from "@/lib/utils/profile-page";
 import {
   getTravelerBadgeLabel,
@@ -23,6 +22,9 @@ const T = {
 } as const;
 
 const FONT = "system-ui, sans-serif";
+const SHELL_W = 560;
+const AVATAR = 112;
+const AVATAR_LEFT = (SHELL_W - AVATAR) / 2;
 
 const BADGE_STYLES: Record<
   TravelerBadgeTier,
@@ -58,21 +60,19 @@ function ProfileAvatar({
   displayName: string;
   avatarUrl: string | null;
 }) {
-  const size = 88;
-
   if (avatarUrl) {
     return (
       <img
         src={avatarUrl}
         alt=""
-        width={size}
-        height={size}
+        width={AVATAR}
+        height={AVATAR}
         style={{
-          width: `${size}px`,
-          height: `${size}px`,
-          borderRadius: "50%",
+          width: `${AVATAR}px`,
+          height: `${AVATAR}px`,
+          borderRadius: "32px",
           objectFit: "cover",
-          border: `4px solid ${T.primary}`,
+          border: "8px solid #eef3f9",
           background: T.card,
         }}
       />
@@ -82,16 +82,16 @@ function ProfileAvatar({
   return (
     <div
       style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        borderRadius: "50%",
-        border: `4px solid ${T.primary}`,
+        width: `${AVATAR}px`,
+        height: `${AVATAR}px`,
+        borderRadius: "32px",
+        border: "8px solid #eef3f9",
         background: "#dbeafe",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         fontFamily: FONT,
-        fontSize: "36px",
+        fontSize: "38px",
         fontWeight: 800,
         color: T.primary,
       }}
@@ -104,7 +104,9 @@ function ProfileAvatar({
 function TravelerBadgePill({ countryCount }: { countryCount: number }) {
   const tier = getTravelerBadgeTier(countryCount);
   const label = getTravelerBadgeLabel(countryCount);
-  if (!tier || !label) return null;
+  if (!tier || !label) {
+    return <div style={{ display: "flex", height: "8px" }} />;
+  }
 
   const theme = BADGE_STYLES[tier];
 
@@ -113,13 +115,13 @@ function TravelerBadgePill({ countryCount }: { countryCount: number }) {
       style={{
         display: "flex",
         alignItems: "center",
-        padding: "4px 12px",
+        padding: "5px 14px",
         borderRadius: "999px",
         background: theme.background,
         border: `1px solid ${theme.border}`,
         color: theme.color,
         fontFamily: FONT,
-        fontSize: "14px",
+        fontSize: "13px",
         fontWeight: 600,
       }}
     >
@@ -128,33 +130,127 @@ function TravelerBadgePill({ countryCount }: { countryCount: number }) {
   );
 }
 
+function WorldProgress({ countryCount }: { countryCount: number }) {
+  const coverage = worldCoveragePercent(countryCount);
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        background: T.soft,
+        borderRadius: "24px",
+        padding: "18px",
+        width: "100%",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          marginBottom: "10px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            fontFamily: FONT,
+            fontSize: "16px",
+            fontWeight: 800,
+            color: "#142033",
+          }}
+        >
+          World explored
+        </div>
+        <div
+          style={{
+            display: "flex",
+            fontFamily: FONT,
+            fontSize: "30px",
+            fontWeight: 900,
+            color: T.primary,
+            lineHeight: 1,
+          }}
+        >
+          {`${coverage}%`}
+        </div>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          height: "12px",
+          background: T.barTrack,
+          borderRadius: "999px",
+          overflow: "hidden",
+          marginBottom: "10px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            width: `${coverage}%`,
+            height: "100%",
+            background: T.primary,
+            borderRadius: "999px",
+          }}
+        />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          fontFamily: FONT,
+          fontSize: "14px",
+          fontWeight: 600,
+          color: T.caption,
+        }}
+      >
+        {`${countryCount} of ${WORLD_COUNTRY_TOTAL} countries pinned`}
+      </div>
+    </div>
+  );
+}
+
 function StatCounters({ stats }: { stats: TravelStats }) {
   const items = [
-    { value: stats.countries, label: "Countries" },
-    { value: stats.cities, label: "Cities" },
-    { value: stats.nationalParks, label: "Nat. parks" },
-    { value: stats.themeParks, label: "Theme parks" },
+    { value: stats.countries, label: "Country" },
+    { value: stats.cities, label: "City" },
+    { value: stats.nationalParks, label: "Nat. park" },
+    { value: stats.themeParks, label: "Theme park" },
   ];
 
   return (
-    <div style={{ display: "flex", gap: "20px" }}>
-      {items.map((item) => (
+    <div
+      style={{
+        display: "flex",
+        background: T.soft,
+        borderRadius: "24px",
+        padding: "18px 10px",
+        width: "100%",
+      }}
+    >
+      {items.map((item, index) => (
         <div
           key={item.label}
           style={{
             display: "flex",
+            flex: 1,
             flexDirection: "column",
             alignItems: "center",
+            padding: "0 4px",
+            borderRight:
+              index < items.length - 1 ? `1px solid ${T.statDivider}` : "0px solid transparent",
           }}
         >
           <div
             style={{
               display: "flex",
               fontFamily: FONT,
-              fontSize: "24px",
+              fontSize: "25px",
               fontWeight: 800,
-              color: T.text,
+              color: "#142033",
               lineHeight: 1,
+              marginBottom: "4px",
             }}
           >
             {String(item.value)}
@@ -163,9 +259,10 @@ function StatCounters({ stats }: { stats: TravelStats }) {
             style={{
               display: "flex",
               fontFamily: FONT,
-              fontSize: "13px",
+              fontSize: "12px",
               fontWeight: 600,
-              color: T.caption,
+              color: "#7b8798",
+              textAlign: "center",
             }}
           >
             {item.label}
@@ -178,7 +275,6 @@ function StatCounters({ stats }: { stats: TravelStats }) {
 
 export function ProfileCardOgLayout({
   displayName,
-  username,
   avatarUrl,
   coverUrl,
   residence,
@@ -187,201 +283,182 @@ export function ProfileCardOgLayout({
   description,
   stats,
 }: ProfileCardOgLayoutProps) {
-  const coverage = worldCoveragePercent(stats.countries);
-
   return (
     <div
       style={{
         width: "100%",
         height: "100%",
         display: "flex",
-        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
         background: T.pageBg,
         fontFamily: FONT,
       }}
     >
       <div
         style={{
-          position: "relative",
           display: "flex",
-          height: "320px",
-          width: "100%",
-          overflow: "hidden",
+          width: `${SHELL_W}px`,
+          flexDirection: "column",
         }}
       >
-        {coverUrl ? (
-          <img
-            src={coverUrl}
-            alt=""
-            width={1200}
-            height={320}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              background: T.heroGradient,
-            }}
-          />
-        )}
-        {coverUrl ? (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              background: T.heroOverlay,
-            }}
-          />
-        ) : null}
         <div
           style={{
-            position: "absolute",
-            top: "20px",
-            left: "24px",
             display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-            maxWidth: "700px",
+            position: "relative",
+            height: "210px",
+            padding: "24px 22px 78px",
+            borderRadius: "0 0 30px 30px",
+            overflow: "hidden",
+            background: T.heroGradient,
           }}
         >
-          {residence ? (
-            <div
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt=""
+              width={SHELL_W}
+              height={210}
               style={{
-                display: "flex",
-                padding: "8px 14px",
-                borderRadius: "999px",
-                background: "rgba(255, 255, 255, 0.9)",
-                color: "#17233a",
-                fontSize: "15px",
-                fontWeight: 700,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
               }}
-            >
-              {residence}
-            </div>
+            />
           ) : null}
-          <div
-            style={{
-              display: "flex",
-              fontSize: "34px",
-              fontWeight: 800,
-              color: T.card,
-              lineHeight: 1.1,
-            }}
-          >
-            {heroTitle}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              fontSize: "18px",
-              color: "rgba(255, 255, 255, 0.92)",
-              lineHeight: 1.35,
-            }}
-          >
-            {heroSubtitle}
-          </div>
-        </div>
-      </div>
-
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "24px 40px 28px",
-          background: T.card,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <ProfileAvatar displayName={displayName} avatarUrl={avatarUrl} />
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {coverUrl ? (
             <div
               style={{
-                display: "flex",
-                fontSize: "36px",
-                fontWeight: 800,
-                color: T.text,
-                lineHeight: 1.1,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                background: T.heroOverlay,
               }}
-            >
-              {displayName}
-            </div>
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <TravelerBadgePill countryCount={stats.countries} />
+            />
+          ) : null}
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              position: "relative",
+              width: "100%",
+              gap: "14px",
+            }}
+          >
+            {residence ? (
               <div
                 style={{
                   display: "flex",
-                  fontSize: "18px",
-                  color: T.primary,
-                  fontWeight: 700,
+                  alignSelf: "flex-start",
+                  alignItems: "center",
+                  padding: "10px 16px",
+                  borderRadius: "24px",
+                  background: "rgba(255, 255, 255, 0.86)",
+                  color: "#17233a",
+                  fontSize: "15px",
+                  fontWeight: 800,
                 }}
               >
-                {`${coverage}% world explored`}
+                {residence}
               </div>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: "17px",
-                color: T.muted,
-                maxWidth: "520px",
-                lineHeight: 1.4,
-              }}
-            >
-              {description}
-            </div>
-            <div style={{ display: "flex", fontSize: "16px", color: T.caption }}>
-              {`@${username}`}
+            ) : null}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", color: T.card }}>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: "34px",
+                  fontWeight: 800,
+                  lineHeight: 1.05,
+                  maxWidth: "360px",
+                }}
+              >
+                {heroTitle}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: "16px",
+                  lineHeight: 1.45,
+                  color: "rgba(255, 255, 255, 0.88)",
+                  maxWidth: "360px",
+                }}
+              >
+                {heroSubtitle}
+              </div>
             </div>
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "16px" }}>
-          <StatCounters stats={stats} />
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div
-              style={{
-                display: "flex",
-                width: "32px",
-                height: "32px",
-                borderRadius: "8px",
-                background: T.primary,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <div
-                style={{
-                  width: "10px",
-                  height: "10px",
-                  borderRadius: "50%",
-                  background: T.card,
-                }}
-              />
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: "22px",
-                fontWeight: 700,
-                color: T.text,
-              }}
-            >
-              {BRAND.name}
-            </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            marginTop: "-64px",
+            background: T.card,
+            borderRadius: "30px",
+            padding: "72px 22px 24px",
+            position: "relative",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              position: "absolute",
+              top: "-52px",
+              left: `${AVATAR_LEFT}px`,
+            }}
+          >
+            <ProfileAvatar displayName={displayName} avatarUrl={avatarUrl} />
           </div>
-          <div style={{ display: "flex", fontSize: "14px", color: T.caption }}>
-            {`${stats.countries} of ${WORLD_COUNTRY_TOTAL} countries pinned`}
+
+          <div
+            style={{
+              display: "flex",
+              fontSize: "32px",
+              fontWeight: 800,
+              color: T.text,
+              lineHeight: 1.1,
+              marginBottom: "8px",
+            }}
+          >
+            {displayName}
+          </div>
+
+          <TravelerBadgePill countryCount={stats.countries} />
+
+          <div
+            style={{
+              display: "flex",
+              marginTop: "16px",
+              marginBottom: "18px",
+              maxWidth: "460px",
+              fontSize: "17px",
+              lineHeight: 1.45,
+              color: T.muted,
+              textAlign: "center",
+            }}
+          >
+            {description}
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              gap: "18px",
+            }}
+          >
+            <WorldProgress countryCount={stats.countries} />
+            <StatCounters stats={stats} />
           </div>
         </div>
       </div>
