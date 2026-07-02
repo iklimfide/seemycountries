@@ -7,6 +7,7 @@ import { addPark } from "@/lib/client/park-actions";
 import { addWishlistCountry, removeWishlistCountry } from "@/lib/client/country-actions";
 import { useModal } from "@/components/ui/ModalProvider";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useAuthGate } from "@/components/auth/useAuthGate";
 import type { ParkVisitorState } from "@/lib/data/park-visitor-state";
 import type { ParkType } from "@/lib/data/tourist-park-search";
 
@@ -72,6 +73,7 @@ export function HubParkCardActions({
   const router = useRouter();
   const modal = useModal();
   const toast = useToast();
+  const authGate = useAuthGate();
   const [busy, setBusy] = useState(false);
   const [state, setState] = useState(initialState);
   const [liked, setLiked] = useState(false);
@@ -86,11 +88,11 @@ export function HubParkCardActions({
 
   const requireLogin = useCallback(() => {
     if (!state.isLoggedIn) {
-      router.push(loginHref);
+      authGate.requireLogin();
       return true;
     }
     return false;
-  }, [loginHref, router, state.isLoggedIn]);
+  }, [authGate, state.isLoggedIn]);
 
   async function handleBeenHere() {
     if (requireLogin() || busy) return;

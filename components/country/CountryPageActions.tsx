@@ -10,6 +10,7 @@ import {
 } from "@/lib/client/country-actions";
 import { useModal } from "@/components/ui/ModalProvider";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useAuthGate } from "@/components/auth/useAuthGate";
 import type { CountryVisitorState } from "@/lib/data/country-visitor-state";
 import { isCountryRemoveBlockedByPlacesError } from "@/lib/utils/country-remove";
 import { HubPageLikeButton } from "@/components/hub/HubPageLikeButton";
@@ -39,6 +40,7 @@ export function CountryPageActions({
   const router = useRouter();
   const modal = useModal();
   const toast = useToast();
+  const authGate = useAuthGate();
   const [busy, setBusy] = useState(false);
   const [state, setState] = useState(initialState);
 
@@ -53,7 +55,7 @@ export function CountryPageActions({
 
   async function handleVisited() {
     if (!state.isLoggedIn) {
-      router.push(loginHref);
+      authGate.requireLogin();
       return;
     }
     if (busy || visitedLocked) return;
@@ -97,7 +99,7 @@ export function CountryPageActions({
 
   async function handleWantToVisit() {
     if (!state.isLoggedIn) {
-      router.push(loginHref);
+      authGate.requireLogin();
       return;
     }
     if (busy || wishlistDisabled) return;

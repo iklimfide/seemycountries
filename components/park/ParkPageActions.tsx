@@ -6,6 +6,7 @@ import { addPark } from "@/lib/client/park-actions";
 import { addWishlistCountry, removeWishlistCountry } from "@/lib/client/country-actions";
 import { useModal } from "@/components/ui/ModalProvider";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useAuthGate } from "@/components/auth/useAuthGate";
 import type { ParkVisitorState } from "@/lib/data/park-visitor-state";
 import type { ParkType } from "@/lib/data/tourist-park-search";
 import { HubPageLikeButton } from "@/components/hub/HubPageLikeButton";
@@ -44,6 +45,7 @@ export function ParkPageActions({
   const router = useRouter();
   const modal = useModal();
   const toast = useToast();
+  const authGate = useAuthGate();
   const [busy, setBusy] = useState(false);
   const [state, setState] = useState(initialState);
 
@@ -57,7 +59,7 @@ export function ParkPageActions({
 
   async function handleBeenHere() {
     if (!state.isLoggedIn) {
-      router.push(loginHref);
+      authGate.requireLogin();
       return;
     }
     if (busy) return;
@@ -105,7 +107,7 @@ export function ParkPageActions({
 
   async function handleWantToVisit() {
     if (!state.isLoggedIn) {
-      router.push(loginHref);
+      authGate.requireLogin();
       return;
     }
     if (busy || wishlistDisabled) return;

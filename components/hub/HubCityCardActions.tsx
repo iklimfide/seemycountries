@@ -7,6 +7,7 @@ import { addCity } from "@/lib/client/city-actions";
 import { addWishlistCountry, removeWishlistCountry } from "@/lib/client/country-actions";
 import { useModal } from "@/components/ui/ModalProvider";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useAuthGate } from "@/components/auth/useAuthGate";
 import type { CityVisitorState } from "@/lib/data/city-visitor-state";
 
 type HubCityCardActionsProps = {
@@ -70,6 +71,7 @@ export function HubCityCardActions({
   const router = useRouter();
   const modal = useModal();
   const toast = useToast();
+  const authGate = useAuthGate();
   const [busy, setBusy] = useState(false);
   const [state, setState] = useState(initialState);
   const [liked, setLiked] = useState(false);
@@ -84,11 +86,11 @@ export function HubCityCardActions({
 
   const requireLogin = useCallback(() => {
     if (!state.isLoggedIn) {
-      router.push(loginHref);
+      authGate.requireLogin();
       return true;
     }
     return false;
-  }, [loginHref, router, state.isLoggedIn]);
+  }, [authGate, state.isLoggedIn]);
 
   async function handleBeenHere() {
     if (requireLogin() || busy) return;

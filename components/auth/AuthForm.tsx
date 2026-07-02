@@ -16,13 +16,20 @@ import {
 
 type AuthFormProps = {
   mode: "login" | "register";
+  next?: string;
 };
 
 type UsernameStatus = "idle" | "checking" | "available" | "taken" | "reserved" | "invalid";
 
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
 
-export function AuthForm({ mode }: AuthFormProps) {
+function sanitizeNext(next: string | undefined): string | null {
+  if (!next) return null;
+  if (next.startsWith("/")) return next;
+  return null;
+}
+
+export function AuthForm({ mode, next }: AuthFormProps) {
   const t = translateAuth;
   const tCommon = translateCommon;
   const supabase = createClient();
@@ -155,7 +162,10 @@ export function AuthForm({ mode }: AuthFormProps) {
           return;
         }
 
-        window.location.assign(await resolveAuthenticatedHomePath(supabase));
+        const safeNext = sanitizeNext(next);
+        window.location.assign(
+          safeNext ?? (await resolveAuthenticatedHomePath(supabase))
+        );
       } else {
         const parsed = loginSchema.safeParse(form);
         if (!parsed.success) {
@@ -175,7 +185,10 @@ export function AuthForm({ mode }: AuthFormProps) {
           return;
         }
 
-        window.location.assign(await resolveAuthenticatedHomePath(supabase));
+        const safeNext = sanitizeNext(next);
+        window.location.assign(
+          safeNext ?? (await resolveAuthenticatedHomePath(supabase))
+        );
       }
     } finally {
       setLoading(false);

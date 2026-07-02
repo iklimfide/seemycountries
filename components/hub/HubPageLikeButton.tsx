@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuthGate } from "@/components/auth/useAuthGate";
 
 type HubPageLikeButtonProps = {
   label: string;
@@ -35,12 +35,12 @@ export function HubPageLikeButton({
   isLoggedIn,
   disabled = false,
 }: HubPageLikeButtonProps) {
-  const router = useRouter();
+  const authGate = useAuthGate();
   const [liked, setLiked] = useState(false);
 
   function handleClick() {
     if (!isLoggedIn) {
-      router.push(loginHref);
+      authGate.requireLogin();
       return;
     }
     setLiked((current) => !current);

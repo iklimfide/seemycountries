@@ -6,6 +6,7 @@ import { addCity } from "@/lib/client/city-actions";
 import { addWishlistCountry, removeWishlistCountry } from "@/lib/client/country-actions";
 import { useModal } from "@/components/ui/ModalProvider";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useAuthGate } from "@/components/auth/useAuthGate";
 import type { CityVisitorState } from "@/lib/data/city-visitor-state";
 import { HubPageLikeButton } from "@/components/hub/HubPageLikeButton";
 
@@ -42,6 +43,7 @@ export function CityPageActions({
   const router = useRouter();
   const modal = useModal();
   const toast = useToast();
+  const authGate = useAuthGate();
   const [busy, setBusy] = useState(false);
   const [state, setState] = useState(initialState);
 
@@ -55,7 +57,7 @@ export function CityPageActions({
 
   async function handleBeenHere() {
     if (!state.isLoggedIn) {
-      router.push(loginHref);
+      authGate.requireLogin();
       return;
     }
     if (busy) return;
@@ -107,7 +109,7 @@ export function CityPageActions({
 
   async function handleWantToVisit() {
     if (!state.isLoggedIn) {
-      router.push(loginHref);
+      authGate.requireLogin();
       return;
     }
     if (busy || wishlistDisabled) return;

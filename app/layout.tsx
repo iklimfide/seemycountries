@@ -8,6 +8,7 @@ import { defaultLocale, type Locale } from "@/lib/i18n/config";
 import enMessages from "@/messages/en.json";
 import { ModalProvider } from "@/components/ui/ModalProvider";
 import { ToastProvider } from "@/components/ui/ToastProvider";
+import { AuthModalProvider } from "@/components/auth/AuthModalProvider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ClearPwaArtifacts } from "@/components/dev/ClearPwaArtifacts";
 import { OwnProfileShell } from "@/components/dashboard/OwnProfileShell";
@@ -91,7 +92,9 @@ export default async function RootLayout({
       <ThemeProvider>
         <ClearPwaArtifacts />
         <ModalProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <AuthModalProvider>{children}</AuthModalProvider>
+          </ToastProvider>
         </ModalProvider>
       </ThemeProvider>
     </NextIntlClientProvider>
